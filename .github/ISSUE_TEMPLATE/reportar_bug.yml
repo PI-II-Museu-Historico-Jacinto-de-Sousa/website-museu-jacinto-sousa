@@ -1,0 +1,47 @@
+name: Reportar bug
+description: Encontrou um erro? Detalhe aqui qual o problema
+labels:
+  - 'bug'
+body:
+  - type: markdown
+    attributes:
+      value: 
+       Obrigado por colaborar para melhoria do nosso projeto. Para reportar um erro adequadamente, por favor preencha a descrição com o máximo de detalhes. Lembrando que este é um repositório público, então não exponha nenhuma informação pessoal sua
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descreva o Erro
+      description: "Conte-nos mais sobre o problema que você está enfrentando."
+      placeholder: O que apareceu? Qual o resultado esperado?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduzir
+    attributes:
+      label: Passos para reproduzir o erro
+      description: 'Qual a sequência de passos para chegar até esse erro?'
+      placeholder: |
+        1. Ir para o link '...'
+        2. Clicar em '....'
+        3. Erro aparece
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Capturas de tela
+      description: 'Inclua capturas de tela que possam nos ajudar a entender o problema'
+
+# necessario somente no front end
+  - type: dropdown
+    id: navegador
+    attributes:
+      label: Navegador
+      description: 'Em quais navegadores você encontrou esse problema?'
+      multiple: true
+      options:
+        - Chrome
+        - Safari
+        - Firefox
+        - Edge

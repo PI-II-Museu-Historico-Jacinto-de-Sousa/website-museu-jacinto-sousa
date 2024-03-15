@@ -1,0 +1,35 @@
+name: Nova Feature
+
+description: Template para criação de uma nova feature
+
+title: "[Nome da Feature]"
+
+labels:
+  - enhancement
+
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Descrição
+      description: Descreva a feature em detalhes
+    validations:
+      required: true
+  - type: textarea
+    id: tasks
+    attributes:
+      label: Tarefas
+      description: Liste as tarefas necessárias para implementar a feature
+    validations:
+      required: true
+  - type: textarea
+    id: required_issues
+    attributes:
+      label: Issues Necessárias
+      description: Liste as issues que são necessárias para essa tarefa
+
+  - type: textarea
+    id: dependent_tasks
+    attributes:
+      label: Tarefas Dependentes
+      description: Liste as tarefas que dependem dessa feature
