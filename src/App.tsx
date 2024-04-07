@@ -1,33 +1,35 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { CssBaseline, PaletteMode, ThemeProvider, createTheme, IconButton, ThemeOptions, responsiveFontSizes} from '@mui/material'
+import { useMemo, useState } from 'react'
 import './App.css'
+import getDesignTokens from './theme/theme'
+import LightModeIcon from '@mui/icons-material/LightMode';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [mode, setMode] = useState<PaletteMode>('light'); //estado do tema escolhido 
+
+  const colorMode = useMemo( //função para mudar o tema, passada para o componente ToggleLightMode
+    () => ({
+      toggleColorMode: () => {
+        setMode((prevMode: PaletteMode) =>
+          prevMode === 'light' ? 'dark' : 'light',
+        );
+      },
+    }),
+    [],
+  );
+
+  const theme = useMemo(() => responsiveFontSizes(createTheme(getDesignTokens(mode) as ThemeOptions)), [mode]); //quando o modo selecionado muda, o tema é atualizado
 
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <ThemeProvider theme={theme}> {/*Para aplicar o tema*/}
+        <CssBaseline> {/*Para aplicar o tema escuro no plano de fundo*/}
+          <IconButton onClick={colorMode.toggleColorMode}>
+            {mode === 'dark' ? <DarkModeIcon /> : <LightModeIcon />}
+          </IconButton>
+        </CssBaseline>
+      </ThemeProvider>
     </>
   )
 }
