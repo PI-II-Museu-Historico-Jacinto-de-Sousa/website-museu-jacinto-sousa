@@ -307,18 +307,184 @@ const getDesignTokens = (mode: PaletteMode) => {
     },
     typography: {
       fontFamily: ['Roboto', 'Robot Serif'].join(','),
-      headline: {
+      displayLarge: {
+        fontFamily: "Roboto Serif",
+        fontSize: '57px',
+        fontStyle: 'normal',
+        fontWeight: '400',
+        lineHeight: '64px', /* 112.281% */
+        letterSpacing: '-0.25px',
+      },
+      displayMedium: {
+        fontFamily: "Roboto Serif",
+        fontSize: '45px',
+        fontStyle: 'normal',
+        fontWeight: '400',
+        lineHeight: '52px',
+      },
+      displaySmall: {
+        fontFamily: "Roboto Serif",
+        fontSize: '36px',
+        fontStyle: 'normal',
+        fontWeight: '400',
+        lineHeight: '44px',
+      },
+      headlineLarge: {
+        fontFamily: 'Roboto',
         fontSize: '32px',
+        fontStyle: 'normal',
+        fontWeight: '400',
+        lineHeight: '40px', 
       },
-      body: {
+      headlineMedium: {
+        fontFamily: 'Roboto',
+        fontSize: '28px',
+        fontStyle: 'normal',
+        fontWeight: '400',
+        lineHeight: '36px',
+      },
+      headlineSmall: {
+        fontFamily: 'Roboto',
         fontSize: '24px',
+        fontStyle: 'normal',
+        fontWeight: '400',
+        lineHeight: '32px', 
       },
-      label: {
-        fontSize: '20px'
+      titleLarge: {
+        fontFamily: 'Roboto',
+        fontSize: '22px',
+        fontStyle: 'normal',
+        fontWeight: '400',
+        lineHeight: '28px',
+      },
+      titleMedium: {
+        fontFamily: 'Roboto',
+        fontSize: '16px',
+        fontStyle: 'normal',
+        fontWeight: '500',
+        lineHeight: '24px', /* 150% */
+        letterspacing: '0.15px',
+      },
+      titleSmall: {
+        fontFamily: 'Roboto',
+        fontSize: '14px',
+        fontStyle: 'normal',
+        fontWeight: '500',
+        lineHeight: '20px',
+        letterspacing: '0.1px',
+      },
+      labelLarge: {
+        fontFamily: 'Roboto',
+        fontSize: '14px',
+        fontStyle: 'normal',
+        fontWeight: '500',
+        lineHeight: '20px',
+        letterspacing: '0.1px',
+      },
+      labelMedium: {
+        fontFamily: 'Roboto',
+        fontSize: '12px',
+        fontStyle: 'normal',
+        fontWeight: '500',
+        lineHeight: '16px',
+        letterspacing: '0.5px',
+      },
+      labelSmall: {
+        fontFamily: 'Roboto',
+        fontSize: '11px',
+        fontStyle: 'normal',
+        fontWeight: '500',
+        lineHeight: '16px',
+        letterspacing: '0.5px',
+      },
+      bodyLarge: {
+        fontFamily: 'Roboto',
+        fontSize: '16px',
+        fontStyle: 'normal',
+        fontWeight: '400',
+        lineHeight: '24px',
+        letterspacing: '0.5px',
+      },
+      bodyMedium: {
+        fontFamily: 'Roboto',
+        fontSize: '14px',
+        fontStyle: 'normal',
+        fontWeight: '400',
+        lineHeight: '20px',
+        letterspacing: '0.25px',
+      },
+      bodySmall: {
+        fontFamily: 'Roboto',
+        fontSize: '12px',
+        fontStyle: 'normal',
+        fontWeight: '400',
+        lineHeight: '16px',
+        letterspacing: '0.4px',
       },
     },
     
   };
 };
+
+//adicionar todas as variantes de texto nas três interfaces
+declare module '@mui/material/styles' {
+  interface TypographyVariants {
+    displayLarge: React.CSSProperties;
+    displayMedium: React.CSSProperties;
+    displaySmall: React.CSSProperties;
+    headlineLarge: React.CSSProperties;
+    headlineMedium: React.CSSProperties;
+    headlineSmall: React.CSSProperties;
+    titleLarge: React.CSSProperties;
+    titleMedium: React.CSSProperties;
+    titleSmall: React.CSSProperties;
+    tabelLarge: React.CSSProperties;
+    labelMedium: React.CSSProperties;
+    labelSmall: React.CSSProperties;
+    bodyLarge: React.CSSProperties;
+    bodyMedium: React.CSSProperties;
+    bodySmall: React.CSSProperties;
+  }
+
+  // allow configuration using `createTheme`
+  interface TypographyVariantsOptions {
+    displayLarge?: React.CSSProperties;
+    displayMedium?: React.CSSProperties;
+    displaySmall?: React.CSSProperties;
+    headlineLarge?: React.CSSProperties;
+    headlineMedium?: React.CSSProperties;
+    headlineSmall?: React.CSSProperties;
+    titleLarge?: React.CSSProperties;
+    titleMedium?: React.CSSProperties;
+    titleSmall?: React.CSSProperties;
+    labelLarge?: React.CSSProperties;
+    labelMedium?: React.CSSProperties;
+    labelSmall?: React.CSSProperties;
+    bodyLarge?: React.CSSProperties;
+    bodyMedium?: React.CSSProperties;
+    bodySmall?: React.CSSProperties;
+  }
+}
+
+// Update the Typography's variant prop options
+declare module '@mui/material/Typography' {
+  interface TypographyPropsVariantOverrides {
+    displayLarge: true;
+    displayMedium: true;
+    displaySmall: true;
+    headlineLarge: true;
+    headlineMedium: true;
+    headlineSmall: true;
+    titleLarge: true;
+    titleMedium: true;
+    titleSmall: true;
+    labelLarge: true;
+    labelMedium: true;
+    labelSmall: true;
+    bodyLarge: true;
+    bodyMedium: true;
+    bodySmall: true;
+  }
+}
 
 export default getDesignTokens

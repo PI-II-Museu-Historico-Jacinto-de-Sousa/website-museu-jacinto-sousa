@@ -1,9 +1,8 @@
 import { ThemeProvider } from '@emotion/react';
-import { PaletteMode, responsiveFontSizes, createTheme, ThemeOptions, CssBaseline} from '@mui/material';
+import { PaletteMode, responsiveFontSizes, createTheme, ThemeOptions, CssBaseline, Typography} from '@mui/material';
 import { useState, useMemo } from 'react';
 import './App.css'
 import getDesignTokens from './theme/theme';
-import ToggleLightMode from './components/ToggleLightMode';
 
 function App() {
   const [mode, setMode] = useState<PaletteMode>('light'); //estado do tema escolhido 
@@ -24,7 +23,6 @@ function App() {
           <>
               <ThemeProvider theme={theme}> {/*Para aplicar o tema*/}
                   <CssBaseline> {/*Para aplicar o tema escuro no plano de fundo*/}
-                      <ToggleLightMode colorMode={colorMode} mode={mode} /> {/*Botão para mudar o tema*/}
                   </CssBaseline>
               </ThemeProvider>
           </>
