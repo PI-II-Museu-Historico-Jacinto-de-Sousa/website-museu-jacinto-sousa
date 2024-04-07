@@ -1,11 +1,15 @@
-import { Switch, useTheme } from "@mui/material";
+import { IconButton } from "@mui/material";
+import LightModeIcon from '@mui/icons-material/LightMode';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
 
-const ToggleLightMode = ({ toggle }: { toggle: () => void }) => {
-    const theme = useTheme()
-    return (<>
-        <Switch onChange={toggle} />
-        <p>{theme.palette.mode}</p></>
-    );
+const ToggleLightMode = ({colorMode, mode}: {colorMode: any, mode: string}) => {
+    return (
+        <>
+            <IconButton onClick={colorMode.toggleColorMode}>
+            {mode === 'dark' ? <DarkModeIcon /> : <LightModeIcon/>}
+            </IconButton>
+        </>
+    )
 }
 
 export default ToggleLightMode;
