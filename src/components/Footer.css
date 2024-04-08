@@ -1,0 +1,17 @@
+#footer-content {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    display: flex;
+    width: 100%;
+    height: 9%;
+    padding: var(--space-0, 7px) var(--space-0, 148px) var(--space-0, 7px) var(--space-0, 147px);
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+    background: var(--Schemes-Outline, #85736C);
+}
+
+li {
+    list-style-type: none;
+}
