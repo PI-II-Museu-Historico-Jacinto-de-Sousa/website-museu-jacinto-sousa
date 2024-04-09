@@ -3,7 +3,6 @@ import { PaletteMode, responsiveFontSizes, createTheme, ThemeOptions, CssBaselin
 import { useState, useMemo } from 'react';
 import './App.css'
 import getDesignTokens from './theme/theme';
-import Footer from './components/Footer';
 
 function App() {
     const [mode, setMode] = useState<PaletteMode>('light'); //estado do tema escolhido 
@@ -24,7 +23,6 @@ function App() {
             <>
                 <ThemeProvider theme={theme}> {/*Para aplicar o tema*/}
                     <CssBaseline> {/*Para aplicar o tema escuro no plano de fundo*/}
-                    <Footer address='R. Autran Moreno, 202 - Centro, Quixadá - CE, 63900-105' email='museujacintosousa@gmail.com' telephone='(XX) XXXXX - XXXXX' whatsapp='(XX) XXXXX - XXXXX'/>
                     </CssBaseline>
                 </ThemeProvider>
             </>
