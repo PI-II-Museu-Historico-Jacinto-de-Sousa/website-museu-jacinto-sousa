@@ -1,0 +1,49 @@
+#nav-container {
+    position: absolute;
+    font-size: 2.5vh;
+    width: 100%;
+    height: 8.2%;
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    background: var(--Schemes-Primary, #8D4D2D);
+    top: 0;
+    transform: translateX(-50%);
+    border: 1px solid;
+}
+
+#nav-pages {
+    position: absolute;
+    width: 70%;
+    height: 100%;
+    left: 50%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: var(--space-0, 0px) 40px;
+    background: var(--Schemes-Primary, #8D4D2D);
+    transform: translateX(-50%);
+}
+
+.Nav-route {
+    list-style: none;
+    cursor: pointer;
+}
+
+#nav-options {
+    position: absolute;
+    height: 100%;
+    width: 12%;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    list-style: none;
+}
+
+.Option {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
