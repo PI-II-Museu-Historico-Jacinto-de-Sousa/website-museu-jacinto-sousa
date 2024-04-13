@@ -3,6 +3,7 @@ import { PaletteMode, responsiveFontSizes, createTheme, ThemeOptions, CssBaselin
 import { useState, useMemo } from 'react';
 import './App.css'
 import getDesignTokens from './theme/theme';
+import { BrowserRouter, Route } from 'react-router-dom';
 
 function App() {
   const [mode, setMode] = useState<PaletteMode>('light'); //estado do tema escolhido 
@@ -22,11 +23,19 @@ function App() {
       return (
           <>
               <ThemeProvider theme={theme}> {/*Para aplicar o tema*/}
-                  <CssBaseline> {/*Para aplicar o tema escuro no plano de fundo*/}
+                  <CssBaseline> 
+
+                  <BrowserRouter>
+                  
+                     <Route path="/"/>
+
+                  </BrowserRouter>
+                        
                   </CssBaseline>
               </ThemeProvider>
           </>
       );
 }
+
 
 export default App
