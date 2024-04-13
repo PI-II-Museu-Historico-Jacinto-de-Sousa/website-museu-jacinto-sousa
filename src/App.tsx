@@ -3,7 +3,9 @@ import { PaletteMode, responsiveFontSizes, createTheme, ThemeOptions, CssBaselin
 import { useState, useMemo } from 'react';
 import './App.css'
 import getDesignTokens from './theme/theme';
-import { BrowserRouter, Route } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import Home from './pages/Home';
+
 
 function App() {
   const [mode, setMode] = useState<PaletteMode>('light'); //estado do tema escolhido 
@@ -22,17 +24,20 @@ function App() {
   const theme = useMemo(() => responsiveFontSizes(createTheme(getDesignTokens(mode) as ThemeOptions)), [mode]); //quando o modo selecionado muda, o tema é atualizado
       return (
           <>
+          <BrowserRouter>
               <ThemeProvider theme={theme}> {/*Para aplicar o tema*/}
                   <CssBaseline> 
 
-                  <BrowserRouter>
-                  
-                     <Route path="/"/>
+                   
+                        <Routes>
+                      <Route path="/" Component={Home}/>
 
-                  </BrowserRouter>
+                      </Routes>
+                 
                         
                   </CssBaseline>
               </ThemeProvider>
+              </BrowserRouter>
           </>
       );
 }
