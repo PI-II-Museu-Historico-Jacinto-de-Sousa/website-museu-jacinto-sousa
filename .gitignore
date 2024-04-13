@@ -27,7 +27,3 @@ dist-ssr
 cypress/downloads
 cypress/screenshots
 cypress/videos
-
-# dotenv
-.env
-.env.test
