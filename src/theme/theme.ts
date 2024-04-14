@@ -1,8 +1,9 @@
 import { PaletteMode} from "@mui/material";
+import createTheme from "@mui/material/styles/createTheme";
 
 const getDesignTokens = (mode: PaletteMode) => {
   // ... lógica para definir cores e estilos de acordo com o modo
-  return {
+  const theme = createTheme({
     palette: {
       mode,
     ...(mode === "light"
@@ -43,8 +44,8 @@ const getDesignTokens = (mode: PaletteMode) => {
           tertiaryContainer: {
             main: "#EDE4A9"
           },
-          onTertiaryContainer: {main: 
-            "#1F1C00",
+          onTertiaryContainer: {
+            main: "#1F1C00",
           },
           error: {
             main: "#BA1A1A",
@@ -53,12 +54,12 @@ const getDesignTokens = (mode: PaletteMode) => {
             main: "#FFFFFF",
           },
           errorContainer: {
-            maiin: "#FFDAD6",
+            main: "#FFDAD6",
           },
           onErrorContainer: {
             main: "#410002",
           },
-          background: {
+          Background: {
             main: "#FFF8F6",
           },
           onBackground: {
@@ -207,7 +208,7 @@ const getDesignTokens = (mode: PaletteMode) => {
           onErrorContainer: {
             main: "#FFDAD6",
           },
-          background: {
+          Background: {
             main: "#1A120E",
           },
           onBackground: {
@@ -304,7 +305,10 @@ const getDesignTokens = (mode: PaletteMode) => {
             main: "#3D332E",
           }, 
       }),
-    },
+    }
+  });
+  return {
+    ...theme,
     typography: {
       fontFamily: ['Roboto', 'Robot Serif'].join(','),
       displayLarge: {
@@ -487,4 +491,103 @@ declare module '@mui/material/Typography' {
   }
 }
 
-export default getDesignTokens
+declare module '@mui/material/styles/createPalette' {
+  interface Palette {
+    primaryContainer: PaletteColor;
+    onPrimaryContainer: PaletteColor;
+    secondaryContainer: PaletteColor;
+    onSecondaryContainer: PaletteColor;
+    tertiary: PaletteColor;
+    tertiaryContainer: PaletteColor;
+    Background: PaletteColor;
+    onBackground: PaletteColor;
+    onTertiary: PaletteColor;
+    onTertiaryContainer: PaletteColor;
+    errorContainer: PaletteColor;
+    onError: PaletteColor;
+    onErrorContainer: PaletteColor;
+    surfaceTint: PaletteColor;
+    surfaceVariant: PaletteColor;
+    outline: PaletteColor;
+    outlineVariant: PaletteColor;
+    shadow: PaletteColor;
+    scrim: PaletteColor;
+    inverseSurface: PaletteColor;
+    inverseOnSurface: PaletteColor;
+    inversePrimary: PaletteColor;
+    primaryFixed: PaletteColor;
+    onPrimary: PaletteColor;
+    onPrimaryFixed: PaletteColor;
+    primaryFixedDim: PaletteColor;
+    onPrimaryFixedVariant: PaletteColor;
+    secondaryFixed: PaletteColor;
+    onSecondary: PaletteColor;
+    onSecondaryFixed: PaletteColor;
+    secondaryFixedDim: PaletteColor;
+    onSecondaryFixedVariant: PaletteColor;
+    tertiaryFixed: PaletteColor;
+    onTertiaryFixed: PaletteColor;
+    tertiaryFixedDim: PaletteColor;
+    onTertiaryFixedVariant: PaletteColor;
+    surface: PaletteColor;
+    onSurface: PaletteColor;
+    onSurfaceVariant: PaletteColor;
+    surfaceDim: PaletteColor;
+    surfaceBright: PaletteColor;
+    surfaceContainerLowest: PaletteColor;
+    surfaceContainerLow: PaletteColor;
+    surfaceContainer: PaletteColor;
+    surfaceContainerHigh: PaletteColor;
+    surfaceContainerHighest: PaletteColor;
+  }
+  interface PaletteOptions {
+    primaryContainer?: PaletteColorOptions;
+    onPrimaryContainer?: PaletteColorOptions;
+    Background?: PaletteColorOptions;
+    onBackground?: PaletteColorOptions;
+    secondaryContainer?: PaletteColorOptions;
+    onSecondaryContainer?: PaletteColorOptions;
+    tertiaryContainer?: PaletteColorOptions;
+    onTertiaryContainer?: PaletteColorOptions;
+    errorContainer?: PaletteColorOptions;
+    onError?: PaletteColorOptions;
+    onErrorContainer?: PaletteColorOptions;
+    surface?: PaletteColorOptions;
+    surfaceTint?: PaletteColorOptions;
+    surfaceVariant?: PaletteColorOptions;
+    outline?: PaletteColorOptions;
+    outlineVariant?: PaletteColorOptions;
+    shadow?: PaletteColorOptions;
+    scrim?: PaletteColorOptions;
+    inverseSurface?: PaletteColorOptions;
+    inverseOnSurface?: PaletteColorOptions;
+    inversePrimary?: PaletteColorOptions;
+    primaryFixed?: PaletteColorOptions;
+    onPrimary?: PaletteColorOptions;
+    onPrimaryFixed?: PaletteColorOptions;
+    primaryFixedDim?: PaletteColorOptions;
+    onPrimaryFixedVariant?: PaletteColorOptions;
+    secondaryFixed?: PaletteColorOptions;
+    onSecondary?: PaletteColorOptions;
+    onSecondaryFixed?: PaletteColorOptions;
+    secondaryFixedDim?: PaletteColorOptions;
+    onSecondaryFixedVariant?: PaletteColorOptions;
+    tertiary?: PaletteColorOptions;
+    onTertiary?: PaletteColorOptions;
+    tertiaryFixed?: PaletteColorOptions;
+    onTertiaryFixed?: PaletteColorOptions;
+    tertiaryFixedDim?: PaletteColorOptions;
+    onTertiaryFixedVariant?: PaletteColorOptions;
+    surfaceDim?: PaletteColorOptions;
+    onSurface?: PaletteColorOptions;
+    onSurfaceVariant?: PaletteColorOptions;
+    surfaceBright?: PaletteColorOptions;
+    surfaceContainerLowest?: PaletteColorOptions;
+    surfaceContainerLow?: PaletteColorOptions;
+    surfaceContainer?: PaletteColorOptions;
+    surfaceContainerHigh?: PaletteColorOptions;
+    surfaceContainerHighest?: PaletteColorOptions;
+  }
+}
+
+export default getDesignTokens;
