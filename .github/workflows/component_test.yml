@@ -1,7 +1,6 @@
 name: Component tests
 on:
   push:
-  pull_request:
 
 jobs:
   cypress-run:
@@ -13,6 +12,6 @@ jobs:
         uses: cypress-io/github-action@v6.5.0
         with:
           build: npm run build
-          start: npm run start
+          start: npm run preview
           browser: chrome
           component: true
