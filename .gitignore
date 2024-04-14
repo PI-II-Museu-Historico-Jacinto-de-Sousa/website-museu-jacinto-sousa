@@ -27,3 +27,7 @@ dist-ssr
 cypress/downloads
 cypress/screenshots
 cypress/videos
+
+# Env
+.env
+.env.test
