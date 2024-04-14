@@ -30,7 +30,7 @@ function App() {
 
                    
                         <Routes>
-                      <Route path="/" Component={Home}/>
+                      <Route path="/" element={<Home/>}/>
 
                       </Routes>
                  
