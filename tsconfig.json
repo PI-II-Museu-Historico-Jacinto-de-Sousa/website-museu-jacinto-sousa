@@ -16,10 +16,9 @@
 
     /* Linting */
     "strict": true,
-    "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"],
+  "include": ["src", "cypress.d.ts", "src/vite-env.d.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
