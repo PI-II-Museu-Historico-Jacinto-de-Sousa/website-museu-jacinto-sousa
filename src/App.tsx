@@ -3,6 +3,9 @@ import { PaletteMode, responsiveFontSizes, createTheme, ThemeOptions, CssBaselin
 import { useState, useMemo } from 'react';
 import './App.css'
 import getDesignTokens from './theme/theme';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import Home from './pages/Home';
+
 
 function App() {
       
@@ -22,13 +25,24 @@ function App() {
   const theme = useMemo(() => responsiveFontSizes(createTheme(getDesignTokens(mode) as ThemeOptions)), [mode]); //quando o modo selecionado muda, o tema é atualizado
       return (
           <>
+          <BrowserRouter>
               <ThemeProvider theme={theme}> {/*Para aplicar o tema*/}
-                  <CssBaseline> {/*Para aplicar o tema escuro no plano de fundo*/}
+                  <CssBaseline> 
+
+                   
+                        <Routes>
+                      <Route path="/" element={<Home/>}/>
+
+                      </Routes>
+                 
+                        
                   </CssBaseline>
               </ThemeProvider>
+              </BrowserRouter>
           </>
       );
       
 }
+
 
 export default App
