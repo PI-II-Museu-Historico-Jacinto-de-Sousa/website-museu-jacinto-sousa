@@ -8,6 +8,7 @@ import Home from './pages/Home';
 
 
 function App() {
+      
   const [mode, setMode] = useState<PaletteMode>('light'); //estado do tema escolhido 
 
   const colorMode = useMemo( //função para mudar o tema, passada para o componente ToggleLightMode
@@ -40,6 +41,7 @@ function App() {
               </BrowserRouter>
           </>
       );
+      
 }
 
 
