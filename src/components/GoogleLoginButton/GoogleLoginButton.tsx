@@ -1,22 +1,19 @@
-import styled from "styled-components";
-import GoogleIcon from "../img/GoogleIcon.png";
-import { Typography} from "@mui/material";
+import GoogleIcon from "../../assets/GoogleIcon.png";
+import { Button, Theme, Typography} from "@mui/material";
 import { app } from "../../../firebase/firebase";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, signInWithRedirect } from "firebase/auth";
+import { styled } from '@mui/system';
 
 const loginGoogle = async () => {
-
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
-    signInWithPopup(auth, provider)
-    .then((result) => {
+    signInWithRedirect(auth, provider).then((result) => {
+        // Redirect to Google sign-in page
         // This gives you a Google Access Token. You can use it to access the Google API.
         const credential = GoogleAuthProvider.credentialFromResult(result);
         const token = credential?.accessToken;
         // The signed-in user info.
-        const user = result.user;
         // IdP data available using getAdditionalUserInfo(result)
-        // ...
     }).catch((error) => {
         // Handle Errors here.
         const errorCode = error.code;
@@ -27,33 +24,27 @@ const loginGoogle = async () => {
         const credential = GoogleAuthProvider.credentialFromError(error);
         // ...
     });
-    
 }
 
-const GoogleLoginButton = () => {
+const MyThemeComponent = styled(Button)(({theme}: {theme: Theme}) => ({
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing(1),
+    borderRadius: '100px',
+    cursor: 'pointer',
+    backgroundColor: theme.palette.surface.main,
+    borderColor: theme.palette.outlineVariant.main,
+}));
+  
+
+const GoogleLoginButton = ({theme}: {theme: Theme}) => {
     return (
-        /*<>
-            <IconButton onClick={loginGoogle} >
-                <GoogleIcon />
-                <Typography sx={{color: 'onSurface.main'}} variant="labelMedium" >Login com Google</Typography>
-            </IconButton>
-        </>*/
-        <Button onClick={loginGoogle}>
-            <img src={GoogleIcon} alt="Google Icon" width="20px" height="20px" />
-            <Typography sx={{color: 'onTertiaryFixed.main'}} variant="labelMedium" >Login com Google</Typography>
-        </Button>
+        <MyThemeComponent theme={theme}  onClick={loginGoogle}>
+                <img src={GoogleIcon} alt="Google Icon" width='20px' height='20px' />
+                <Typography variant="bodyMedium" sx={{color: 'onSurface.main' }} >Login with Google</Typography>
+        </MyThemeComponent>
     );
 }
-
-const Button = styled.button`
-    display: flex;
-    padding: 10px 24px 10px 16px;
-    justify-content: center;
-    align-items: center;
-    flex: 1 0 0;
-    align-self: stretch;
-    border-radius: 20px;
-    background-color: #fff;
-`;
 
 export default GoogleLoginButton;
