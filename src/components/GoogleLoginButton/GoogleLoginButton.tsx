@@ -1,8 +1,9 @@
 import GoogleIcon from "../../assets/GoogleIcon.png";
-import { Button, Theme, Typography} from "@mui/material";
+import { Button, Theme, ThemeProvider, Typography, useTheme} from "@mui/material";
 import { app } from "../../../firebase/firebase";
 import { getAuth, GoogleAuthProvider, signInWithRedirect } from "firebase/auth";
 import { styled } from '@mui/system';
+import getDesignTokens from "../../theme/theme";
 
 const loginGoogle = async () => {
     const auth = getAuth(app);
@@ -38,12 +39,15 @@ const MyThemeComponent = styled(Button)(({theme}: {theme: Theme}) => ({
 }));
   
 
-const GoogleLoginButton = ({theme}: {theme: Theme}) => {
+const GoogleLoginButton = () => {
+    const theme = useTheme()
     return (
-        <MyThemeComponent theme={theme}  onClick={loginGoogle}>
+        <ThemeProvider theme={theme}>
+            <MyThemeComponent theme={theme} onClick={loginGoogle}>
                 <img src={GoogleIcon} alt="Google Icon" width='20px' height='20px' />
-                <Typography variant="bodyMedium" sx={{color: 'onSurface.main' }} >Login with Google</Typography>
-        </MyThemeComponent>
+                <Typography variant="bodyMedium" sx={{color: 'onSurface.main' }}>Login with Google</Typography>
+            </MyThemeComponent>
+        </ThemeProvider>
     );
 }
 
