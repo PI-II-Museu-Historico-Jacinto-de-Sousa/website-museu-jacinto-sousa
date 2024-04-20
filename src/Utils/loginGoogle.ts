@@ -23,12 +23,6 @@ const loginGoogle = async () => {
     });
 }
 
-const soma = () => {
-    return 1 + 1;
-}
-
-const loginMethods = {loginGoogle, 
-    soma
-};
+const loginMethods = {loginGoogle};
 
 export {loginMethods};
