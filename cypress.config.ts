@@ -13,7 +13,7 @@ export default defineConfig({
     setupNodeEvents(on, config) {
       // implement node event listeners here
     },
-    specPattern: "e2e/*.test.{js,jsx,ts,tsx}",
+    specPattern: "cypress/e2e/*.test.{js,jsx,ts,tsx}",
     baseUrl: "http://localhost:5173",
   },
 });
