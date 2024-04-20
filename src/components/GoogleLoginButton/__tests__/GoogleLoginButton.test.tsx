@@ -1,24 +1,21 @@
-import { Theme } from "@mui/material"
 import GoogleLoginButton from "../GoogleLoginButton"
+import getDesignTokens from "../../../theme/theme"
+import { ThemeProvider } from "@emotion/react"
+import {loginMethods} from "../../../Utils/loginGoogle"
 
-const buttonLoginGoogle = {
-    loginGoogle: async () => {
-        
-    }
-}
+const theme = getDesignTokens('light')
 
 describe("Testando o componente GoogleLoginButton", () => {
     it("renderiza corretamente", () => {
-        cy.mount(<GoogleLoginButton data-class-ref='button' />)
-        cy.get('button').should('exist')
+        cy.mount(<ThemeProvider theme={theme}><GoogleLoginButton data-class-ref='button' /></ThemeProvider>)
+        cy.get("[data-cy='botaoLoginGoogle']").should('exist')
     })
 
-    it("executa a função ao ser clicado", () => {
-        cy.mount(<GoogleLoginButton data-class-ref='button' />)
-        cy.spy(buttonLoginGoogle, 'loginGoogle')
-
-        cy.get('button').click().then(() => {
-            expect(buttonLoginGoogle.loginGoogle).to.be.called
+    it("Checa se a função é chamada", () => {
+        cy.mount(<ThemeProvider theme={theme}><GoogleLoginButton data-class-ref='button' /></ThemeProvider>)
+        cy.spy(loginMethods, 'loginGoogle')
+        cy.get("[data-cy='botaoLoginGoogle']").click().then(() => {
+            expect(loginMethods.loginGoogle).to.be.called  
         })
     })
 })

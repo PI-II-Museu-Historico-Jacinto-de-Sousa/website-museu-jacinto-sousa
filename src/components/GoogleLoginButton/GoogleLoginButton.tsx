@@ -1,33 +1,9 @@
+import { Button } from "@mui/material";
+import { styled, Theme } from "@mui/material/styles";
 import GoogleIcon from "../../assets/GoogleIcon.png";
-import { Button, Theme, ThemeProvider, Typography, useTheme} from "@mui/material";
-import { app } from "../../../firebase/firebase";
-import { getAuth, GoogleAuthProvider, signInWithRedirect } from "firebase/auth";
-import { styled } from '@mui/system';
-import getDesignTokens from "../../theme/theme";
-
-const loginGoogle = async () => {
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
-    signInWithRedirect(auth, provider).then((result) => {
-        // Redirect to Google sign-in page
-        // This gives you a Google Access Token. You can use it to access the Google API.
-        const credential = GoogleAuthProvider.credentialFromResult(result);
-        const token = credential?.accessToken;
-        // The signed-in user info.
-        // IdP data available using getAdditionalUserInfo(result)
-    }).catch((error) => {
-        // Handle Errors here.
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        // The email of the user's account used.
-        const email = error.customData.email;
-        // The AuthCredential type that was used.
-        const credential = GoogleAuthProvider.credentialFromError(error);
-        // ...
-    });
-}
-
-const MyThemeComponent = styled(Button)(({theme}: {theme: Theme}) => ({
+import { loginMethods } from "../../Utils/loginGoogle";
+  
+const BotaoComIcone = styled(Button)(({ theme }: { theme: Theme }) => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -36,18 +12,16 @@ const MyThemeComponent = styled(Button)(({theme}: {theme: Theme}) => ({
     cursor: 'pointer',
     backgroundColor: theme.palette.surface.main,
     borderColor: theme.palette.outlineVariant.main,
-}));
-  
+    textTransform: 'initial',
+}))
+
 
 const GoogleLoginButton = () => {
-    const theme = useTheme()
     return (
-        <ThemeProvider theme={theme}>
-            <MyThemeComponent theme={theme} onClick={loginGoogle}>
-                <img src={GoogleIcon} alt="Google Icon" width='20px' height='20px' />
-                <Typography variant="bodyMedium" sx={{color: 'onSurface.main' }}>Login with Google</Typography>
-            </MyThemeComponent>
-        </ThemeProvider>
+        <BotaoComIcone onClick={loginMethods.loginGoogle} data-cy="botaoLoginGoogle">
+            <img src={GoogleIcon} alt="Google Icon" width="20px"/>
+            Login com google
+        </BotaoComIcone>
     );
 }
 
