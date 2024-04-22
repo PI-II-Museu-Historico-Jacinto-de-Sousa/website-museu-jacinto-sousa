@@ -1,9 +1,10 @@
-import { Button, Checkbox, Container, Dialog, DialogActions, DialogContent, DialogContentText, Divider, FormControl, FormControlLabel, FormHelperText, FormLabel, InputLabel, Select, Snackbar, SnackbarProps, Stack, TextField, Tooltip, Typography, useMediaQuery } from "@mui/material";
+import { Button, Checkbox, Container, Dialog, DialogActions, DialogContent, DialogContentText, Divider, FormControl, FormControlLabel, FormHelperText, FormLabel, InputLabel, MenuItem, Select, Snackbar, SnackbarProps, Stack, TextField, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import { Theme, styled, useTheme, } from "@mui/material/styles";
 import { DesktopDatePicker, MobileDatePicker } from "@mui/x-date-pickers";
 import { Dayjs, isDayjs } from "dayjs";
-import { CollectionReference, addDoc, collection, getDocs } from "firebase/firestore";
+import { CollectionReference, DocumentReference, addDoc, collection, getDocs } from "firebase/firestore";
 import { StorageReference, deleteObject, ref, uploadBytesResumable } from "firebase/storage";
+import { MuiTelInput } from "mui-tel-input";
 import { useEffect, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { auth, db, storage } from "../../firebase/firebase";
@@ -28,13 +29,14 @@ const CriarItemAcervo = () => {
   const mobile = useMediaQuery(theme.breakpoints.down('sm'))
 
 
-  const { register, watch, control, handleSubmit, formState } = useForm<ItemAcervo>(
+  const { register, watch, control, handleSubmit, formState, reset } = useForm<ItemAcervo>(
     {
       defaultValues: {
         doacao: true,
         doacaoAnonima: false,
         privado: false,
-        colecao: ''
+        colecao: '',
+        telefoneDoador: ''
       }
     }
   )
@@ -48,6 +50,11 @@ const CriarItemAcervo = () => {
 
   const submitForm: SubmitHandler<ItemAcervo> = async (data: ItemAcervo) => {
     const itemsRef: CollectionReference = collection(db, 'acervo')
+    const dataDoacao = data.dataDoacao
+    const emptyArray: string[] = []
+    if (!dataDoacao) { //converter de undefined para null
+      data.dataDoacao = null
+    }
     try {
       const item = {
         itemName: data.nome,
@@ -60,13 +67,20 @@ const CriarItemAcervo = () => {
         itemDonorPhone: data.telefoneDoador,
         itemDonationDate: isDayjs(data.dataDoacao) ? data.dataDoacao.toDate() : data.dataDoacao,
         itemPrivate: data.privado,
-        itemImages: submitToStorage(files)
+        itemImages: emptyArray // passar um vetor vazio diretamente faz com que o tipo converta para never[]
       }
-      await addDoc(itemsRef, item)
-      setOpenDialog(isSubmitSuccessful)
+      await submitToStorage(files).then(
+        (urls: string[]) => {
+          item.itemImages = urls;
+          return addDoc(itemsRef, item)
+        }
+      ).then((document: DocumentReference) => {
+        //limpa os arquivos selecionados para uma nova adição
+        setFiles([])
+        setCurrentFiles([])
+      })
+      setOpenDialog(true)
       setDialogMessage("Item criado com sucesso")
-      //limpa os arquivos selecionados para uma nova adição
-      setFiles([])
     } catch (error) {
       console.error(error)
       setOpenDialog(true)
@@ -75,6 +89,11 @@ const CriarItemAcervo = () => {
       removeFromStorage(files)
     }
   }
+  useEffect(() => {
+    if (isSubmitSuccessful) {
+      reset()
+    }
+  }, [isSubmitSuccessful])
   /*
  envia todas as imagens passadas para o storage, retorna a lista de urls para download
  */
@@ -83,7 +102,6 @@ const CriarItemAcervo = () => {
       const urls: string[] = []
       files.forEach((file) => {
         const fileRef: StorageReference = ref(storage, 'images/' + file.name)
-        console.log(fileRef)
         uploadBytesResumable(fileRef, file).then((snapshot) => {
           urls.push(snapshot.ref.fullPath)
         })
@@ -126,7 +144,7 @@ const CriarItemAcervo = () => {
   useEffect(() => {
     for (const currentFile of currentFiles) {
       if (!files.some(f => f.name === currentFile.name)) {
-        setFiles([...files, currentFile])
+        setFiles((previousFiles) => [...previousFiles, currentFile])
       }
       else {
         setOpenDuplicateFileWarning({ ...SnackbarDuplicateFileProps, open: true, message: `${currentFile.name} já foi adicionado` })
@@ -235,10 +253,17 @@ const CriarItemAcervo = () => {
                       width: 200
                     }}
                   >
-                    {collectionList.length > 0 ?
-                      collectionList.map((collection, idx) => (
-                        <option value={collection} key={idx}>{collection}</option>))
-                      : <option value={''} disabled={true}>Falha ao carregar as coleções</option>
+                    {
+                      mobile ?
+                        collectionList.length !== 0 ?
+                          collectionList.map((collection, idx) => (
+                            <option value={collection} key={idx}>{collection}</option>))
+                          : <option value="" disabled>Falha ao carregar as coleções</option>
+                        :
+                        collectionList.length !== 0 ?
+                          collectionList.map((collection, idx) => (
+                            <MenuItem value={collection} key={idx}>{collection}</MenuItem>))
+                          : <MenuItem value="" disabled>Falha ao carregar as coleções</MenuItem>
                     }
                   </Select>
 
@@ -292,21 +317,27 @@ const CriarItemAcervo = () => {
                         helperText={errors.nomeDoador?.message}
                         label='Nome do doador'
                         variant="filled" />
-
-                      <TextField id='item-donor-phone'
+                      <Controller
                         {...register('telefoneDoador', {
-                          required: "Telefone do doador é obrigatório para doações não-anônimas"
+                          maxLength: 18, //incluindo espaços em branco e códigos de país com 3 dígitos
                         })}
-                        error={errors.telefoneDoador?.message !== undefined}
-                        helperText={errors.telefoneDoador?.message}
-                        label='Telefone'
-                        variant="filled" />
+                        control={control}
+                        render={({ field, fieldState }) => (
+                          <MuiTelInput
+                            {...field}
+                            value={field.value ?? ''}
+                            inputRef={field.ref}
+                            defaultCountry="BR"
+                            error={fieldState.invalid}
+                            helperText={fieldState.invalid ? "Telefone inválido" : ""}
+                            label='Telefone'
+                            variant="filled" />)} />
                     </>
                     :
                     ""
                   }
 
-                  {
+                  { //renderizar o DatePicker adequado para o dispositivo
                     mobile ?
                       <Controller
                         {...register('dataDoacao', {
@@ -429,7 +460,8 @@ const CriarItemAcervo = () => {
                   //a interação de fechar o card remove a imagem da lista
                   const imageFromFile = new Image()
                   imageFromFile.src = URL.createObjectURL(file)
-                  return <ImageCard HTMLImage={imageFromFile} key={idx} onClose={() => deleteFile(file)} />
+                  imageFromFile.title = file.name
+                  return <ImageCard image={imageFromFile} key={idx} onClose={() => deleteFile(file)} />
                 })
               }
             </ImagesList>
@@ -451,9 +483,10 @@ const CriarItemAcervo = () => {
 
       <Dialog
         open={open}
-        onClose={() => setOpenDialog(false)}>
+        onClose={() => setOpenDialog(false)}
+        data-cy='dialog'>
         <DialogContent>
-          <DialogContentText>
+          <DialogContentText data-cy='dialog-text'>
             {dialogMessage}
           </DialogContentText>
         </DialogContent>
