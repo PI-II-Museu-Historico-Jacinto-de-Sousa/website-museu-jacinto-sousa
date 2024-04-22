@@ -4,7 +4,7 @@ import { useState } from "react";
 
 interface ImageCardProps {
   onClose: () => void;
-  image: HTMLImageElement;
+  image: Imagem;
 }
 
 
@@ -13,16 +13,18 @@ interface ImageCardProps {
  * e remover a imagem da lista onde ela é renderizada de acordo com um método onClose.
  * Em vez de passar a url da imagem é preciso passá-la como elemento html para alterar o atributo alt
  */
-const ImageCard = ({ image: HTMLImage, onClose }: ImageCardProps) => {
+const ImageCard = ({ image, onClose }: ImageCardProps) => {
 
   const theme = useTheme()
 
   const [editing, setEditing] = useState<boolean>(false)
-  const [alt, setAlt] = useState<string>(HTMLImage.alt)
+  const [alt, setAlt] = useState<string>(image.alt)
+  const [sourceError, setSourceError] = useState<boolean>(false)
+  const src = image.src
 
-  const src = HTMLImage.src
   const toggleEditing = () => {
     setEditing(!editing)
+    image.alt = alt ? alt : ""
   }
 
   return (
@@ -33,18 +35,22 @@ const ImageCard = ({ image: HTMLImage, onClose }: ImageCardProps) => {
       padding: `${theme.spacing(0)} ${theme.spacing(0.5)}`,
       spacing: theme.spacing(0),
     }} >
-      {src ?
+      {!sourceError ?
         <>
           <CardHeader
             disableTypography //necessário para adicionar uma tipografia própria ao título
-            title={<Typography variant="labelLarge">{HTMLImage.title}</Typography>}
+            title={<Typography variant="labelLarge">{image.title}</Typography>}
             data-cy='image-card-header'
             sx={{ padding: `${theme.spacing(0)} ${theme.spacing(0.5)}`, wordBreak: 'break-word' }} //altura máxima igual a altura da linha em labelLarge
           />
-          <CardMedia image={src}
+          <CardMedia image={typeof src === 'string' ? src : URL.createObjectURL(src)}
             component="img"
             alt={alt}
             height={150}
+            onError={(e) => {
+              console.error(e.nativeEvent.type)
+              setSourceError(true)
+            }}
           />
         </>
         :
@@ -56,8 +62,6 @@ const ImageCard = ({ image: HTMLImage, onClose }: ImageCardProps) => {
           maxHeight: '70px',
           padding: `${theme.spacing(1)} ${theme.spacing(0)}`,
           display: 'inline-block',
-          // whiteSpace: 'nowrap',
-          // textOverflow: 'clip ellipsis',
           overflow: 'hidden',
         }}>
         {
@@ -68,8 +72,7 @@ const ImageCard = ({ image: HTMLImage, onClose }: ImageCardProps) => {
               maxRows={2}
               value={alt}
               onChange={(e) => {
-                HTMLImage.setAttribute('alt', e.target.value);
-                setAlt(HTMLImage.alt);
+                setAlt(e.target.value);
               }}
               data-cy="image-card-edit-textfield" />
             :
@@ -80,8 +83,8 @@ const ImageCard = ({ image: HTMLImage, onClose }: ImageCardProps) => {
               color={theme.palette.onSurface.main}
               data-cy="image-card-text"
             >
-              {HTMLImage.alt ?
-                HTMLImage.alt :
+              {image.alt ?
+                image.alt :
                 "Nenhuma descrição adicionada"}
             </Typography>
         }
