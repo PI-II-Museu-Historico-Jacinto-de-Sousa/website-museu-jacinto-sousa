@@ -2,7 +2,7 @@ import { Button, Checkbox, Container, Dialog, DialogActions, DialogContent, Dial
 import { Theme, styled, useTheme, } from "@mui/material/styles";
 import { DesktopDatePicker, MobileDatePicker } from "@mui/x-date-pickers";
 import { Dayjs, isDayjs } from "dayjs";
-import { CollectionReference, DocumentReference, addDoc, collection, getDocs } from "firebase/firestore";
+import { CollectionReference, DocumentData, DocumentReference, addDoc, collection, doc, getDocs, updateDoc } from "firebase/firestore";
 import { StorageReference, deleteObject, ref, uploadBytesResumable } from "firebase/storage";
 import { MuiTelInput } from "mui-tel-input";
 import { useEffect, useState } from "react";
@@ -11,6 +11,7 @@ import { auth, db, storage } from "../../firebase/firebase";
 import ImageCard from "../components/ImageCard/ImageCard";
 import { ItemAcervo } from "../interfaces/ItemAcervo";
 
+//altura de cada item no select
 const SELECT_MENU_ITEM_HEIGHT = 48;
 
 const CriarItemAcervo = () => {
@@ -42,21 +43,33 @@ const CriarItemAcervo = () => {
   )
 
   const { errors, isSubmitting, isSubmitSuccessful } = formState
+  //valor desses campos é observado para alterar a renderização da página
   const watchDonation = watch('doacao')
   const watchAnonymousDonation = watch('doacaoAnonima')
 
   const [open, setOpenDialog] = useState(false)
   const [dialogMessage, setDialogMessage] = useState("")
 
+  //efeito para limpar o formulário após inserir um item com sucesso
+  useEffect(() => {
+    if (isSubmitSuccessful) {
+      reset()
+    }
+  }, [isSubmitSuccessful])
+
   const submitForm: SubmitHandler<ItemAcervo> = async (data: ItemAcervo) => {
     const itemsRef: CollectionReference = collection(db, 'acervo')
+    //id usado para rollback em caso de erro
+    let createdId: string = ''
     const dataDoacao = data.dataDoacao
-    const emptyArray: string[] = []
     if (!dataDoacao) { //converter de undefined para null
       data.dataDoacao = null
     }
+    //referencias dos arquivos no storage
+    const fileReferences: string[] = images.map((image) => 'images/' + image.title)
     try {
       const item = {
+        //objeto data corresponde aos campos do formulário
         itemName: data.nome,
         itemDescription: data.descricao,
         itemCuriosities: data.curiosidades,
@@ -67,16 +80,16 @@ const CriarItemAcervo = () => {
         itemDonorPhone: data.telefoneDoador,
         itemDonationDate: isDayjs(data.dataDoacao) ? data.dataDoacao.toDate() : data.dataDoacao,
         itemPrivate: data.privado,
-        itemImages: emptyArray // passar um vetor vazio diretamente faz com que o tipo converta para never[]
+        itemImages: fileReferences // passar um vetor vazio diretamente faz com que o tipo converta para never[]
       }
-      await submitToStorage(files).then(
+      await submitToStorage(images).then(
         (urls: string[]) => {
-          item.itemImages = urls;
           return addDoc(itemsRef, item)
         }
       ).then((document: DocumentReference) => {
+        createdId = document.id
         //limpa os arquivos selecionados para uma nova adição
-        setFiles([])
+        setImages([])
         setCurrentFiles([])
       })
       setOpenDialog(true)
@@ -86,23 +99,23 @@ const CriarItemAcervo = () => {
       setOpenDialog(true)
       setDialogMessage("Erro ao criar item")
       //firebase nao possui metodo rollback, entao se o item nao for criado, mas as imagens sim, é preciso deletá-las
-      removeFromStorage(files)
+      removeFromStorage(images, createdId)
     }
   }
-  useEffect(() => {
-    if (isSubmitSuccessful) {
-      reset()
-    }
-  }, [isSubmitSuccessful])
   /*
- envia todas as imagens passadas para o storage, retorna a lista de urls para download
+ envia todas as imagens passadas para o storage, retorna a lista com o path de cada imagem
  */
-  const submitToStorage = async (files: File[]) => {
+  const submitToStorage = async (images: Imagem[]) => {
     try {
       const urls: string[] = []
-      files.forEach((file) => {
-        const fileRef: StorageReference = ref(storage, 'images/' + file.name)
-        uploadBytesResumable(fileRef, file).then((snapshot) => {
+      images.forEach((image) => {
+        const fileRef: StorageReference = ref(storage, 'images/' + image.title)
+        const metadata = {
+          customMetadata: {
+            'alt': image.alt
+          }
+        }
+        uploadBytesResumable(fileRef, image.src as File, metadata).then((snapshot) => {
           urls.push(snapshot.ref.fullPath)
         })
       });
@@ -114,21 +127,28 @@ const CriarItemAcervo = () => {
     }
   }
 
-  const removeFromStorage = (files: File[]) => {
+  //função para reverter as adições de arquivo caso a adição ao firestore falhe
+  const removeFromStorage = (images: Imagem[], id: string) => {
     try {
-      files.forEach((file) => {
-        const fileRef: StorageReference = ref(storage, 'images/' + file.name);
+      images.forEach((image) => {
+        const path = 'images/' + image.title
+        const fileRef: StorageReference = ref(storage, path);
         deleteObject(fileRef).catch((error) => {
           console.error(error);
         });
       });
+      //transforma as imagens anteriores em um vetor vazio
+      const itemRef: DocumentReference<DocumentData> = doc(collection(db, 'acervo'), id);
+      updateDoc(itemRef, { itemImages: [] }).catch((error) => {
+        console.error(error)
+      })
     } catch (error) {
       console.error(error);
     }
   };
 
   //estado para armazenar os arquivos adicionados ate o momento
-  const [files, setFiles] = useState<File[]>([]);
+  const [images, setImages] = useState<Imagem[]>([]);
   //estado com os arquivos selecionados da ultima interacao com o input
   const [currentFiles, setCurrentFiles] = useState<File[]>([])
   //estado com as configuracoes para o snackbar mostrado ao inserir um arquivo ja existente
@@ -137,14 +157,20 @@ const CriarItemAcervo = () => {
     message: ""
   })
   //função para deletar um arquivo do estado
-  const deleteFile = (file: File) => {
-    setFiles(files.filter(f => f !== file))
+  const deleteImage = (image: Imagem) => {
+    setImages(images.filter(f => f !== image))
   }
 
   useEffect(() => {
     for (const currentFile of currentFiles) {
-      if (!files.some(f => f.name === currentFile.name)) {
-        setFiles((previousFiles) => [...previousFiles, currentFile])
+      const newImage = {
+        src: currentFile,
+        title: currentFile.name,
+        alt: ""
+      }
+      //se já houver uma imagem para o mesmo arquivo
+      if (!images.some(f => f.title === newImage.title)) {
+        setImages((previousFiles) => [...previousFiles, newImage])
       }
       else {
         setOpenDuplicateFileWarning({ ...SnackbarDuplicateFileProps, open: true, message: `${currentFile.name} já foi adicionado` })
@@ -253,7 +279,7 @@ const CriarItemAcervo = () => {
                       width: 200
                     }}
                   >
-                    {
+                    { /* MenuItem não é compatível com dispositivos móveis, por isso option é usado*/
                       mobile ?
                         collectionList.length !== 0 ?
                           collectionList.map((collection, idx) => (
@@ -455,13 +481,8 @@ const CriarItemAcervo = () => {
             <ImagesList data-cy='images-section'>
               { //renderiza um card com a opção de remover e
                 //adicionar e alterar texto alternativo para cada imagem
-                Array.from(files ?? []).map((file: File, idx: number) => {
-                  //cria uma nova imagem que não é renderizada no DOM inicialmente,
-                  //a interação de fechar o card remove a imagem da lista
-                  const imageFromFile = new Image()
-                  imageFromFile.src = URL.createObjectURL(file)
-                  imageFromFile.title = file.name
-                  return <ImageCard image={imageFromFile} key={idx} onClose={() => deleteFile(file)} />
+                Array.from(images ?? []).map((imagem: Imagem, idx: number) => {
+                  return <ImageCard image={imagem} key={idx} onClose={() => deleteImage(imagem)} />
                 })
               }
             </ImagesList>
@@ -480,7 +501,7 @@ const CriarItemAcervo = () => {
           </Button>
         </Submit>
       </form>
-
+      {/*dialog que aparece ao enviar o formulário, com a mensagem de sucesso ou erro*/}
       <Dialog
         open={open}
         onClose={() => setOpenDialog(false)}
