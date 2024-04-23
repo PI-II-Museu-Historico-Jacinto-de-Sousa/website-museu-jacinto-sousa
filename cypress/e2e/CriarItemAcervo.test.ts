@@ -1,10 +1,3 @@
-// import app from "../../firebase/firebase";
-// import { initializeTestApp } from "firebase/rules-unit-testing";
-// let firebaseTestEnv = await initializeTestApp({
-//   projectId: "test-project",
-//   auth: { uid: "test-user" },
-// });
-
 describe("Renderizar página de criar item do acervo", () => {
   beforeEach(() => {
     cy.visit("http://localhost:5173/acervo/criar-item");

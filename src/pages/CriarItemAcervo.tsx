@@ -270,6 +270,7 @@ const CriarItemAcervo = () => {
                 render={({ field }) => (
                   <Select
                     id='collection-select'
+                    label='Seleção de coleção'
                     labelId="collection-select-label"
                     native={mobile}
                     {...field}

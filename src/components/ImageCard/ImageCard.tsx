@@ -1,11 +1,12 @@
 import { Button, Card, CardActions, CardContent, CardHeader, CardMedia, TextField, Typography, useTheme } from "@mui/material";
-import { useState } from "react";
-
+import { useEffect, useState } from "react";
+import { auth } from "../../../firebase/firebase"
 
 interface ImageCardProps {
-  onClose: () => void;
+  onClose?: () => void;
   image: Imagem;
 }
+
 
 
 /**
@@ -14,9 +15,16 @@ interface ImageCardProps {
  * Em vez de passar a url da imagem é preciso passá-la como elemento html para alterar o atributo alt
  */
 const ImageCard = ({ image, onClose }: ImageCardProps) => {
+  //função padrão que apenas remove o card da tela
+  const defaultOnClose = () => {
+    document.getElementById(['image-card', image.title].join('-'))?.remove()
+  }
+
+  onClose = onClose !== undefined ? onClose : defaultOnClose
 
   const theme = useTheme()
 
+  const [editable, setEditable] = useState<boolean>(false)
   const [editing, setEditing] = useState<boolean>(false)
   const [alt, setAlt] = useState<string>(image.alt)
   const [sourceError, setSourceError] = useState<boolean>(false)
@@ -26,15 +34,25 @@ const ImageCard = ({ image, onClose }: ImageCardProps) => {
     setEditing(!editing)
     image.alt = alt ? alt : ""
   }
+  useEffect(() => {
+    auth.onAuthStateChanged((user) => {
+      console.log(user)
+      if (user) {
+        setEditable(true)
+      }
+    })
+  })
 
   return (
-    <Card sx={{
-      maxWidth: 200,
-      maxHeight: 350,
-      backgroundColor: theme.palette.surface.main,
-      padding: `${theme.spacing(0)} ${theme.spacing(0.5)}`,
-      spacing: theme.spacing(0),
-    }} >
+    <Card
+      id={['image-card', image.title].join('-')}
+      sx={{
+        maxWidth: 200,
+        maxHeight: 350,
+        backgroundColor: theme.palette.surface.main,
+        padding: `${theme.spacing(0)} ${theme.spacing(0.5)}`,
+        spacing: theme.spacing(0),
+      }} >
       {!sourceError ?
         <>
           <CardHeader
@@ -89,29 +107,32 @@ const ImageCard = ({ image, onClose }: ImageCardProps) => {
             </Typography>
         }
       </CardContent>
-      <CardActions
-        sx={{
-          justifyContent: 'space-between',
-          height: '50px',
-          padding: `${theme.spacing(0)} ${theme.spacing(0)}`,
-        }}
-      >
-        <Button
-          style={{ color: theme.palette.primary.main, textTransform: 'initial' }}
-          onClick={toggleEditing}
-          data-cy="image-card-edit-button">
-          {editing ?
-            'Confirmar' :
-            'Editar descrição da imagem'
-          }
-        </Button>
-        <Button
-          style={{ color: theme.palette.secondary.main, textTransform: 'initial' }}
-          onClick={onClose}
-          data-cy="image-card-remove-button">
-          Remover
-        </Button>
-      </CardActions>
+      {editable ?
+        <CardActions
+          sx={{
+            justifyContent: 'space-between',
+            height: '50px',
+            padding: `${theme.spacing(0)} ${theme.spacing(0)}`,
+          }}
+        >
+          <Button
+            style={{ color: theme.palette.primary.main, textTransform: 'initial' }}
+            onClick={toggleEditing}
+            data-cy="image-card-edit-button">
+            {editing ?
+              'Confirmar' :
+              'Editar descrição da imagem'
+            }
+          </Button>
+          <Button
+            style={{ color: theme.palette.secondary.main, textTransform: 'initial' }}
+            onClick={onClose}
+            data-cy="image-card-remove-button">
+            Remover
+          </Button>
+        </CardActions>
+        : ""
+      }
     </Card >
   );
 }
