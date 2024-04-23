@@ -36,7 +36,6 @@ const ImageCard = ({ image, onClose }: ImageCardProps) => {
   }
   useEffect(() => {
     auth.onAuthStateChanged((user) => {
-      console.log(user)
       if (user) {
         setEditable(true)
       }
