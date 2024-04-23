@@ -84,6 +84,7 @@ const CriarItemAcervo = () => {
       }
       await submitToStorage(images).then(
         (urls: string[]) => {
+          console.info(urls)
           return addDoc(itemsRef, item)
         }
       ).then((document: DocumentReference) => {
