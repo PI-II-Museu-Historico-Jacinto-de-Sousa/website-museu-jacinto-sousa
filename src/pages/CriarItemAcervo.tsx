@@ -16,11 +16,15 @@ const SELECT_MENU_ITEM_HEIGHT = 48;
 
 const CriarItemAcervo = () => {
 
-  auth.onAuthStateChanged((user) => {
-    if (!user) {
-      //TODO: redirecionar para a página de erro 403
-      return <h2>Erro: você não tem permissão para acessar essa página</h2>
-    }
+  //adicionando estado para verificar se o usuário está logado
+  const [logged, setLogged] = useState<boolean>(false)
+  //alterando o estado de logged ao verificar se o usuário está logado
+  useEffect(() => {
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        setLogged(true)
+      }
+    })
   })
 
   const theme = useTheme()
@@ -28,7 +32,6 @@ const CriarItemAcervo = () => {
 
   //query que verifica se a resolução for menor que 600px
   const mobile = useMediaQuery(theme.breakpoints.down('sm'))
-
 
   const { register, watch, control, handleSubmit, formState, reset } = useForm<ItemAcervo>(
     {
@@ -104,8 +107,8 @@ const CriarItemAcervo = () => {
     }
   }
   /*
- envia todas as imagens passadas para o storage, retorna a lista com o path de cada imagem
- */
+  envia todas as imagens passadas para o storage, retorna a lista com o path de cada imagem
+  */
   const submitToStorage = async (images: Imagem[]) => {
     try {
       const urls: string[] = []
@@ -198,6 +201,21 @@ const CriarItemAcervo = () => {
       return setCollectionList(collections || []);
     });
   }, []);
+
+  if (!logged) {
+    return (
+      <Content>
+        <Heading>
+          <Typography variant="displayLarge" color={palette.onSurface.main} alignSelf={'stretch'}>
+            Acesso negado
+          </Typography>
+          <Typography variant="headlineSmall" color={palette.onSurface.main} alignSelf={'stretch'}>
+            Você precisa estar logado para acessar essa página
+          </Typography>
+        </Heading>
+      </Content>
+    )
+  }
 
   return (
     <Content>
