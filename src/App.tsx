@@ -5,6 +5,7 @@ import './App.css'
 import getDesignTokens from './theme/theme';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
+import ScrollToTop from './components/ScrollToTop/ScrollToTop';
 
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
                       <Route path="/" element={<Home/>}/>
 
                       </Routes>
+                      <ScrollToTop/>
                  
                         
                   </CssBaseline>
