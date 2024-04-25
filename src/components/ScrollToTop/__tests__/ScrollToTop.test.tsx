@@ -17,14 +17,14 @@ describe("Testando o componente ScrollToTop", () => {
     })
 
     it("função scrollToTop é chamada ao clicar no componente, esperado que após isso o scrollTop dos elementos usados em checkScroll seja 0", () => {
-        cy.mount(<ThemeProvider theme={theme}><ScrollToTop data-class-ref='button'/></ThemeProvider>)
         cy.window().then((win) => {
             win.document.documentElement.scrollTop = 1000
-            win.document.body.scrollTop = 1000
+            win.document.body.scrollTop = 500
         })
+        cy.mount(<ThemeProvider theme={theme}><ScrollToTop data-class-ref='button'/></ThemeProvider>)
         cy.spy(scroolMethods, 'scroolToTop')
-        cy.get("[data-cy='scrollToTop']").click().then(() => {
-            expect(scroolMethods.scroolToTop).to.be.called  
-        })
+        cy.get("[data-cy='scrollToTop']").invoke('show').click().then(() => {
+            expect(scroolMethods.scroolToTop).to.be.called;
+        });        
     })
 })

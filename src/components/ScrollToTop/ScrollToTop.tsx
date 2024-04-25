@@ -30,7 +30,7 @@ const ScrollToTop = () => {
     return (
         <BotaoComIcone 
             onClick={scroolMethods.scroolToTop}
-            style={{ visibility: visible ? 'visible' : 'hidden' }}
+            style={{ display: visible ? 'flex' : 'none'}}
             data-cy="scrollToTop"
             ariel-label="Voltar ao topo"
         >
