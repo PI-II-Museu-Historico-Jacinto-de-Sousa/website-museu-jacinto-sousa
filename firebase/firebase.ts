@@ -1,7 +1,8 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
+import { connectAuthEmulator, getAuth } from "firebase/auth";
+import firebase from "firebase/compat/app";
+import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
+import { connectStorageEmulator, getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -11,10 +12,19 @@ const firebaseConfig = {
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
-
-const app = initializeApp(firebaseConfig);
+//inicializando app apenas uma vez
+const app = !firebase.apps.length
+  ? initializeApp(firebaseConfig)
+  : firebase.app();
 const db = getFirestore(app);
 const storage = getStorage(app);
 const auth = getAuth(app);
+
+if (import.meta.env.MODE === "development") {
+  console.log("usando emuladores");
+  connectFirestoreEmulator(db, "127.0.0.1", 8080);
+  connectAuthEmulator(auth, "http://127.0.0.1:9099");
+  connectStorageEmulator(storage, "127.0.0.1", 9199);
+}
 
 export { app, auth, db, storage };
