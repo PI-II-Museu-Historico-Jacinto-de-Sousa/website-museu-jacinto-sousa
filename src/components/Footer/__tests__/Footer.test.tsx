@@ -19,7 +19,7 @@ describe("Testando componente Footer", () =>{
     it("renderiza corretamente", () =>{
         cy.mount(
             <ThemeProvider theme={theme}>
-                <Footer address="Rua example, number 999" email="example.gmail.com" telephone="99999-9999" whatsapp="(88) 99999-9999"></Footer>
+                <Footer></Footer>
             </ThemeProvider>
         )
 

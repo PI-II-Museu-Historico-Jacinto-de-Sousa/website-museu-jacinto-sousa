@@ -5,6 +5,7 @@ import './App.css'
 import getDesignTokens from './theme/theme';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
+import Footer from './components/Footer/Footer';
 
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
 
                       </Routes>
                  
+                    <Footer/>
                         
                   </CssBaseline>
               </ThemeProvider>

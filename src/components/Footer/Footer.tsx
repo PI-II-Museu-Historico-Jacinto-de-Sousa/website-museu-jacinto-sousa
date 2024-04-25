@@ -2,59 +2,105 @@ import PhoneIcon from '@mui/icons-material/Phone'
 import WhatsAppIcon from '@mui/icons-material/WhatsApp'
 import EmailIcon from '@mui/icons-material/Email'
 import PlaceIcon from '@mui/icons-material/Place'
-import { Theme, styled, useMediaQuery} from '@mui/material'
+import { Theme, styled } from '@mui/material'
 import { getAuth } from 'firebase/auth'
 import { app } from '../../../firebase/firebase'
 import { useEffect, useState } from 'react'
-import { ThemeContext, useTheme } from '@emotion/react'
+import { collection, doc, getDocs, getFirestore, setDoc } from 'firebase/firestore'
 
-const Footer = ({ telephone, whatsapp, email, address }: { telephone: string, whatsapp: string, email: string, address: string }) => {
-    const [applyEdit, setApplyEdit] = useState(false)
+interface IFooterData{
+    telephone: string,
+    whatsapp: string,
+    email: string,
+    address: string
+}
+
+const Footer = () => {
+
+    //states of component
+
+    const [edit, setEdit] = useState(false)
+
+    const [logged, setLogged] = useState(false)
     
-    const [telephoneEditable, setTelephoneEditable] = useState("")
-    const [whatsappEditable, setWhatsappEditable] = useState("")
-    const [emailEditable, setEmailEditable] = useState("")
-    const [addressEditable, setAddressEditable] = useState("")
+    const [footerData, setFooterData] = useState<IFooterData>({
+        telephone: '',
+        whatsapp: '',
+        email: '',
+        address: ''
+    })
 
     const [newTelephone, setNewTelephone] = useState("")
     const [newWhatsapp, setNewWhatsapp] = useState("")
     const [newEmail, setNewEmail] = useState("")
     const [newAddress, setNewAddress] = useState("")
 
-    useEffect(() =>{
-        setTelephoneEditable(telephone)
-        setWhatsappEditable(whatsapp)
-        setEmailEditable(email)
-        setAddressEditable(address)
-    }, [])
-
-    const startEdition = () =>{
-        setNewTelephone(telephoneEditable)
-        setNewWhatsapp(whatsappEditable)
-        setNewEmail(emailEditable)
-        setNewAddress(addressEditable)
-
-        setApplyEdit(true)
+    const startEdit = () =>{
+        setEdit(true)
     }
     
-    const endEdition = () =>{
-        setTelephoneEditable(newTelephone)
-        setWhatsappEditable(newWhatsapp)
-        setEmailEditable(newEmail)
-        setAddressEditable(newAddress)
-
-        setApplyEdit(false)
+    const cancelEdit = () =>{
+        setEdit(false)
     }
 
-    const auth = getAuth(app)
+    const applyEdit = async () =>{
+        setFooterData({
+            telephone: newTelephone,
+            whatsapp: newWhatsapp,
+            email: newEmail,
+            address: newAddress
+        })
+
+        submitToFirestore()
+
+        setEdit(false)
+    }
+
+    //comunicate with firestore
+    
+    const getCollection = async () =>{
+        try {
+            const db = getFirestore()
+            const queryFooter = collection(db, "informações-museu")
+            const collections = await getDocs(queryFooter)
+            const data = collections.docs.map(doc => doc.data())[0]
+            setFooterData(data as IFooterData)
+        } 
+        catch(error){
+            console.log(error)
+        }
+    }
+    
+    const submitToFirestore = async () =>{
+        console.log(footerData)
+        try{
+            const db = getFirestore()
+            await setDoc(doc(db, "informações-museu", "footer"), footerData)
+        }
+        catch(error){
+            console.log(error)
+        }
+    }
+    
+    //render time
+    
+    useEffect(() => {
+        const auth = getAuth(app)
+    
+        auth.onAuthStateChanged((user) => {
+            setLogged(user ? true : false)
+        })
+
+        getCollection()
+    }, [])
     
     return (
-        <>
-            { applyEdit ?
+        <FooterContainer>
+            { edit ?
             
             // component apply to edition
 
-            <FooterContainer>
+            <>
                 <FooterContent>
                     <FooterItem>
                         <PhoneIcon sx={{fontSize: '3vh', marginRight: '1vw'}}/>
@@ -78,56 +124,56 @@ const Footer = ({ telephone, whatsapp, email, address }: { telephone: string, wh
                 </FooterContent>
 
                 <FooterEditable>
-                    <EditableButton onClick={() => endEdition()}><strong>(Salvar)</strong></EditableButton>
+                    <EditableButton onClick={() => applyEdit()}><strong>(Salvar)</strong></EditableButton>
 
-                    <EditableButton onClick={() => setApplyEdit(false)}><strong>(Cancelar)</strong></EditableButton>
+                    <EditableButton onClick={() => cancelEdit()}><strong>(Cancelar)</strong></EditableButton>
                 </FooterEditable>
-            </FooterContainer>
+            </>
 
             :
 
             // component out of edition
             
-            <FooterContainer>
+            <>
                 <FooterContent>
                     <FooterItem>
                         <PhoneIcon sx={{fontSize: '3vh', marginRight: '1vw'}}/>
-                        {telephoneEditable}
+                        {footerData.telephone}
                     </FooterItem>
 
                     <FooterItem>
                         <WhatsAppIcon sx={{fontSize: '3vh', marginRight: '1vw'}} />
-                        {whatsappEditable}
+                        {footerData.whatsapp}
                     </FooterItem>
 
                     <FooterItem>
                         <EmailIcon sx={{fontSize: '3vh', marginRight: '1vw'}} />
-                        {emailEditable}
+                        {footerData.email}
                     </FooterItem>
 
                     <FooterItem>
                         <PlaceIcon sx={{fontSize: '3vh', marginRight: '1vw'}} />
-                        {addressEditable}
+                        {footerData.address}
                     </FooterItem>
                 </FooterContent>
 
                 {
-                    auth.currentUser ?
+                    logged ?
 
                     <FooterEditable>
-                        <EditableButton onClick={() => startEdition()}><strong>(Editar)</strong></EditableButton>
+                        <EditableButton onClick={() => startEdit()}><strong>(Editar)</strong></EditableButton>
                     </FooterEditable>
                     :
                     ''
                 }
 
-            </FooterContainer>
+            </>
             }
-        </>
+        </ FooterContainer>
     )
 }
 
-const FooterContainer = styled('div')(({theme}: {theme:Theme}) =>({
+const FooterContainer = styled('footer')(({theme}: {theme:Theme}) =>({
     position: 'absolute',
     height: 'fit-content',
     width: '100%',
