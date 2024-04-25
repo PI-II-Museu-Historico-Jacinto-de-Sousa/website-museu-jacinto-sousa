@@ -5,4 +5,6 @@ const scroolToTop = () => {
     });
 }
 
-export default scroolToTop; 
+const scroolMethods = {scroolToTop}
+
+export {scroolMethods}

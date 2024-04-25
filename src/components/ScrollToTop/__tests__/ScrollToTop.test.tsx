@@ -1,7 +1,8 @@
 import ScrollToTop from "../ScrollToTop";
 import getDesignTokens from "../../../theme/theme";
-import scroolToTop from "../../../Utils/scroolToTop";
+import { scroolMethods } from "../../../Utils/scroolToTop";
 import { ThemeProvider } from "@emotion/react"
+import { IconButton } from "@mui/material";
 
 const theme = getDesignTokens('light')
 
@@ -11,21 +12,19 @@ describe("Testando o componente ScrollToTop", () => {
             win.document.documentElement.scrollTop = 1000
             win.document.body.scrollTop = 1000
         })
-        cy.mount(<ThemeProvider theme={theme}>
-            <ScrollToTop data-class-ref='button'/>
-        </ThemeProvider>)
+        cy.mount(<ThemeProvider theme={theme}><ScrollToTop data-class-ref='button' /></ThemeProvider>)
         cy.get("[data-cy='scrollToTop']").should('exist')
     })
 
     it("função scrollToTop é chamada ao clicar no componente, esperado que após isso o scrollTop dos elementos usados em checkScroll seja 0", () => {
+        cy.mount(<ThemeProvider theme={theme}><ScrollToTop data-class-ref='button'/></ThemeProvider>)
         cy.window().then((win) => {
             win.document.documentElement.scrollTop = 1000
             win.document.body.scrollTop = 1000
         })
-        cy.mount(<ThemeProvider theme={theme}><ScrollToTop data-class-ref='button'/></ThemeProvider>)
-        cy.spy(scroolToTop)
+        cy.spy(scroolMethods, 'scroolToTop')
         cy.get("[data-cy='scrollToTop']").click().then(() => {
-            expect(scroolToTop).to.be.called  
+            expect(scroolMethods.scroolToTop).to.be.called  
         })
     })
 })
