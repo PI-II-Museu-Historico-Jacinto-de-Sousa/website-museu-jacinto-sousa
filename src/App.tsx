@@ -8,6 +8,8 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import CriarItemAcervo from './pages/CriarItemAcervo';
 import Home from './pages/Home';
 import getDesignTokens from './theme/theme';
+import Footer from './components/Footer/Footer';
+
 
 function App() {
 
@@ -35,6 +37,7 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/acervo/criar-item" element={<CriarItemAcervo />} />
               </Routes>
+              <Footer/>
             </LocalizationProvider>
           </CssBaseline>
         </ThemeProvider>
