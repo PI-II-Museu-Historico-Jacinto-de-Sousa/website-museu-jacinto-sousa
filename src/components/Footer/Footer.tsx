@@ -24,46 +24,57 @@ const Footer = () => {
     const [logged, setLogged] = useState(false)
     
     const [footerData, setFooterData] = useState<IFooterData>({
-        telephone: '',
-        whatsapp: '',
+        address: '',
         email: '',
-        address: ''
+        telephone: '',
+        whatsapp: ''
     })
 
-    const [newTelephone, setNewTelephone] = useState("")
-    const [newWhatsapp, setNewWhatsapp] = useState("")
-    const [newEmail, setNewEmail] = useState("")
-    const [newAddress, setNewAddress] = useState("")
+    const [newTelephone, setNewTelephone] = useState(footerData.telephone)
+    const [newWhatsapp, setNewWhatsapp] = useState(footerData.whatsapp)
+    const [newEmail, setNewEmail] = useState(footerData.email)
+    const [newAddress, setNewAddress] = useState(footerData.address)
 
     const startEdit = () =>{
+        setNewTelephone(footerData.telephone)
+        setNewWhatsapp(footerData.whatsapp)
+        setNewEmail(footerData.email)
+        setNewAddress(footerData.address)
+
         setEdit(true)
     }
     
     const cancelEdit = () =>{
         setEdit(false)
     }
-
+    
     const applyEdit = async () =>{
-        setFooterData({
-            telephone: newTelephone,
-            whatsapp: newWhatsapp,
+        const newFooterData = {
+            address: newAddress,
             email: newEmail,
-            address: newAddress
-        })
-
-        submitToFirestore()
-
-        setEdit(false)
+            telephone: newTelephone,
+            whatsapp: newWhatsapp
+        }
+        
+        console.log(newFooterData)
+        try{
+            await submitToFirestore(newFooterData)
+            setEdit(false)
+        }
+        catch(error){
+            console.log(error)
+        }
     }
 
     //comunicate with firestore
     
-    const getCollection = async () =>{
+    const getFooterData = async () =>{
         try {
             const db = getFirestore()
             const queryFooter = collection(db, "informações-museu")
             const collections = await getDocs(queryFooter)
             const data = collections.docs.map(doc => doc.data())[0]
+
             setFooterData(data as IFooterData)
         } 
         catch(error){
@@ -71,11 +82,12 @@ const Footer = () => {
         }
     }
     
-    const submitToFirestore = async () =>{
-        console.log(footerData)
+    const submitToFirestore = async (newFooterData: IFooterData) =>{
         try{
             const db = getFirestore()
-            await setDoc(doc(db, "informações-museu", "footer"), footerData)
+            await setDoc(doc(db, "informações-museu", "footer"), newFooterData)
+
+            setFooterData(newFooterData)
         }
         catch(error){
             console.log(error)
@@ -86,12 +98,12 @@ const Footer = () => {
     
     useEffect(() => {
         const auth = getAuth(app)
-    
+        
         auth.onAuthStateChanged((user) => {
             setLogged(user ? true : false)
         })
-
-        getCollection()
+        
+        getFooterData()
     }, [])
     
     return (
