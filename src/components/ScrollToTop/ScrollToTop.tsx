@@ -1,8 +1,8 @@
 import { styled, Theme } from "@mui/material/styles";
-import { IconButton, Button } from '@mui/material';
+import { Button } from '@mui/material';
 import { useEffect, useState } from 'react';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import {scroolMethods} from "../../Utils/scroolToTop"; // Corrigido o nome do utilitário
+import {scrollMethods} from "../../Utils/scrollToTop"; // Corrigido o nome do utilitário
 
 const ScrollToTop = () => {
     const [visible, setVisible] = useState(false);
@@ -29,10 +29,10 @@ const ScrollToTop = () => {
       
     return (
         <BotaoComIcone 
-            onClick={scroolMethods.scroolToTop}
+            onClick={scrollMethods.scrollToTop}
             style={{ display: visible ? 'flex' : 'none'}}
             data-cy="scrollToTop"
-            ariel-label="Voltar ao topo"
+            aria-label="Voltar ao topo"
         >
             <ExpandLessIcon />
         </BotaoComIcone>
@@ -41,6 +41,9 @@ const ScrollToTop = () => {
 
 const BotaoComIcone = styled(Button)(({ theme }: { theme: Theme }) => ({
     position: 'fixed',
+    width: '48px',
+    height: '48px',
+    borderRadius: '100px',
     bottom: theme.spacing(2),
     right: theme.spacing(2),
     backgroundColor: theme.palette.primary.main,
