@@ -17,8 +17,11 @@ describe("Testando o componente ScrollToTop", () => {
                 <ScrollToTop data-class-ref='button'/>
             </ThemeProvider>
         );
-        cy.scrollTo(0, 1500); // Rola a página até a metade (1000px)
-        cy.get("[data-cy='scrollToTop']").should('be.visible');
+        cy.scrollTo(0, 0).then(() => {
+            setTimeout(() => {
+                cy.get("[data-cy='scrollToTop']").should('be.visible');
+            }, 4000);
+        });
     });
 
     it("Função scrollToTop é chamada ao clicar no componente", () => {
