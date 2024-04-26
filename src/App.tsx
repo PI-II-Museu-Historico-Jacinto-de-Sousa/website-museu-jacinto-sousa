@@ -9,7 +9,7 @@ import CriarItemAcervo from './pages/CriarItemAcervo';
 import Home from './pages/Home';
 import getDesignTokens from './theme/theme';
 import Footer from './components/Footer/Footer';
-
+import ScrollToTop from './components/ScrollToTop/ScrollToTop';
 
 function App() {
 
@@ -38,6 +38,7 @@ function App() {
                 <Route path="/acervo/criar-item" element={<CriarItemAcervo />} />
               </Routes>
               <Footer/>
+              <ScrollToTop/>
             </LocalizationProvider>
           </CssBaseline>
         </ThemeProvider>
