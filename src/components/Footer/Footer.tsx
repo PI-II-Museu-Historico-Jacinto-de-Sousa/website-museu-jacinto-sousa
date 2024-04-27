@@ -186,6 +186,7 @@ const Footer = () => {
 }
 
 const FooterContainer = styled('footer')(({ theme }: { theme: Theme }) => ({
+  marginTop: 'auto',
   height: 'fit-content',
   width: '100%',
   display: 'flex',
