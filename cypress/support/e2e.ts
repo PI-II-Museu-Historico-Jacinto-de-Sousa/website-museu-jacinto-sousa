@@ -14,7 +14,10 @@
 // ***********************************************************
 
 // Import commands.js using ES2015 syntax:
+import { connectAuthEmulator, getAuth } from "firebase/auth";
 import firebase from "firebase/compat/app";
+import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
+import { connectStorageEmulator, getStorage } from "firebase/storage";
 import "firebase/compat/auth";
 import "firebase/compat/database";
 import "firebase/compat/firestore";
@@ -30,6 +33,8 @@ const firebaseConfig = {
 };
 //inicializando app do firebase para os testes
 firebase.initializeApp(firebaseConfig);
-//unico serviço utilizado diretamente pela sdk de admin, os outros são utilizados no servidor de desenvolvimento
-firebase.auth().useEmulator("http://127.0.0.1:9099");
+//utilizando emuladores
+connectFirestoreEmulator(getFirestore(), "127.0.0.1", 8080);
+connectAuthEmulator(getAuth(), "http://127.0.0.1:9099");
+connectStorageEmulator(getStorage(), "127.0.0.1", 9199);
 attachCustomCommands({ Cypress, cy, firebase });
