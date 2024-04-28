@@ -107,7 +107,7 @@ const Footer = () => {
   }, [])
 
   return (
-    <FooterContainer>
+    <FooterContainer data-cy='footer-container'>
       {edit ?
 
         // component apply to edition
