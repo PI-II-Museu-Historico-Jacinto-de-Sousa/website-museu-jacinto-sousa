@@ -30,5 +30,6 @@ const firebaseConfig = {
 };
 //inicializando app do firebase para os testes
 firebase.initializeApp(firebaseConfig);
-
+//unico serviço utilizado diretamente pela sdk de admin, os outros são utilizados no servidor de desenvolvimento
+firebase.auth().useEmulator("http://127.0.0.1:9099");
 attachCustomCommands({ Cypress, cy, firebase });
