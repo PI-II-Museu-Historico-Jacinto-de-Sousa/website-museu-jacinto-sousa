@@ -11,6 +11,7 @@
     "cypress:run": "cypress run",
     "cypress:open": "cypress open",
     "em:start": "firebase emulators:start --import ./emulator_data",
+    "em:dev": "firebase emulators:exec --import ./emulator_data  \"npm run dev\"",
     "test": "npx concurrently \"npm run em:start\" \"npm run cypress:open\""
   },
   "dependencies": {

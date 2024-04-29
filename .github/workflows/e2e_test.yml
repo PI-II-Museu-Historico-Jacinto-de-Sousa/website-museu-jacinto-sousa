@@ -7,13 +7,39 @@ jobs:
     environment: staging
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      # Install npm dependencies, cache them correctly
-      # and run all Cypress tests
-      - name: Cypress run
-        uses: cypress-io/github-action@v6
+      - uses: actions/checkout@v4
+      - name: Cache emuladores firebase
+        uses: actions/cache@v2
         with:
-          #inicializando servidor de desenvolvimento
-          start: npm run dev
+          path: ~/.cache/firebase/emulators
+          key: ${{ runner.os }}-firebase-emulators-${{ hashFiles('~/.cache/firebase/emulators/**') }}
+
+      - run: npm install -g firebase-tools
+
+      - uses: cypress-io/github-action@v6
+        name: Cypress run
+        with:
+          #inicializando servidor de desenvolvimento junto dos emuladores
+          start: npm run em:dev
           browser: chrome
+        env:
+          # token de acesso a cli do firebase
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+          # token usado para diferenciar uma nova run de uma repetida
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          # necessario para inicializar app firebase com sdk de administrador
+          VITE_FIREBASE_API_KEY: ${{secrets.VITE_FIREBASE_API_KEY}}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{secrets.VITE_FIREBASE_AUTH_DOMAIN}}
+          VITE_FIREBASE_PROJECT_ID: ${{secrets.VITE_FIREBASE_PROJECT_ID}}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{secrets.VITE_FIREBASE_STORAGE_BUCKET}}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{secrets.VITE_FIREBASE_MESSAGING_SENDER_ID}}
+          VITE_FIREBASE_APP_ID: ${{secrets.VITE_FIREBASE_APP_ID}}
+
+          #portas dos emuladores
+          FIRESTORE_EMULATOR_HOST: "localhost:8080"
+          FIREBASE_AUTH_EMULATOR_HOST: "localhost:9099"
+          FIREBASE_STORAGE_EMULATOR_HOST=: "localhost:9199"
+
+          #UID reutilizado para testes
+          TEST_UID: "U6gIZIQ9FCZ7aBjBig6pWobYuEg7"
