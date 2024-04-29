@@ -16,6 +16,12 @@ jobs:
 
       - run: npm install -g firebase-tools
 
+      - uses: jsdaniell/create-json@v1.2.3
+        name: Criar json
+        with:
+          name: serviceAccountKey.json
+          json: ${{ secrets.SERVICE_ACCOUNT_KEY }}
+
       - uses: cypress-io/github-action@v6
         name: Cypress run
         with:
