@@ -27,6 +27,8 @@ jobs:
         with:
           #inicializando servidor de desenvolvimento junto dos emuladores
           start: npm run em:dev
+          #servidor de desenvolvimento deve estar pronto antes de rodar os testes
+          wait-on: "http://localhost:5173"
           browser: chrome
         env:
           # token de acesso a cli do firebase
