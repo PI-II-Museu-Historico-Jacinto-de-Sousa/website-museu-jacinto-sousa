@@ -303,13 +303,13 @@ const CriarItemAcervo = () => {
                       mobile ?
                         collectionList.length !== 0 ?
                           collectionList.map((collection, idx) => (
-                            <option value={collection} key={idx}>{collection}</option>))
-                          : <option value="" disabled>Falha ao carregar as coleções</option>
+                            <option value={collection} key={idx} data-cy='select-collection-item'>{collection}</option>))
+                          : <option value="" disabled data-cy='select-collection-item'>Falha ao carregar as coleções</option>
                         :
                         collectionList.length !== 0 ?
                           collectionList.map((collection, idx) => (
-                            <MenuItem value={collection} key={idx}>{collection}</MenuItem>))
-                          : <MenuItem value="" disabled>Falha ao carregar as coleções</MenuItem>
+                            <MenuItem value={collection} key={idx} data-cy='select-collection-item'>{collection}</MenuItem>))
+                          : <MenuItem value="" disabled data-cy='select-collection-item'>Falha ao carregar as coleções</MenuItem>
                     }
                   </Select>
 
