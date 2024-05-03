@@ -6,9 +6,10 @@ import { CollectionReference, DocumentData, DocumentReference, addDoc, collectio
 import { StorageReference, deleteObject, ref, uploadBytesResumable } from "firebase/storage";
 import { MuiTelInput } from "mui-tel-input";
 import { useEffect, useState } from "react";
-import { Controller, SubmitHandler, useForm } from "react-hook-form";
+import { Controller, SubmitHandler } from "react-hook-form";
 import { auth, db, storage } from "../../firebase/firebase";
 import ImageCard from "../components/ImageCard/ImageCard";
+import useFormItemAcervo from "../hooks/useItemAcervoForm";
 import { ItemAcervo } from "../interfaces/ItemAcervo";
 
 //altura de cada item no select
@@ -33,17 +34,7 @@ const CriarItemAcervo = () => {
   //query que verifica se a resolução for menor que 600px
   const mobile = useMediaQuery(theme.breakpoints.down('sm'))
 
-  const { register, watch, control, handleSubmit, formState, reset } = useForm<ItemAcervo>(
-    {
-      defaultValues: {
-        doacao: true,
-        doacaoAnonima: false,
-        privado: false,
-        colecao: '',
-        telefoneDoador: ''
-      }
-    }
-  )
+  const { register, watch, control, handleSubmit, formState, reset } = useFormItemAcervo()
 
   const { errors, isSubmitting, isSubmitSuccessful } = formState
   //valor desses campos é observado para alterar a renderização da página
