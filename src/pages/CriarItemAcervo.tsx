@@ -2,15 +2,15 @@ import { Button, Checkbox, Container, Dialog, DialogActions, DialogContent, Dial
 import { Theme, styled, useTheme, } from "@mui/material/styles";
 import { DesktopDatePicker, MobileDatePicker } from "@mui/x-date-pickers";
 import { Dayjs, isDayjs } from "dayjs";
-import { collection, getDocs } from "firebase/firestore";
 import { MuiTelInput } from "mui-tel-input";
 import { useEffect, useState } from "react";
 import { Controller, SubmitHandler } from "react-hook-form";
-import { auth, db } from "../../firebase/firebase";
+import { auth } from "../../firebase/firebase";
+import { adicionarItemAcervo } from "../Utils/itemAcervoFirebase";
 import ImageCard from "../components/ImageCard/ImageCard";
 import useFormItemAcervo from "../hooks/useItemAcervoForm";
+import useNomeColecoes from "../hooks/useNomeColecoes";
 import { ItemAcervo } from "../interfaces/ItemAcervo";
-import { adicionarItemAcervo } from "../Utils/itemAcervoFirebase";
 
 //altura de cada item no select
 const SELECT_MENU_ITEM_HEIGHT = 48;
@@ -107,25 +107,7 @@ const CriarItemAcervo = () => {
     }
   }, [currentFiles])
 
-  //funções relativas ao select
-  const [collectionList, setCollectionList] = useState<string[]>([]);
-
-  //carrega todas as coleções do firestore
-  const getCollections = async () => {
-    const collectionsRef = collection(db, 'coleções')
-    try {
-      const collections = await getDocs(collectionsRef)
-      return collections.docs.map(doc => doc.data().nome)
-    }
-    catch {
-      return []
-    }
-  }
-  useEffect(() => {
-    getCollections().then((collections) => {
-      return setCollectionList(collections || []);
-    });
-  }, []);
+  const collectionList = useNomeColecoes()
 
   if (!logged) {
     return (
