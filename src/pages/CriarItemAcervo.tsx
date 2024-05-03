@@ -2,15 +2,15 @@ import { Button, Checkbox, Container, Dialog, DialogActions, DialogContent, Dial
 import { Theme, styled, useTheme, } from "@mui/material/styles";
 import { DesktopDatePicker, MobileDatePicker } from "@mui/x-date-pickers";
 import { Dayjs, isDayjs } from "dayjs";
-import { CollectionReference, DocumentData, DocumentReference, addDoc, collection, doc, getDocs, updateDoc } from "firebase/firestore";
-import { StorageReference, deleteObject, ref, uploadBytesResumable } from "firebase/storage";
+import { collection, getDocs } from "firebase/firestore";
 import { MuiTelInput } from "mui-tel-input";
 import { useEffect, useState } from "react";
 import { Controller, SubmitHandler } from "react-hook-form";
-import { auth, db, storage } from "../../firebase/firebase";
+import { auth, db } from "../../firebase/firebase";
 import ImageCard from "../components/ImageCard/ImageCard";
 import useFormItemAcervo from "../hooks/useItemAcervoForm";
 import { ItemAcervo } from "../interfaces/ItemAcervo";
+import { adicionarItemAcervo } from "../Utils/itemAcervoFirebase";
 
 //altura de cada item no select
 const SELECT_MENU_ITEM_HEIGHT = 48;
@@ -34,7 +34,7 @@ const CriarItemAcervo = () => {
   //query que verifica se a resolução for menor que 600px
   const mobile = useMediaQuery(theme.breakpoints.down('sm'))
 
-  const { register, watch, control, handleSubmit, formState, reset } = useFormItemAcervo()
+  const { register, setError, watch, control, handleSubmit, formState, reset } = useFormItemAcervo()
 
   const { errors, isSubmitting, isSubmitSuccessful } = formState
   //valor desses campos é observado para alterar a renderização da página
@@ -46,101 +46,35 @@ const CriarItemAcervo = () => {
 
   //efeito para limpar o formulário após inserir um item com sucesso
   useEffect(() => {
-    if (isSubmitSuccessful) {
+    if (errors?.root?.type !== 'submitFailure' && isSubmitSuccessful) {
       reset()
+      //limpa os arquivos selecionados para uma nova adição
+      setImages([])
+      setCurrentFiles([])
     }
-  }, [isSubmitSuccessful])
+  }, [isSubmitSuccessful, errors?.root?.type, reset])
 
   const submitForm: SubmitHandler<ItemAcervo> = async (data: ItemAcervo) => {
-    const itemsRef: CollectionReference = collection(db, 'acervo')
-    //id usado para rollback em caso de erro
-    let createdId: string = ''
     const dataDoacao = data.dataDoacao
     if (!dataDoacao) { //converter de undefined para null
       data.dataDoacao = null
     }
-    //referencias dos arquivos no storage
-    const fileReferences: string[] = images.map((image) => 'images/' + image.title)
     try {
-      const item = {
-        //objeto data corresponde aos campos do formulário
-        itemName: data.nome,
-        itemDescription: data.descricao,
-        itemCuriosities: data.curiosidades,
-        itemCollection: data.colecao,
-        itemDonation: data.doacao,
-        itemAnonymousDonation: data.doacaoAnonima,
-        itemDonorName: data.nomeDoador,
-        itemDonorPhone: data.telefoneDoador,
-        itemDonationDate: isDayjs(data.dataDoacao) ? data.dataDoacao.toDate() : data.dataDoacao,
-        itemPrivate: data.privado,
-        itemImages: fileReferences // passar um vetor vazio diretamente faz com que o tipo converta para never[]
-      }
-      await submitToStorage(images).then(
-        (urls: string[]) => {
-          console.info(urls)
-          return addDoc(itemsRef, item)
-        }
-      ).then((document: DocumentReference) => {
-        createdId = document.id
-        //limpa os arquivos selecionados para uma nova adição
-        setImages([])
-        setCurrentFiles([])
-      })
-      setOpenDialog(true)
+      data.dataDoacao = isDayjs(data.dataDoacao) ? data.dataDoacao.toDate() : data.dataDoacao
+      data.imagens = images
+      await adicionarItemAcervo(data)
       setDialogMessage("Item criado com sucesso")
     } catch (error) {
-      console.error(error)
-      setOpenDialog(true)
-      setDialogMessage("Erro ao criar item")
-      //firebase nao possui metodo rollback, entao se o item nao for criado, mas as imagens sim, é preciso deletá-las
-      removeFromStorage(images, createdId)
-    }
-  }
-  /*
-  envia todas as imagens passadas para o storage, retorna a lista com o path de cada imagem
-  */
-  const submitToStorage = async (images: Imagem[]) => {
-    try {
-      const urls: string[] = []
-      images.forEach((image) => {
-        const fileRef: StorageReference = ref(storage, 'images/' + image.title)
-        const metadata = {
-          customMetadata: {
-            'alt': image.alt
-          }
-        }
-        uploadBytesResumable(fileRef, image.src as File, metadata).then((snapshot) => {
-          urls.push(snapshot.ref.fullPath)
-        })
-      });
-      return urls
-    }
-    catch (error) {
-      console.error(error)
-      return []
-    }
-  }
-
-  //função para reverter as adições de arquivo caso a adição ao firestore falhe
-  const removeFromStorage = (images: Imagem[], id: string) => {
-    try {
-      images.forEach((image) => {
-        const path = 'images/' + image.title
-        const fileRef: StorageReference = ref(storage, path);
-        deleteObject(fileRef).catch((error) => {
-          console.error(error);
-        });
-      });
-      //transforma as imagens anteriores em um vetor vazio
-      const itemRef: DocumentReference<DocumentData> = doc(collection(db, 'acervo'), id);
-      updateDoc(itemRef, { itemImages: [] }).catch((error) => {
-        console.error(error)
+      setError('root', {
+        type: 'submitFailure',
+        message: (error as Error).message
       })
-    } catch (error) {
-      console.error(error);
+      console.log((error as Error).message)
+      setDialogMessage((error as Error).message)
+    } finally {
+      setOpenDialog(true)
     }
-  };
+  }
 
   //estado para armazenar os arquivos adicionados ate o momento
   const [images, setImages] = useState<Imagem[]>([]);
@@ -518,7 +452,7 @@ const CriarItemAcervo = () => {
         onClose={() => setOpenDialog(false)}
         data-cy='dialog'>
         <DialogContent>
-          <DialogContentText data-cy='dialog-text'>
+          <DialogContentText style={{ whiteSpace: 'pre-line' }} data-cy='dialog-text'>
             {dialogMessage}
           </DialogContentText>
         </DialogContent>
