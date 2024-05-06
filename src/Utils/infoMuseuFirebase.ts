@@ -1,21 +1,19 @@
-import { deleteObject, getDownloadURL, getStorage, ref, uploadBytesResumable } from "firebase/storage";
+import { deleteObject, getDownloadURL, getMetadata, ref, uploadBytesResumable } from "firebase/storage";
 import { InfoMuseu } from "../interfaces/InfoMuseu";;
-import { collection, doc, getFirestore, setDoc, getDoc, addDoc, deleteDoc } from 'firebase/firestore'
+import { collection, doc, setDoc, getDoc, addDoc, deleteDoc } from 'firebase/firestore'
 import { FirebaseError } from "firebase/app";
-
+import { db, storage } from '../../firebase/firebase'
 
 async function getInfoMuseu(id: string) {
   try {
-    const db = getFirestore()
-    const docRef = doc(db, "acervo", id)
-    const docSnap = await getDoc(docRef)
+    const docRef = doc(db, "informações-museu", id);
+    const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
+      const data = docSnap.data();
+      getDownloadURL(ref(storage, id)).then((url) => {
+        // `url` is the download URL for 'images/stars.jpg'
 
-      const data =  docSnap.data()
-      const storage = getStorage();
-
-      getDownloadURL(ref(storage, data.itemImagens)).then((url) => {
         // This can be downloaded directly:
         const xhr = new XMLHttpRequest();
         xhr.responseType = 'blob';
@@ -24,80 +22,65 @@ async function getInfoMuseu(id: string) {
         };
         xhr.open('GET', url);
         xhr.send();
-        return data
+        return {data, url}
+
+      }).catch((error) => {
+        throw error;
       })
-      .catch((error) => {
-        console.log(error)
-      });
+      return docSnap
     } else {
-      // doc.data() will be undefined in this case
-      console.log("No such document!");
+      // Se o documento não existir, lançar um erro
+      throw new FirebaseError("No such document!", "not-found");
     }
-  }
-  catch (error) {
-    console.log(error)
-  }
-}
-
-async function atualizarInfoMuseu(id: string, info: InfoMuseu, novaImagem?: File) {
-  try {
-    const db = getFirestore();
-    const docRef = doc(db, "acervo", id);
-
-    // Verificar se o documento já existe
-    const docSnap = await getDoc(docRef);
-    const imagemURLAntiga = docSnap.exists() ? docSnap.data().imagemURL : null;
-
-    // Se a nova imagem foi fornecida
-    if (novaImagem) {
-      // Se existir uma imagem antiga, remova-a
-      if (imagemURLAntiga) {
-        const storage = getStorage();
-        const antigaImagemRef = ref(storage, `imagens/${novaImagem.name}`);
-        await deleteObject(antigaImagemRef);
-      }
-
-      // Adicionar a nova imagem
-      const storage = getStorage();
-      const novaImagemRef = ref(storage, `imagens/${novaImagem.name}`);
-      await uploadBytesResumable(novaImagemRef, novaImagem);
-      info.imagem.src = await getDownloadURL(novaImagemRef);
-    } else {
-      // Se não houver uma nova imagem, mas existe uma imagem antiga, mantenha-a
-      if (imagemURLAntiga) {
-        info.imagem.src = imagemURLAntiga;
-      }
-    }
-
-    // Atualizar o documento no Firestore
-    await setDoc(docRef, info, { merge: true });
-
-    console.log("Informações do museu atualizadas com sucesso!");
   } catch (error) {
-    console.error("Erro ao atualizar informações do museu:", error);
+    // Relançar o erro para ser tratado externamente
+    throw error;
   }
 }
+
+
+async function atualizarInfoMuseu(info: InfoMuseu) {
+    try {
+      if(info.imagem.src instanceof File) {
+        const imagemRef = ref(storage, `imagens/${info.imagem.title}`);
+        const uploadTask = uploadBytesResumable(imagemRef, new File([info.imagem.src], info.imagem.title, { type: 'image/png' }));
+      } else {
+        return new FirebaseError("No image to update", "no-image");
+      }
+
+    } catch (error) {
+      throw error;
+    }
+  }
 
 async function adicionarInfoMuseu(info: InfoMuseu) {
   try {
-    const db = getFirestore();
+    if(info.imagem.src instanceof File) {
+      const imagemRef = ref(storage, `imagens/${info.imagem.title}`);
+      const uploadTask = uploadBytesResumable(imagemRef, new File([info.imagem.src], info.imagem.title, { type: 'image/png' }));
+      const snapshot = await uploadTask;
 
-    // Adicionar os dados do museu ao Firestore
-    const docRef = await addDoc(collection(db, "acervo"), info);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      const metadata = await getMetadata(snapshot.ref);
 
-    // Adicionar a imagem ao Storage
-    const storage = getStorage();
-    const imagemRef = ref(storage, `imagens/${info.imagem}`);
-    const uploadTask = uploadBytesResumable(imagemRef, new File([info.imagem.src], info.imagem.title, { type: 'image/png' }));
+      const docRef = await addDoc(collection(db, "informações-museu"), {
+        nome: info.nome,
+        texto: info.texto,
+        itemImagens: downloadURL
+      });
+
+      return docRef;
+    } else {
+      return new FirebaseError("No image to add", "no-image");
+    }
   } catch (error) {
-    console.log(error)
+    throw error;
   }
 }
 
 async function deletarInfoMuseu(id: string) {
   try {
-    const db = getFirestore();
-    const docRef = doc(db, "acervo", id);
+    const docRef = doc(db, "informações-museu", id);
 
     // Verificar se o documento existe
     const docSnap = await getDoc(docRef);
@@ -105,29 +88,26 @@ async function deletarInfoMuseu(id: string) {
     if (docSnap.exists()) {
       // Deletar o documento
       await deleteDoc(docRef);
-      console.log("Documento deletado com sucesso!");
 
       // Se o documento existia, também delete a imagem associada
       const data = docSnap.data();
       if (data && data.itemImagens) {
-        const storage = getStorage();
         const imagemRef = ref(storage, data.itemImagens);
         await deleteObject(imagemRef);
-        console.log("Imagem deletada com sucesso!");
       }
     } else {
-      console.log("O documento não existe.");
+      return new FirebaseError("No such document!", "not-found");
     }
   } catch (error) {
-    console.error("Erro ao deletar informações do museu:", error);
+    throw error;
   }
 }
 
-const wrapper = {
+const infoMuseuMethods = {
   getInfoMuseu,
   atualizarInfoMuseu,
   adicionarInfoMuseu,
   deletarInfoMuseu
 };
 
-export {wrapper, getInfoMuseu, atualizarInfoMuseu, adicionarInfoMuseu, deletarInfoMuseu}
+export {infoMuseuMethods, getInfoMuseu, atualizarInfoMuseu, adicionarInfoMuseu, deletarInfoMuseu}
