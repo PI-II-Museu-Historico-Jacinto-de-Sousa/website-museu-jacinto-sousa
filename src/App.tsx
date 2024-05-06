@@ -9,6 +9,7 @@ import CriarItemAcervo from './pages/CriarItemAcervo';
 import Home from './pages/Home';
 import getDesignTokens from './theme/theme';
 import Footer from './components/Footer/Footer';
+import NavBar from './components/NavBar/NavBar';
 
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
         <ThemeProvider theme={theme}> {/*Para aplicar o tema*/}
           <CssBaseline>
             <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={'pt-br'}> {/*Contexto para localizacao de componentes material*/}
+              <NavBar colorMode={colorMode} mode={mode}/>
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/acervo/criar-item" element={<CriarItemAcervo />} />
