@@ -7,36 +7,31 @@ const theme = getDesignTokens('light');
 
 describe("Testando o componente ScrollToTop", () => {
   it("Componente renderiza normalmente quando houver scroll na tela", () => {
-    cy.document().then((doc) => {
-      const tallContent = doc.createElement('div');
-      tallContent.style.height = '2000px'; // Defina a altura conforme necessário
-      doc.body.appendChild(tallContent);
-    });
     cy.mount(
       <ThemeProvider theme={theme}>
+        <div style={{ height: 2000 }}></div>
         <ScrollToTop data-class-ref='button' />
       </ThemeProvider>
-    );
-    cy.scrollTo(0, 1000).then(() => {
-      cy.get("[data-cy='scrollToTop']").should('be.visible');
-    });
+    ).then(() => {
+      cy.wait(1000); // Espera 1 segundo para o componente renderizar completamente
+      cy.scrollTo(0, 1000).then(() => {
+        cy.get("[data-cy='scrollToTop']").should('be.visible');
+      });
+    })
   });
 
   it("Função scrollToTop é chamada ao clicar no componente", () => {
-    cy.document().then((doc) => {
-      const tallContent = doc.createElement('div');
-      tallContent.style.height = '2000px'; // Defina a altura conforme necessário
-      doc.body.appendChild(tallContent);
-    });
     cy.mount(
       <ThemeProvider theme={theme}>
+        <div style={{ height: 2000 }}></div>
         <ScrollToTop data-class-ref='button' />
       </ThemeProvider>
-    );
-    cy.scrollTo(0, 1000); // Rola a página até a metade (1000px)
-    cy.spy(scrollMethods, 'scrollToTop');
-    cy.get("[data-cy='scrollToTop']").invoke('show').click().then(() => {
-      expect(scrollMethods.scrollToTop).to.be.called;
-    });
+    ).then(() => {
+      cy.scrollTo(0, 1000); // Rola a página até a metade (1000px)
+      cy.spy(scrollMethods, 'scrollToTop');
+      cy.get("[data-cy='scrollToTop']").should('exist').click().then(() => {
+        expect(scrollMethods.scrollToTop).to.be.called;
+      });
+    })
   });
 });
