@@ -78,15 +78,16 @@ async function adicionarInfoMuseu(info: InfoMuseu) {
       const storageRef = ref(storage, `images/${info.imagem.title}`);
 
       // 'file' comes from the Blob or File API
-      uploadBytesResumable(storageRef, info.imagem.src).catch(() => {
-        throw new FirebaseError("Erro ao adicionar imagem", "not-found");
+      uploadBytesResumable(storageRef, info.imagem.src).catch((error) => {
+        console.error(error);
+        throw new FirebaseError("Erro ao adicionar imagem", "not-found3");
       });
     } else {
       throw new FirebaseError("Sem imagem para adicionar", "no-image");
     }
   } catch (error) {
     console.error(error);
-    throw new FirebaseError("Erro ao adicionar documento", "not-found");
+    throw new FirebaseError("Erro ao adicionar documento", "not-found2");
   }
 }
 
