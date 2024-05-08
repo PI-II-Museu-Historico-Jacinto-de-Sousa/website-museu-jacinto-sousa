@@ -13,8 +13,7 @@ describe("Testando o componente GoogleLoginButton", () => {
 
   it("Checa se a função é chamada", () => {
     cy.mount(<ThemeProvider theme={theme}><GoogleLoginButton data-class-ref='button' /></ThemeProvider>)
-    cy.spy(loginMethods, 'loginGoogle')
-    throw new Error("Broken test")
+    cy.stub(loginMethods, 'loginGoogle')
     cy.get("[data-cy='botaoLoginGoogle']").click().then(() => {
       expect(loginMethods.loginGoogle).to.be.called
     })
