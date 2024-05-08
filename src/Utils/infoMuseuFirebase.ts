@@ -65,21 +65,18 @@ async function atualizarInfoMuseu(info: InfoMuseu) {
 async function adicionarInfoMuseu(info: InfoMuseu) {
   try {
     if (info.imagem.src instanceof File) {
-      console.log(info);
       const collectionRef = collection(db, "informações-museu")
 
       const file = {nome: info.nome, texto: info.texto, imagem: info.imagem.src.name};
 
-      await addDoc(collectionRef, file).catch((error) => {
-        console.error(error);
+      await addDoc(collectionRef, file).catch(() => {
         throw new FirebaseError("Erro ao adicionar documento", "not-found");
       })
 
       const storageRef = ref(storage, `images/${info.imagem.title}`);
 
       // 'file' comes from the Blob or File API
-      uploadBytesResumable(storageRef, info.imagem.src).catch((error) => {
-        console.error(error);
+      uploadBytesResumable(storageRef, info.imagem.src).catch(() => {
         throw new FirebaseError("Erro ao adicionar imagem", "not-found3");
       });
     } else {
@@ -99,15 +96,18 @@ async function deletarInfoMuseu(id: string) {
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
+      // Deletar a imagem associada
+      const data = docSnap.data();
+      if (data) {
+        const imagemRef = ref(storage, `images/${data.imagem}`);
+        await deleteObject(imagemRef);
+      } else {
+        throw new Error("Erro ao deletar imagem");
+      }
       // Deletar o documento
       await deleteDoc(docRef);
 
       // Se o documento existia, também delete a imagem associada
-      const data = docSnap.data();
-      if (data && data.itemImagens) {
-        const imagemRef = ref(storage, data.itemImagens);
-        await deleteObject(imagemRef);
-      }
     } else {
       throw new FirebaseError("No such document!", "not-found");
     }
