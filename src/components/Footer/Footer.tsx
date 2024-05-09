@@ -116,22 +116,22 @@ const Footer = () => {
           <FooterContent>
             <FooterItem>
               <PhoneIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
-              <TextField type='text' value={newTelephone} onChange={(e) => setNewTelephone(e.target.value)} />
+              <TextField data-cy='footer-text-field' type='text' value={newTelephone} onChange={(e) => setNewTelephone(e.target.value)} />
             </FooterItem>
 
             <FooterItem>
               <WhatsAppIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
-              <TextField type='text' value={newWhatsapp} onChange={(e) => setNewWhatsapp(e.target.value)} />
+              <TextField data-cy='footer-text-field' type='text' value={newWhatsapp} onChange={(e) => setNewWhatsapp(e.target.value)} />
             </FooterItem>
 
             <FooterItem>
               <EmailIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
-              <TextField type='text' value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
+              <TextField data-cy='footer-text-field' type='text' value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
             </FooterItem>
 
             <FooterItem>
               <PlaceIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
-              <TextField type='text' value={newAddress} onChange={(e) => setNewAddress(e.target.value)} />
+              <TextField data-cy='footer-text-field' type='text' value={newAddress} onChange={(e) => setNewAddress(e.target.value)} />
             </FooterItem>
           </FooterContent>
 
@@ -173,7 +173,7 @@ const Footer = () => {
             logged ?
 
               <FooterEditable>
-                <EditableButton onClick={() => startEdit()}><strong>(Editar)</strong></EditableButton>
+                <EditableButton onClick={() => startEdit()} data-cy='footer-edit-button'><strong>(Editar)</strong></EditableButton>
               </FooterEditable>
               :
               ''
