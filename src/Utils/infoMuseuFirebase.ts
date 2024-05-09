@@ -1,6 +1,6 @@
 import { deleteObject, getDownloadURL, getMetadata, ref, updateMetadata, uploadBytesResumable } from "firebase/storage";
 import { InfoMuseu } from "../interfaces/InfoMuseu";
-import { collection, doc, getDoc, addDoc, deleteDoc, setDoc } from 'firebase/firestore'
+import { collection, doc, getDoc, addDoc, deleteDoc, updateDoc } from 'firebase/firestore'
 import { FirebaseError } from "firebase/app";
 import { db, storage } from '../../firebase/firebase'
 
@@ -41,7 +41,7 @@ async function atualizarInfoMuseu(id:string, info: InfoMuseu) {
         throw new FirebaseError("Erro ao buscar documento", "not-found");
       });
       if(!docSnap.exists()) {
-        adicionarInfoMuseu(info);
+        return Error("Documento não encontrado");
       } else {
         if(info.imagem.src instanceof File) {
           const data = docSnap.data();
@@ -49,7 +49,7 @@ async function atualizarInfoMuseu(id:string, info: InfoMuseu) {
             const imagemRef = ref(storage, `images/${data.imagem}`);
             await deleteObject(imagemRef);
           }
-          const storageRef = ref(storage, `images/${info.imagem.title}`);
+          const storageRef = ref(storage, `images/${info.imagem.src.name}`);
           await uploadBytesResumable(storageRef, info.imagem.src).catch(() => {
             throw new FirebaseError("Erro ao adicionar imagem", "not-found");
           });
@@ -58,9 +58,9 @@ async function atualizarInfoMuseu(id:string, info: InfoMuseu) {
             throw new FirebaseError("Erro ao adicionar metadados", "not-found");
           });
           const file = {nome: info.nome, texto: info.texto, imagem: info.imagem.src.name};
-          await setDoc(docRef, file).catch(() => {
+          await updateDoc(docRef, file).catch(() => {
             throw new FirebaseError("Erro ao atualizar documento", "not-found");
-          });
+          })
         } else {
           throw new FirebaseError("Sem imagem para adicionar", "no-image");
         }
@@ -81,7 +81,7 @@ async function adicionarInfoMuseu(info: InfoMuseu) {
         throw new FirebaseError("Erro ao adicionar documento", "not-found");
       })
 
-      const storageRef = ref(storage, `images/${info.imagem.title}`);
+      const storageRef = ref(storage, `images/${info.imagem.src.name}`);
 
       // 'file' comes from the Blob or File API
       await uploadBytesResumable(storageRef, info.imagem.src).catch(() => {
