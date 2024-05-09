@@ -41,7 +41,7 @@ async function atualizarInfoMuseu(id:string, info: InfoMuseu) {
         throw new FirebaseError("Erro ao buscar documento", "not-found");
       });
       if(!docSnap.exists()) {
-        return Error("Documento não encontrado");
+        throw Error("Documento não encontrado");
       } else {
         if(info.imagem.src instanceof File) {
           const data = docSnap.data();
