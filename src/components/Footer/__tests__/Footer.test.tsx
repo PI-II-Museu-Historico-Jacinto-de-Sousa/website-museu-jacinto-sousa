@@ -1,6 +1,6 @@
-import { getAuth } from "firebase/auth"
 import Footer from "../Footer"
 import { ThemeProvider } from "@emotion/react"
+import { auth } from "../../../../firebase/firebase"
 
 const theme = {
   palette: {
@@ -13,7 +13,7 @@ const theme = {
   }
 }
 
-const auth = getAuth()
+
 
 describe("Testando componente Footer", () => {
   it("renderiza corretamente", () => {
@@ -43,8 +43,32 @@ describe("Testando componente Footer", () => {
         expect(footer.position().top).to.be.greaterThan(mainTop)
       })
     })
-    if (auth.currentUser) {
-      cy.get('button').should('exist')
-    }
   })
 })
+
+describe("Testando interações do Footer logado", () => {
+  before(() => {
+    cy.loginComponent(auth, "test@mail", "testpassword")
+  })
+  it("Usuário logado deve exibir botão de edição", () => {
+    cy.mount(
+      <ThemeProvider theme={theme}>
+        <Footer />
+      </ThemeProvider>
+    )
+    cy.get("[data-cy='footer-edit-button']").should("exist")
+  })
+  it("Clicar no botão de edição deve abrir textfields", () => {
+    cy.mount(
+      <ThemeProvider theme={theme}>
+        <Footer />
+      </ThemeProvider>
+    )
+    cy.get("[data-cy='footer-edit-button']").click()
+    cy.get("[data-cy='footer-text-field']").should("exist")
+  })
+  after(() => {
+    cy.logoutComponent(auth)
+  })
+})
+

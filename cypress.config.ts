@@ -13,6 +13,7 @@ export default defineConfig({
       framework: "react",
       bundler: "vite",
     },
+    excludeSpecPattern: "**/*/integration_test",
     specPattern: "**/*.test.{js,jsx,ts,tsx}", //padrao de nome dos testes
   },
 
