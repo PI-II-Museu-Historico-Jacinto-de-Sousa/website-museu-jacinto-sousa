@@ -1,17 +1,26 @@
 import ToggleLightMode from '../ToggleLightMode/ToggleLightMode'
 import logo from '../../assets/cityLogo.svg'
-import React, { useEffect, useState } from 'react'
-import { AppBar, Button, IconButton, Menu, MenuItem, PaletteMode, Theme, Toolbar, Typography, styled, useMediaQuery, useTheme } from '@mui/material'
+import { useEffect, useRef, useState } from 'react'
+import { AppBar, Button, IconButton, Menu, MenuItem, PaletteMode, Snackbar, Theme, Toolbar, Typography, styled, useMediaQuery, useTheme } from '@mui/material'
 import { getAuth } from 'firebase/auth'
 import { app } from '../../../firebase/firebase'
 import { AccountCircle } from '@mui/icons-material'
 import MenuIcon from '@mui/icons-material/Menu';
 import { Link } from 'react-router-dom'
 
+//Need to define links to other pages
+const pages = [
+    {label: "Exposições", sectionItem: "Criar exposição", seacrhLink: "/", otherLink: "/"},
+    {label: "Acervo", sectionItem: "Adicionar item", seacrhLink: "/", otherLink: "/acerco/criar-item"},
+    {label: "Editais e normas", sectionItem: "Cadastrar normativa", seacrhLink: "/", otherLink: "/"},
+]
+
 //Configurations of Menu Desktop
 
 const MenuConfigDesktop = ({label, sectionItem, searchLink, otherLink}: {label: string, sectionItem: string, searchLink: string, otherLink: string}) =>{
     const theme = useTheme()
+
+    const [logged, setLogged] = useState(false)
 
     const [anchorEl, setAnchorEl] = useState(null)
 
@@ -29,59 +38,90 @@ const MenuConfigDesktop = ({label, sectionItem, searchLink, otherLink}: {label: 
         }
     }
 
+    useEffect(() =>{
+        const auth = getAuth(app)
+
+        auth.onAuthStateChanged(user =>{
+            setLogged(user ? true : false)
+        })
+    }, [])
+
     return(
         <>
-            <NavRoute onClick={handleOpen} style={colorOnOpen()} >
-                <Typography sx={{fontSize: '2vh', fontWeight: 'bold'}}>{label}</Typography>
-            </NavRoute>
+            {
+                logged ?
+                <>
+                    <NavRoute onClick={handleOpen} style={colorOnOpen()} data-cy={`${label}Option`}>
+                        <Typography sx={{fontSize: '2vh', fontWeight: 'bold'}}>{label}</Typography>
+                    </NavRoute>
 
-            <Menu
-                anchorEl={anchorEl}
-                anchorOrigin={{vertical: 'bottom', horizontal: 'center'}}
-                transformOrigin={{vertical: 'top', horizontal: 'center'}}
-                open={Boolean(anchorEl)}
-                onClose={handleClose}
-                MenuListProps={{onMouseLeave: handleClose}}
-                keepMounted
-            >
-                <Link to={searchLink} style={{textDecoration: 'none', color: 'inherit'}}>
-                    <MenuItem onClick={handleClose}>
-                        <Typography sx={{fontSize: '2vh', fontWeight: 'bold'}}>Pesquisar</Typography>
-                    </MenuItem>
-                </Link>
+                    <Menu
+                        anchorEl={anchorEl}
+                        anchorOrigin={{vertical: 'bottom', horizontal: 'center'}}
+                        transformOrigin={{vertical: 'top', horizontal: 'center'}}
+                        open={Boolean(anchorEl)}
+                        onClose={handleClose}
+                        MenuListProps={{onMouseLeave: handleClose}}
+                        keepMounted
+                    >
+                        <Link to={searchLink} style={{textDecoration: 'none', color: 'inherit'}}>
+                            <MenuItem onClick={handleClose} data-cy={`search${label}Option`}>
+                                <Typography sx={{fontSize: '2vh', fontWeight: 'bold'}}>Pesquisar</Typography>
+                            </MenuItem>
+                        </Link>
 
-                <Link to={otherLink} style={{textDecoration: 'none', color: 'inherit'}}>
-                    <MenuItem onClick={handleClose}>
-                        <Typography sx={{fontSize: '2vh', fontWeight: 'bold'}}>{sectionItem}</Typography>
-                    </MenuItem>
+                        <Link to={otherLink} style={{textDecoration: 'none', color: 'inherit'}}>
+                            <MenuItem onClick={handleClose} data-cy={`${sectionItem}Option`}>
+                                <Typography sx={{fontSize: '2vh', fontWeight: 'bold'}}>{sectionItem}</Typography>
+                            </MenuItem>
+                        </Link>
+                    </Menu>
+                </>
+                :
+                <Link to={searchLink} style={{textDecoration: 'none', color: 'inherit'}} data-cy={`search${label}Option`}>
+                    <NavRoute onClick={handleOpen}>
+                        <Typography sx={{fontSize: '2vh', fontWeight: 'bold'}}>{label}</Typography>
+                    </NavRoute>
                 </Link>
-            </Menu>
+            }
         </>
     )
 }
 
 const NavBarDesktop = ({colorMode, mode, logged} : {colorMode: any, mode: PaletteMode, logged: Boolean}) =>{
+    const [open, setOpen] = useState(false)
+
+    useEffect(() =>{
+        if(logged){
+            setOpen(true)
+        }
+    }, [logged])
+
     return(
-        <NavContainer>
+        <NavContainer data-cy="NavContainer">
             <img src={logo} alt="Prefeitura Municipal de Quixadá" style={{height: '10vh'}}/>
 
             <NavPages>
-                <Link to="/" style={{textDecoration: 'none', color: 'inherit'}}>
+                <Link to="/" style={{textDecoration: 'none', color: 'inherit'}} data-cy="HomeOption">
                     <NavRoute>
                         <Typography sx={{fontSize: '2vh', fontWeight: 'bold'}}>Home</Typography>
                     </NavRoute>
                 </Link>
 
-                {/* Need to define links to others pages */}
-                <MenuConfigDesktop label={'Exposições'} sectionItem={'Criar exposição'} searchLink={'/'} otherLink={'/'}/>
-
-                {/* Need to define links to other pages */}
-                <MenuConfigDesktop label={'Acervo'} sectionItem={'Adicionar item'} searchLink={'/'} otherLink={'/acervo/criar-item'}/>
-
-                {/* Need to define links to others pages */}
-                <MenuConfigDesktop label={'Editais e normas'} sectionItem={'Cadastrar normativa'} searchLink={'/'} otherLink={'/'}/>
+                {
+                    pages.map(page =>{
+                        return(
+                            <MenuConfigDesktop 
+                                key={page.label}
+                                label={page.label} 
+                                sectionItem={page.sectionItem}
+                                searchLink={page.seacrhLink} 
+                                otherLink={page.otherLink}/>                        
+                            )
+                    })
+                }
                 
-                <Link to="/" style={{textDecoration: 'none', color: 'inherit'}}>
+                <Link to="/" style={{textDecoration: 'none', color: 'inherit'}} data-cy="VisitOption">
                     <NavRoute>
                         <Typography sx={{fontSize: '2vh', fontWeight: 'bold'}}>Agende uma visita</Typography>
                     </NavRoute>
@@ -96,7 +136,20 @@ const NavBarDesktop = ({colorMode, mode, logged} : {colorMode: any, mode: Palett
                 {logged ?
                     <MenuLogout/>
                     :
-                    ''
+                    <Snackbar
+                        open={open}
+                        autoHideDuration={2000}
+                        anchorOrigin={{vertical: "top", horizontal: "center"}}
+                        onClose={() => setOpen(false)}
+                        message={"Saindo da conta com sucesso"}
+                        ContentProps={{
+                            sx:{
+                                bgcolor: "#388e3c",
+                                display: "block",
+                                textAlign: "center",
+                            }
+                        }}
+                    ></Snackbar> 
                 }
             </NavOptions>
         </NavContainer>
@@ -107,6 +160,8 @@ const NavBarDesktop = ({colorMode, mode, logged} : {colorMode: any, mode: Palett
 
 const SubMenuConfig = ({label, subItem, searchLink, otherLink}: {label: string, subItem: string, searchLink: string, otherLink: string}) =>{
     const [anchorEl, setAnchorEl] = useState(null)
+    
+    const [logged, setLogged] = useState(false)
 
     const handleClose = () =>{
         setAnchorEl(null)
@@ -116,33 +171,52 @@ const SubMenuConfig = ({label, subItem, searchLink, otherLink}: {label: string, 
         setAnchorEl(event.currentTarget)
     }
 
+    useEffect(() =>{
+        const auth = getAuth(app)
+
+        auth.onAuthStateChanged((user) =>{
+            setLogged(user ? true : false)
+        })
+    }, [])
+
     return(
         <>
-            <MenuItem onClick={handleOpen}>
-                <Typography sx={{fontSize: '2vh', fontWeight: 'bold'}}>{label}</Typography>
-            </MenuItem>
+            {
+                logged ?
+                <>
+                    <MenuItem onClick={handleOpen} data-cy={`${label}Option`}>
+                        <Typography sx={{fontSize: '2vh', fontWeight: 'bold'}}>{label}</Typography>
+                    </MenuItem>
 
-            <Menu
-                    anchorEl={anchorEl}
-                    open={Boolean(anchorEl)}
-                    onClose={handleClose}
-                    anchorOrigin={{vertical: 'top', horizontal: 'right'}}
-                    transformOrigin={{vertical: 'top', horizontal: 'left'}}
-                    MenuListProps={{onMouseLeave: handleClose}}
-                    keepMounted
-                >
-                    <Link to={searchLink} style={{textDecoration: 'none', color: 'inherit'}}>
-                        <MenuItem onClick={handleClose}>
-                            <Typography sx={{fontSize: '2vh', fontWeight: 'bold'}}>Pesquisar</Typography>
-                        </MenuItem>
-                    </Link>
+                    <Menu
+                            anchorEl={anchorEl}
+                            open={Boolean(anchorEl)}
+                            onClose={handleClose}
+                            anchorOrigin={{vertical: 'top', horizontal: 'right'}}
+                            transformOrigin={{vertical: 'top', horizontal: 'left'}}
+                            MenuListProps={{onMouseLeave: handleClose}}
+                            keepMounted
+                        >
+                            <Link to={searchLink} style={{textDecoration: 'none', color: 'inherit'}}>
+                                <MenuItem onClick={handleClose} data-cy={`search${label}Option`}>
+                                    <Typography sx={{fontSize: '2vh', fontWeight: 'bold'}}>Pesquisar</Typography>
+                                </MenuItem>
+                            </Link>
 
-                    <Link to={otherLink} style={{textDecoration: 'none', color: 'inherit'}}>
-                        <MenuItem onClick={handleClose}>
-                            <Typography sx={{fontSize: '2vh', fontWeight: 'bold'}}>{subItem}</Typography>
-                        </MenuItem>
-                    </Link>
-            </Menu>
+                            <Link to={otherLink} style={{textDecoration: 'none', color: 'inherit'}}>
+                                <MenuItem onClick={handleClose} data-cy={`${subItem}Option`}>
+                                    <Typography sx={{fontSize: '2vh', fontWeight: 'bold'}}>{subItem}</Typography>
+                                </MenuItem>
+                            </Link>
+                    </Menu>
+                </>
+                :
+                <Link to={searchLink} style={{textDecoration: 'none', color: 'inherit'}}>
+                    <MenuItem onClick={handleClose} data-cy={`search${label}Option`}>
+                        <Typography sx={{fontSize: '2vh', fontWeight: 'bold'}}>{label}</Typography>
+                    </MenuItem>
+                </Link>
+            }
         </>
     )
 }
@@ -160,7 +234,7 @@ const MenuConfigMobile = () =>{
 
     return(
         <>
-            <IconButton size='large' onClick={handleOpen}>
+            <IconButton size='large' onClick={handleOpen} data-cy="Menu">
                 <MenuIcon/>
             </IconButton>
 
@@ -174,22 +248,27 @@ const MenuConfigMobile = () =>{
                 keepMounted
             >
                 <Link to="/" style={{textDecoration: 'none', color: 'inherit'}}>
-                    <MenuItem onClick={handleClose}>
+                    <MenuItem onClick={handleClose} data-cy="HomeOption">
                         <Typography sx={{fontSize: '2vh', fontWeight: 'bold'}}>Home</Typography>
                     </MenuItem>
                 </Link>
 
-                {/* Need to define links to others pages */}
-                <SubMenuConfig label={"Exposições"} subItem={'Criar exposição'} searchLink={'/'} otherLink={'/'}/>
-
-                {/* Need to define links to others pages */}
-                <SubMenuConfig label={"Acervo"} subItem={'Adicionar item'} searchLink={'/'} otherLink={'/acervo/criar-item'}/>
-
-                {/* Need to define links to others pages */}
-                <SubMenuConfig label={"Editais e normas"} subItem={'Cadastrar normativa'} searchLink={'/'} otherLink={'/'}/>
+                {
+                    pages.map(page =>{
+                        return(
+                            <SubMenuConfig
+                                key={page.label}
+                                label={page.label}
+                                subItem={page.sectionItem}
+                                searchLink={page.seacrhLink}
+                                otherLink={page.otherLink}
+                            />
+                        )
+                    })
+                }
 
                 <Link to="/" style={{textDecoration: 'none', color: 'inherit'}}>
-                    <MenuItem onClick={handleClose}>
+                    <MenuItem onClick={handleClose} data-cy="VisitOption">
                         <Typography sx={{fontSize: '2vh', fontWeight: 'bold'}}>Agende uma visita</Typography>
                     </MenuItem>
                 </Link>
@@ -201,6 +280,14 @@ const MenuConfigMobile = () =>{
 
 const NavBarMobile = ({colorMode, mode, logged} : {colorMode: any, mode: PaletteMode, logged: Boolean}) =>{
     const theme = useTheme()
+
+    const [open, setOpen] = useState(false)
+
+    useEffect(() =>{
+        if(logged){
+            setOpen(true)
+        }
+    }, [logged])
     
     return(
         <NavContainer>
@@ -214,9 +301,22 @@ const NavBarMobile = ({colorMode, mode, logged} : {colorMode: any, mode: Palette
                         <ToggleLightMode colorMode={colorMode} mode={mode}/>
 
                         {logged ?
-                            <MenuLogout/>
+                            <MenuLogout />
                             :
-                            ''
+                            <Snackbar
+                                open={open}
+                                autoHideDuration={2000}
+                                anchorOrigin={{vertical: "top", horizontal: "center"}}
+                                onClose={() => setOpen(false)}
+                                message={"Saindo da conta com sucesso"}
+                                ContentProps={{
+                                    sx:{
+                                        bgcolor: "#388e3c",
+                                        display: "block",
+                                        textAlign: "center",
+                                    }
+                                }}
+                            ></Snackbar> 
                         }
                     </Option>
                 </Toolbar>
@@ -237,9 +337,21 @@ const MenuLogout = () =>{
     const handleClose = () =>{
         setAnchorEl(null)
     }
+
+    useEffect
+
+    const LogOut = () =>{
+        const auth = getAuth(app)
+
+        auth.signOut().then().
+        catch(error =>{
+            console.log(error)
+        })
+    }
+
     return(
         <>
-            <IconButton size='large' onClick={handleOpen}>
+            <IconButton size='large' onClick={handleOpen} data-cy="User">
                 <AccountCircle/>
             </IconButton>
 
@@ -252,8 +364,7 @@ const MenuLogout = () =>{
                 MenuListProps={{onMouseLeave: handleClose}}
                 keepMounted
             >
-                {/* Need to define link to other page */}
-                <MenuItem onClick={handleClose}>
+                <MenuItem onClick={LogOut} data-cy="LogOutOption">
                     <Typography sx={{fontSize: '2vh', fontWeight: 'bold'}}>Sair</Typography>
                 </MenuItem>
             </Menu>
