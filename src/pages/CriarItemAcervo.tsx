@@ -73,17 +73,17 @@ const CriarItemAcervo = () => {
     try {
       const item = {
         //objeto data corresponde aos campos do formulário
-        itemName: data.nome,
-        itemDescription: data.descricao,
-        itemCuriosities: data.curiosidades,
-        itemCollection: data.colecao,
-        itemDonation: data.doacao,
-        itemAnonymousDonation: data.doacaoAnonima,
-        itemDonorName: data.nomeDoador,
-        itemDonorPhone: data.telefoneDoador,
-        itemDonationDate: isDayjs(data.dataDoacao) ? data.dataDoacao.toDate() : data.dataDoacao,
-        itemPrivate: data.privado,
-        itemImages: fileReferences // passar um vetor vazio diretamente faz com que o tipo converta para never[]
+        nome: data.nome,
+        descricao: data.descricao,
+        curiosidades: data.curiosidades,
+        colecao: data.colecao,
+        doacao: data.doacao,
+        doacaoAnonima: data.doacaoAnonima,
+        nomeDoador: data.nomeDoador,
+        telefoneDoador: data.telefoneDoador,
+        dataDoacao: isDayjs(data.dataDoacao) ? data.dataDoacao.toDate() : data.dataDoacao,
+        privado: data.privado,
+        imagens: fileReferences // passar um vetor vazio diretamente faz com que o tipo converta para never[]
       }
       await submitToStorage(images).then(
         (urls: string[]) => {
@@ -303,13 +303,13 @@ const CriarItemAcervo = () => {
                       mobile ?
                         collectionList.length !== 0 ?
                           collectionList.map((collection, idx) => (
-                            <option value={collection} key={idx}>{collection}</option>))
-                          : <option value="" disabled>Falha ao carregar as coleções</option>
+                            <option value={collection} key={idx} data-cy='select-collection-item'>{collection}</option>))
+                          : <option value="" disabled data-cy='select-collection-item'>Falha ao carregar as coleções</option>
                         :
                         collectionList.length !== 0 ?
                           collectionList.map((collection, idx) => (
-                            <MenuItem value={collection} key={idx}>{collection}</MenuItem>))
-                          : <MenuItem value="" disabled>Falha ao carregar as coleções</MenuItem>
+                            <MenuItem value={collection} key={idx} data-cy='select-collection-item'>{collection}</MenuItem>))
+                          : <MenuItem value="" disabled data-cy='select-collection-item'>Falha ao carregar as coleções</MenuItem>
                     }
                   </Select>
 

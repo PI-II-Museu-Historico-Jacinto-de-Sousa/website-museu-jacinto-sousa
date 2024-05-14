@@ -1,4 +1,17 @@
-describe("Renderizar página de criar item do acervo", () => {
+describe("Renderizar página de criar item do acervo não logado", () => {
+  beforeEach(() => {
+    cy.visit("http://localhost:5173/acervo/criar-item");
+  });
+  it("Deve mostrar mensagem de acesso não autorizado", () => {
+    cy.get("[data-cy='page-title']").should("not.exist");
+  });
+});
+
+describe("Renderizar página de criar item do acervo logado", () => {
+  before(() => {
+    cy.login(); //login persiste nas próximas seções
+    cy.callFirestore("add", "coleções", { nome: "Coleção de teste" });
+  });
   beforeEach(() => {
     cy.visit("http://localhost:5173/acervo/criar-item");
   });
@@ -93,7 +106,7 @@ describe("Criar Item do Acervo doado não anonimamente", () => {
     cy.get("#collection-select")
       .click()
       .then(() => {
-        cy.get("li:first").click();
+        cy.get("[data-cy='select-collection-item']").first().click();
       });
     //selecionando data
     cy.contains("label", "Data da doação").next().as("datePicker");
@@ -121,7 +134,7 @@ describe("Criar Item do Acervo doado não anonimamente", () => {
     cy.get("#collection-select")
       .click()
       .then(() => {
-        cy.get("li:first").click();
+        cy.get("[data-cy='select-collection-item']").first().click();
       });
     //selecionando data
     cy.contains("label", "Data da doação").next().as("datePicker");
@@ -152,7 +165,7 @@ describe("Criar Item do Acervo doado anonimamente", () => {
     cy.get("#collection-select")
       .click()
       .then(() => {
-        cy.get("li:first").click();
+        cy.get("[data-cy='select-collection-item']").first().click();
       });
     //selecionando data
     cy.contains("label", "Data da doação").next().as("datePicker");
@@ -181,7 +194,7 @@ describe("Criar Item do Acervo doado anonimamente", () => {
     cy.get("#collection-select")
       .click()
       .then(() => {
-        cy.get("li:first").click();
+        cy.get("[data-cy='select-collection-item']").first().click();
       });
 
     //habilitando doacao anonima
@@ -196,6 +209,9 @@ describe("Criar Item do Acervo doado anonimamente", () => {
 });
 
 describe("Criar Item do Acervo não doado", () => {
+  after(() => {
+    cy.logout(); //logout após a ultima seção
+  });
   beforeEach(() => {
     cy.visit("http://localhost:5173/acervo/criar-item");
   });
@@ -204,7 +220,7 @@ describe("Criar Item do Acervo não doado", () => {
     cy.get("#collection-select")
       .click()
       .then(() => {
-        cy.get("li:first").click();
+        cy.get("[data-cy='select-collection-item']").first().click();
       });
     //desabilitando opção de doação
     cy.get("input[name='doacao'").uncheck();

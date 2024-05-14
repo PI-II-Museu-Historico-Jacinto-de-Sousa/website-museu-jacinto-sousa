@@ -14,6 +14,7 @@
 // ***********************************************************
 
 // Import commands.js using ES2015 syntax:
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import "./commands";
 
 // Alternatively you can use CommonJS syntax:
@@ -29,10 +30,14 @@ declare global {
   namespace Cypress {
     interface Chainable {
       mount: typeof mount;
+      loginComponent: typeof signInWithEmailAndPassword;
+      logoutComponent: typeof signOut;
     }
   }
 }
 
 Cypress.Commands.add("mount", mount);
+Cypress.Commands.add("loginComponent", signInWithEmailAndPassword);
+Cypress.Commands.add("logoutComponent", signOut);
 // Example use:
 // cy.mount(<MyComponent />)
