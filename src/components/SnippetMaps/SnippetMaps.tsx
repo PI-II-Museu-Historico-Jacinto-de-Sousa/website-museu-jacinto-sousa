@@ -14,7 +14,7 @@ const isValidURL = (string: string) => {
 const SnippetMaps = ({URL}: {URL: string} ) => {
   return (
     <LocalizacaoMuseu
-        url={isValidURL(URL) ? URL : "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3983.7683535114555!2d-39.013285085532314!3d-4.971648897769986!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x7aef39332e0fc39%3A0xd69d26b774a16276!2sMuseu%20Jacinto%20de%20Sousa!5e0!3m2!1spt-BR!2sbr!4v1650815010175!5m2!1spt-BR!2sbr"}
+        url={isValidURL(URL) ? URL : "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3974.821148276373!2d-39.014886525425894!3d-4.9693763507430075!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x7be9fbc1dcba093%3A0x5ff17d1b7352a1ff!2sMuseu%20Hist%C3%B3rico%20Jacinto%20de%20Sousa!5e0!3m2!1spt-BR!2sbr!4v1715726991967!5m2!1spt-BR!2sbr"}
     />
   );
 };
