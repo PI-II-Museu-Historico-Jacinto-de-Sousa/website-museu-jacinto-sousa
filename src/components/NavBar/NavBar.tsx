@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom'
 //Need to define links to other pages
 const pages = [
     {label: "Exposições", sectionItem: "Criar exposição", seacrhLink: "/", otherLink: "/"},
-    {label: "Acervo", sectionItem: "Adicionar item", seacrhLink: "/", otherLink: "/acerco/criar-item"},
+    {label: "Acervo", sectionItem: "Adicionar item", seacrhLink: "/", otherLink: "acerco/criar-item"},
     {label: "Editais e normas", sectionItem: "Cadastrar normativa", seacrhLink: "/", otherLink: "/"},
 ]
 

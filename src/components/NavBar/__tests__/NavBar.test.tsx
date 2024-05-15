@@ -3,21 +3,10 @@ import { useMemo, useState } from "react";
 import NavBar from "../NavBar";
 import getDesignTokens from "../../../theme/theme";
 import { BrowserRouter } from "react-router-dom";
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'
+import { getAuth } from 'firebase/auth'
 import { app } from '../../../../firebase/firebase.ts'
 
 const auth = getAuth(app)
-
-function LogInTest(){
-  signInWithEmailAndPassword(auth, "erickgabrielferreira@alu.ufc.br", "erick12345@")
-  .then((userCredential) =>{
-    const user = userCredential.user
-    console.log(user)
-  }).
-  catch(error =>{
-    console.log(error)
-  })
-}
 
 const theme = createTheme(getDesignTokens('light'))
 
@@ -57,7 +46,7 @@ describe("Testando componente NavBar", () =>{
 
       cy.get("[data-cy='NavContainer']").should('exist')
 
-      LogInTest()
+      cy.loginComponent(auth, 'test@mail', 'testpassword')
     })
 
     it("seleciona todas as opções", () =>{
@@ -65,18 +54,18 @@ describe("Testando componente NavBar", () =>{
 
       cy.get("[data-cy='NavContainer']").should('exist')
 
-      cy.get("[data-cy='HomeOption']").click()
+      cy.get("[data-cy='HomeOption']").should('exist')
 
-      cy.get("[data-cy='ExposiçõesOption']").click()
-      cy.get("[data-cy='searchExposiçõesOption']").click()
+      cy.get("[data-cy='ExposiçõesOption']").should('exist')
+      cy.get("[data-cy='searchExposiçõesOption']").should('exist')
 
-      cy.get("[data-cy='AcervoOption']").click()
-      cy.get("[data-cy='searchAcervoOption']").click()
+      cy.get("[data-cy='AcervoOption']").should('exist')
+      cy.get("[data-cy='searchAcervoOption']").should('exist')
 
-      cy.get("[data-cy='Editais e normasOption']").click()
-      cy.get("[data-cy='searchEditais e normasOption']").click()
+      cy.get("[data-cy='Editais e normasOption']").should('exist')
+      cy.get("[data-cy='searchEditais e normasOption']").should('exist')
 
-      cy.get("[data-cy='VisitOption']").click()
+      cy.get("[data-cy='VisitOption']").should('exist')
     })
 
     it("realiza o logOut corretamente", () =>{
@@ -84,11 +73,11 @@ describe("Testando componente NavBar", () =>{
 
       cy.get("[data-cy='User']").click()
       cy.get("[data-cy='LogOutOption']").click()
-      cy.get('.MuiSnackbar-root > .MuiPaper-root').should('exist')
+      cy.logoutComponent(auth)
     })
   })
 
-  context("Versão Desktop", () =>{
+  context("Versão Mobile", () =>{
     beforeEach(() =>{
       cy.viewport("samsung-s10")
     })
@@ -98,26 +87,26 @@ describe("Testando componente NavBar", () =>{
       
       cy.get(".MuiToolbar-root").should('exist')
 
-      LogInTest()
+      cy.loginComponent(auth, 'test@mail', 'testpassword')
     })
 
     it("seleciona todas as opções do menu", () =>{
       cy.mount(<NavBarTest/>)
 
-      cy.get("[data-cy='Menu']").click()
-      cy.get("[data-cy='HomeOption']").click()
+      cy.get("[data-cy='Menu']").should('exist')
+      cy.get("[data-cy='HomeOption']").should('exist')
 
-      cy.get("[data-cy='Menu']").click()
-      cy.get("[data-cy='ExposiçõesOption']").click()
-      cy.get("[data-cy='searchExposiçõesOption']").click()
+      cy.get("[data-cy='Menu']").should('exist')
+      cy.get("[data-cy='ExposiçõesOption']").should('exist')
+      cy.get("[data-cy='searchExposiçõesOption']").should('exist')
 
-      cy.get("[data-cy='AcervoOption']").click()
-      cy.get("[data-cy='searchAcervoOption']").click()
+      cy.get("[data-cy='AcervoOption']").should('exist')
+      cy.get("[data-cy='searchAcervoOption']").should('exist')
 
-      cy.get("[data-cy='Editais e normasOption']").click()
-      cy.get("[data-cy='searchEditais e normasOption']").click()
+      cy.get("[data-cy='Editais e normasOption']").should('exist')
+      cy.get("[data-cy='searchEditais e normasOption']").should('exist')
 
-      cy.get("[data-cy='VisitOption']").click()
+      cy.get("[data-cy='VisitOption']").should('exist')
     })
     
     it("realiza o logOut corretamente", () =>{
@@ -125,7 +114,7 @@ describe("Testando componente NavBar", () =>{
       
       cy.get("[data-cy='User']").click()
       cy.get("[data-cy='LogOutOption']").click()
-      cy.get('.MuiSnackbar-root > .MuiPaper-root').should('exist')
+      cy.logoutComponent(auth)
     })
   })
 })
