@@ -338,8 +338,6 @@ const MenuLogout = () =>{
         setAnchorEl(null)
     }
 
-    useEffect
-
     const LogOut = () =>{
         const auth = getAuth(app)
 
@@ -347,6 +345,8 @@ const MenuLogout = () =>{
         catch(error =>{
             console.log(error)
         })
+
+        window.location.reload()
     }
 
     return(
