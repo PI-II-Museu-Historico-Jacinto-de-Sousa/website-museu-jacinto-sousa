@@ -5,14 +5,15 @@ import getDesignTokens from "../../../theme/theme";
 import { BrowserRouter } from "react-router-dom";
 import { getAuth } from 'firebase/auth'
 import { app } from '../../../../firebase/firebase.ts'
+import { loginMethods } from "../../../Utils/loginGoogle.ts";
 
 const auth = getAuth(app)
 
 const theme = createTheme(getDesignTokens('light'))
 
-const NavBarTest = () =>{
+const NavBarTest = () => {
   const [mode, setMode] = useState<PaletteMode>('light');
-  
+
   const colorMode = useMemo(
     () => ({
       toggleColorMode: () => {
@@ -24,33 +25,36 @@ const NavBarTest = () =>{
     [],
   );
 
-  return(
+  return (
     <BrowserRouter>
       <ThemeProvider theme={theme}>
         <CssBaseline>
-          <NavBar colorMode={colorMode} mode={mode}/>
+          <NavBar colorMode={colorMode} mode={mode} />
         </CssBaseline>
       </ThemeProvider>
     </BrowserRouter>
   )
 }
 
-describe("Testando componente NavBar", () =>{
-  context("Versão Desktop", () =>{
-    beforeEach(() =>{
+describe("Testando componente NavBar", () => {
+  before(() => {
+    cy.stub(loginMethods, 'logout')
+  })
+  context("Versão Desktop", () => {
+    beforeEach(() => {
       cy.viewport(1366, 768)
     })
 
-    it("renderiza corretamente o componente", () =>{
-      cy.mount(<NavBarTest/>)
+    it("renderiza corretamente o componente", () => {
+      cy.mount(<NavBarTest />)
 
       cy.get("[data-cy='NavContainer']").should('exist')
 
       cy.loginComponent(auth, 'test@mail', 'testpassword')
     })
 
-    it("seleciona todas as opções", () =>{
-      cy.mount(<NavBarTest/>)
+    it("seleciona todas as opções", () => {
+      cy.mount(<NavBarTest />)
 
       cy.get("[data-cy='NavContainer']").should('exist')
 
@@ -68,30 +72,31 @@ describe("Testando componente NavBar", () =>{
       cy.get("[data-cy='VisitOption']").should('exist')
     })
 
-    it("realiza o logOut corretamente", () =>{
-      cy.mount(<NavBarTest/>)
-
+    it("realiza o logOut corretamente", () => {
+      cy.mount(<NavBarTest />)
+      cy.stub(loginMethods, 'logout')
       cy.get("[data-cy='User']").click()
-      cy.get("[data-cy='LogOutOption']").click()
-      cy.logoutComponent(auth)
+      cy.get("[data-cy='LogOutOption']").click().then(() => {
+        expect(loginMethods.logout).to.be.called
+      })
     })
   })
 
-  context("Versão Mobile", () =>{
-    beforeEach(() =>{
+  context("Versão Mobile", () => {
+    beforeEach(() => {
       cy.viewport("samsung-s10")
     })
-    
-    it("renderiza corretamente o componente", () =>{
-      cy.mount(<NavBarTest/>)
-      
+
+    it("renderiza corretamente o componente", () => {
+      cy.mount(<NavBarTest />)
+
       cy.get(".MuiToolbar-root").should('exist')
 
       cy.loginComponent(auth, 'test@mail', 'testpassword')
     })
 
-    it("seleciona todas as opções do menu", () =>{
-      cy.mount(<NavBarTest/>)
+    it("seleciona todas as opções do menu", () => {
+      cy.mount(<NavBarTest />)
 
       cy.get("[data-cy='Menu']").should('exist')
       cy.get("[data-cy='HomeOption']").should('exist')
@@ -108,13 +113,17 @@ describe("Testando componente NavBar", () =>{
 
       cy.get("[data-cy='VisitOption']").should('exist')
     })
-    
-    it("realiza o logOut corretamente", () =>{
-      cy.mount(<NavBarTest/>)
-      
+
+    it("realiza o logOut corretamente", () => {
+      cy.mount(<NavBarTest />)
+      cy.stub(loginMethods, 'logout')
       cy.get("[data-cy='User']").click()
-      cy.get("[data-cy='LogOutOption']").click()
-      cy.logoutComponent(auth)
+      cy.get("[data-cy='LogOutOption']").click().then(() => {
+        expect(loginMethods.logout).to.be.called
+      })
     })
+  })
+  after(() => {
+    cy.logoutComponent(auth)
   })
 })
