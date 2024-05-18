@@ -12,5 +12,5 @@ export interface ItemAcervo {
   nomeDoador: string;
   telefoneDoador: string;
   privado: boolean;
-  imagens: string[];
+  imagens: Imagem[];
 }

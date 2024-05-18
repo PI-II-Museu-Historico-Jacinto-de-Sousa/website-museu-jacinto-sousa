@@ -93,7 +93,42 @@ describe("Adicionar e remover imagens do item do acervo", () => {
       });
   });
 });
+describe("Criar item com imagens", () => {
+  beforeEach(() => {
+    cy.visit("http://localhost:5173/acervo/criar-item");
+  });
+  it("Deve criar um item de acervo com a imagem passada", () => {
+    cy.fixture("images/default_image.png").as("defaultImage");
+    cy.get("label[for='button-file']").selectFile("@defaultImage");
+    cy.get('input[name="nome"]').type("Item de acervo teste");
 
+    cy.get("#collection-select")
+      .click()
+      .then(() => {
+        cy.get("[data-cy='select-collection-item']").first().click();
+      });
+
+    cy.get('input[name="nomeDoador"').type("nome doador");
+
+    cy.contains("label", "Data da doação").next().as("datePicker");
+    cy.get("@datePicker")
+      .find("button[aria-label='Choose date']")
+      .click()
+      .then(() => {
+        cy.get("button[aria-current='date']").click();
+      });
+
+    cy.get('button[type="submit"]')
+      .click()
+      .then(() => {
+        cy.get("[data-cy='dialog'").should("exist");
+        cy.get("[data-cy='dialog-text']").should(
+          "have.text",
+          "Item criado com sucesso"
+        );
+      });
+  });
+});
 describe("Criar Item do Acervo doado não anonimamente", () => {
   beforeEach(() => {
     cy.visit("http://localhost:5173/acervo/criar-item");
