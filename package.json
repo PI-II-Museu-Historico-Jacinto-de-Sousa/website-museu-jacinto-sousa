@@ -19,7 +19,7 @@
     "@emotion/styled": "^11.11.5",
     "@mui/icons-material": "^5.15.18",
     "@mui/material": "^5.15.15",
-    "@mui/x-date-pickers": "^7.4.0",
+    "@mui/x-date-pickers": "^7.5.0",
     "dayjs": "^1.11.11",
     "dotenv": "^16.4.5",
     "firebase": "^10.12.0",
