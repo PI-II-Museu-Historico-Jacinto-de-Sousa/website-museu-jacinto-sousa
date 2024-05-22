@@ -5,12 +5,34 @@ import {
   DocumentReference,
   addDoc,
   collection,
+  deleteDoc,
   doc,
+  getDoc,
   updateDoc,
 } from "firebase/firestore";
-import { deleteObject, ref, uploadBytes } from "firebase/storage";
+import { deleteObject, getMetadata, ref, uploadBytes } from "firebase/storage";
 import { db, storage } from "../../firebase/firebase";
 import { ItemAcervo } from "../interfaces/ItemAcervo";
+import { FirebaseError } from "firebase/app";
+
+const getItemAcervo = async (id: string) => {
+  try {
+    const docRef = doc(db, "acervo", id);
+    console.log(id);
+    const docSnap = await getDoc(docRef).catch((error) => {
+      console.error(error.code);
+      throw new FirebaseError("Erro ao buscar documento", "not-found");
+    });
+    if (!docSnap.exists()) {
+      throw new Error("Documento não encontrado");
+    } else {
+      const dataMuseu = docSnap.data();
+      return dataMuseu;
+    }
+  } catch (error) {
+    throw new FirebaseError("Erro ao buscar documento", "not-found");
+  }
+}
 
 /** Método para adicionar um item à coleção acervo no firestore, as imagens de um item são as referências para o arquivo no storage */
 export const adicionarItemAcervo = async (
@@ -90,8 +112,54 @@ const removerImagens = async (imagens: Imagem[], idItemAcervo: string) => {
   });
 };
 
+const deleteItemAcervo = async (id: string) => {
+  try {
+    const docRef = doc(db, "acervo", id);
+
+    // Verificar se o documento existe
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      // Deleta as imagens associadas ao documento
+      const data = docSnap.data();
+      if (data && Array.isArray(data.imagens)) {
+          const imagensRefPromises = data.imagens.map(async (imagem) => {
+              const imagemRef = ref(storage, `images/${imagem}`);
+              try {
+                  await getMetadata(imagemRef);
+                  return imagemRef;
+              } catch (error) {
+                  return null;
+              }
+          });
+          const imagensRefs = await Promise.all(imagensRefPromises);
+          for (const imagemRef of imagensRefs) {
+              if (imagemRef) {
+                  try {
+                      await deleteObject(imagemRef);
+                  } catch (error) {
+                      throw new FirebaseError("Erro ao deletar imagem", "not-found");
+                  }
+              }
+          }
+      }
+      // Deletar o documento
+      await deleteDoc(docRef);
+  } else {
+      throw new FirebaseError("No such document!", "not-found");
+  }
+
+  } catch (error) {
+    throw new FirebaseError("Erro ao deletar documento", "not-found");
+  }
+}
+
 const methodsItemAcervo = {
   adicionarItemAcervo,
+  getItemAcervo,
+  deleteItemAcervo,
+  removerImagens,
+  adicionarImagens,
 };
 
-export default methodsItemAcervo;
+export { methodsItemAcervo, adicionarImagens, removerImagens, deleteItemAcervo, getItemAcervo }

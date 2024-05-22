@@ -11,6 +11,7 @@ import getDesignTokens from './theme/theme';
 import Footer from './components/Footer/Footer';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
 import NavBar from './components/NavBar/NavBar';
+import ItemAcervoComponent from './pages/ItemAcervo';
 
 
 function App() {
@@ -40,6 +41,7 @@ function App() {
               <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/acervo/criar-item" element={<CriarItemAcervo />} />
+                  <Route path="/acervo/:id" element={<ItemAcervoComponent />} />
                 </Routes>
               </main>
               <ScrollToTop />
