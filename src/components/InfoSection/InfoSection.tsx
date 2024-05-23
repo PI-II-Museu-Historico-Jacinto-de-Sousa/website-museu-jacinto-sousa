@@ -254,6 +254,7 @@ const InfoSection = ({ id }: InfoSectionProps) => {
             }
             <Button
               component='label'
+              id='image-upload-button'
               variant='contained'
               sx={{
                 textTransform: 'initial',
@@ -265,6 +266,7 @@ const InfoSection = ({ id }: InfoSectionProps) => {
               {currentImage ? "Alterar imagem" : "Adicionar imagem"}
               <input
                 type='file'
+                aria-labelledby='image-upload-button'
                 accept="image/*"
                 onChange={(e) => { if (e.target.files) setValue('imagem.src', e.target.files?.[0]) }}
                 id="image-upload-input"
