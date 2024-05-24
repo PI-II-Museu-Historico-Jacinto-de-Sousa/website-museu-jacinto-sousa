@@ -1,29 +1,63 @@
-import { FormState, useForm, Control, UseFormRegister } from 'react-hook-form';
-import { InfoMuseu } from '../interfaces/InfoMuseu';
+import { useEffect } from "react";
+import {
+  Control,
+  FormState,
+  UseFormHandleSubmit,
+  UseFormRegister,
+  UseFormReset,
+  UseFormResetField,
+  UseFormSetValue,
+  UseFormWatch,
+  useForm,
+} from "react-hook-form";
+import { InfoMuseu } from "../interfaces/InfoMuseu";
 
-const useInfoMuseuForm = (defaultValues?: InfoMuseu): {
+type Status = "loading" | "success" | "error";
+
+interface InfoMuseuFormReturnType {
   register: UseFormRegister<InfoMuseu>;
   control: Control<InfoMuseu>;
-  handleSubmit: <T>(callback: (data: InfoMuseu) => Promise<void>) => (event: React.SyntheticEvent) => void;
+  handleSubmit: UseFormHandleSubmit<InfoMuseu, undefined>;
   formState: FormState<InfoMuseu>;
-} => {
-  // Verifique se defaultValues é undefined e atribua valores padrão apropriados
-  if (defaultValues === undefined) {
-    defaultValues = {
-      nome: '',
-      texto: '',
-      //Não é possível definir um objeto vazio como valor padrão para imagem, pois ele contém propriedades obrigatórias
-      imagem: {
-        src: '',
-        title: '',
-        alt: '',
-      },
-    };
-  }
-
-  const { register, control, handleSubmit, formState } = useForm<InfoMuseu>({ defaultValues });
-
-  return { register, control, handleSubmit, formState };
+  watch: UseFormWatch<InfoMuseu>;
+  setValue: UseFormSetValue<InfoMuseu>;
+  reset: UseFormReset<InfoMuseu>;
+  resetField: UseFormResetField<InfoMuseu>;
 }
+
+const useInfoMuseuForm = (
+  infoMuseu?: InfoMuseu,
+  loaded?: Status
+): InfoMuseuFormReturnType => {
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState,
+    watch,
+    setValue,
+    reset,
+    resetField,
+  } = useForm<InfoMuseu>({
+    defaultValues: { nome: "", texto: "" },
+  });
+  //necessário utilizar useEffect por que o valor de
+  //defaultValues fica como cache após a primeira renderização
+  //adicionar infoMuseu como dependência do useEffect causa uma atualização infinita
+  useEffect(() => {
+    reset(infoMuseu ? infoMuseu : { nome: "", texto: "" });
+  }, [loaded]);
+
+  return {
+    register,
+    control,
+    handleSubmit,
+    formState,
+    watch,
+    setValue,
+    reset,
+    resetField,
+  };
+};
 
 export default useInfoMuseuForm;
