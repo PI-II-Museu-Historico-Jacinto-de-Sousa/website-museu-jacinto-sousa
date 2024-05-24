@@ -9,10 +9,10 @@ import { useEffect, useState } from 'react'
 import { collection, doc, getDocs, getFirestore, setDoc } from 'firebase/firestore'
 
 interface IFooterData {
-  telephone: string,
-  whatsapp: string,
+  address: string,
   email: string,
-  address: string
+  telephone: string,
+  whatsapp: string
 }
 
 const Footer = () => {
@@ -43,11 +43,11 @@ const Footer = () => {
 
     setEdit(true)
   }
-
+  
   const cancelEdit = () => {
     setEdit(false)
   }
-
+  
   const applyEdit = async () => {
     const newFooterData = {
       address: newAddress,
@@ -55,19 +55,18 @@ const Footer = () => {
       telephone: newTelephone,
       whatsapp: newWhatsapp
     }
-
-    console.log(newFooterData)
+    
     try {
-      await submitToFirestore(newFooterData)
+      submitToFirestore(newFooterData)
       setEdit(false)
     }
     catch (error) {
       console.log(error)
     }
   }
-
+  
   //comunicate with firestore
-
+  
   const getFooterData = async () => {
     try {
       const db = getFirestore()
@@ -75,7 +74,17 @@ const Footer = () => {
       const collections = await getDocs(queryFooter)
       const data = collections.docs.map(doc => doc.data())[0]
 
-      setFooterData(data as IFooterData)
+      if(data === undefined || data === null){
+        setFooterData({
+          address: "",
+          email: "",
+          telephone: "",
+          whatsapp: ""
+        })
+      }
+      else{
+        setFooterData(data as IFooterData)
+      }
     }
     catch (error) {
       console.log(error)
@@ -186,8 +195,8 @@ const Footer = () => {
 }
 
 const FooterContainer = styled('footer')(({ theme }: { theme: Theme }) => ({
-  left: 0,
-  bottom: 0,
+  left: '0',
+  bottom: '0',
   height: 'fit-content',
   width: '100%',
   display: 'flex',
@@ -195,7 +204,7 @@ const FooterContainer = styled('footer')(({ theme }: { theme: Theme }) => ({
   justifyContent: 'center',
   alignContent: 'center',
   flexWrap: 'wrap',
-  backgroundColor: theme.palette.outline.main
+  backgroundColor: theme.palette.outline.main,
 }))
 
 const FooterContent = styled('div')(() => ({
