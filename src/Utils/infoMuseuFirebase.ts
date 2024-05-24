@@ -1,8 +1,78 @@
-import { deleteObject, getDownloadURL, getMetadata, ref, updateMetadata, uploadBytesResumable } from "firebase/storage";
-import { InfoMuseu } from "../interfaces/InfoMuseu";
-import { collection, doc, getDoc, addDoc, deleteDoc, updateDoc } from 'firebase/firestore'
 import { FirebaseError } from "firebase/app";
-import { db, storage } from '../../firebase/firebase'
+import { Unsubscribe } from "firebase/auth";
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  onSnapshot,
+  query,
+  setDoc,
+  where,
+} from "firebase/firestore";
+import {
+  StorageReference,
+  deleteObject,
+  getDownloadURL,
+  getMetadata,
+  ref,
+  updateMetadata,
+  uploadBytes,
+  uploadBytesResumable,
+} from "firebase/storage";
+import { db, storage } from "../../firebase/firebase";
+import { InfoMuseu } from "../interfaces/InfoMuseu";
+
+type Status = "loading" | "success" | "error";
+
+/**
+ * vincula a informação com o id passado a uma função de callback
+ * que é chamada sempre que a informação é atualizada
+ * @returns a função de unsubscribe para parar de ouvir mudanças
+ */
+function subscribeInfoMuseu(
+  id: string,
+  currentInfo: InfoMuseu | null,
+  callback: React.Dispatch<React.SetStateAction<InfoMuseu | null>>,
+  statusUpdate: React.Dispatch<React.SetStateAction<Status>>
+): Unsubscribe {
+  try {
+    const docRef = doc(db, "informações-museu", id);
+    const unsubscribe = onSnapshot(
+      docRef,
+      async (snapshot) => {
+        const infoMuseu = snapshot.data();
+        if (!infoMuseu) {
+          statusUpdate("error");
+          return;
+        } else {
+          //atualizar imagem somente se houver mudança
+          if (infoMuseu?.imagem != currentInfo?.imagem) {
+            infoMuseu.imagem = await getImagemInfoMuseu(
+              ref(storage, `images/${infoMuseu.imagem}`)
+            ).catch(() => {
+              statusUpdate("error");
+              return;
+            });
+          }
+          callback(infoMuseu as InfoMuseu);
+          statusUpdate((previousState) =>
+            previousState === "error" ? "error" : "success"
+          );
+        }
+      },
+      (error) => {
+        console.error(error)
+        statusUpdate("error");
+      }
+    );
+    return unsubscribe;
+  } catch (error) {
+    throw new Error(`${(error as Error).message}`);
+  }
+}
 
 async function getInfoMuseu(id: string): Promise<InfoMuseu> {
   try {
@@ -15,87 +85,216 @@ async function getInfoMuseu(id: string): Promise<InfoMuseu> {
       throw new Error("Documento nao existe!");
     }
     const dataMuseu = docSnap.data();
-    const url = await getDownloadURL(ref(storage, `images/${dataMuseu.imagem}`)).catch(() => {
-      throw new FirebaseError("Imagem não encontrada", "not-found");
-    });
-    const imagemRef = ref(storage, `images/${dataMuseu.imagem}`);
-    const metadata = await getMetadata(imagemRef).catch(() => {
-      throw new FirebaseError("Metadados não encontrados", "not-found");
-    });
-    const imagem = {src: url, title: metadata?.name , alt: metadata?.customMetadata?.alt===undefined ? "" : metadata.customMetadata.alt};
-    dataMuseu.imagem = imagem;
 
-    return {...dataMuseu} as InfoMuseu;
-  }
-  catch (error) {
+    if (dataMuseu.imagem) {
+      const storageRef = ref(storage, `images/${dataMuseu.imagem}`);
+      dataMuseu.imagem = await getImagemInfoMuseu(storageRef).catch((error) => {
+        throw new FirebaseError(error.code, "Erro ao buscar imagem");
+      });
+    } else {
+      //nao retornar imagem se nao existir ou for vazia
+      delete dataMuseu.imagem;
+    }
+    return { ...dataMuseu } as InfoMuseu;
+  } catch (error) {
     // Relançar o erro para ser tratado externamente
     throw new FirebaseError("Documento não encontrado", "not-found");
   }
 }
 
+async function getImagemInfoMuseu(
+  storageRef: StorageReference
+): Promise<Imagem> {
+  const url = await getDownloadURL(storageRef).catch(() => {
+    throw new FirebaseError("not-found", "Imagem não encontrada");
+  });
+  const metadata = await getMetadata(storageRef).catch(() => {
+    throw new FirebaseError("not-found", "Metadados não encontrados");
+  });
+  const imagem = {
+    src: url,
+    title: metadata?.name,
+    alt:
+      metadata?.customMetadata?.alt === undefined
+        ? ""
+        : metadata.customMetadata.alt,
+  };
+  return imagem;
+}
 
-async function atualizarInfoMuseu(id:string, info: InfoMuseu) {
-    try {
-      const docRef = doc(db, "informações-museu", id);
-      const docSnap = await getDoc(docRef).catch(() => {
-        throw new FirebaseError("Erro ao buscar documento", "not-found");
+async function atualizarInfoMuseu(id: string, info: InfoMuseu) {
+  try {
+    const docRef = doc(db, "informações-museu", id);
+    const docSnap = await getDoc(docRef).catch(() => {
+      throw new FirebaseError("firestore-error", "Erro ao buscar informação");
+    });
+    if (!docSnap.exists()) {
+      throw Error("Informação não encontrada");
+    }
+    let updatedDoc = {
+      nome: info.nome,
+      texto: info.texto,
+    };
+    const data = docSnap.data();
+
+    const imagemRef = data.imagem
+      ? ref(storage, `images/${data.imagem}`)
+      : null;
+    const updatedRef = await atualizarImagemInfoMuseu(imagemRef, info.imagem);
+    //documento armazenado possui apenas a referencia em forma de string para a imagem
+    if (updatedRef) {
+      updatedDoc = {
+        ...updatedDoc,
+        imagem: updatedRef,
+      } as typeof updatedDoc & { imagem: string };
+    }
+    await setDoc(docRef, updatedDoc).catch(() => {
+      throw new FirebaseError("storage-error", "Erro ao salvar atualização");
+    });
+  } catch (error) {
+    throw new Error(`${(error as Error).message}`);
+  }
+}
+
+/**
+ * Atualiza a imagem vinculada a uma informacao, caso a imagem tenha o mesmo nome e conteudo,
+ * apenas os metadados sao atualizados. Se não, a imagem antiga é removida e a nova imagem referenciada
+ * no objeto do firestore
+ * @param imagemAntigaRef
+ * @param novaImagem
+ * @returns nova referencia da imagem
+ */
+async function atualizarImagemInfoMuseu(
+  imagemAntigaRef: StorageReference | null,
+  novaImagem: Imagem | undefined
+): Promise<string | undefined> {
+  if (novaImagem === undefined && imagemAntigaRef === null) {
+    return undefined;
+  }
+  if (novaImagem === undefined && imagemAntigaRef) {
+    // remover a imagem antiga apenas se não estiver sendo utilizada por outro documento
+    if ((await getInfoUsingImageCount(imagemAntigaRef.name)) == 1) {
+      deleteObject(imagemAntigaRef)
+        .then(() => {})
+        .catch(() => {
+          throw new FirebaseError(
+            "storage-error",
+            "Erro deletando imagem antiga"
+          );
+        });
+    }
+    return undefined;
+  }
+  // se a imagem não for do tipo file, então apenas os metadados foram modificados
+  if (!(novaImagem?.src instanceof File)) {
+    if (novaImagem?.title) {
+      const imagemRef = ref(storage, `images/${novaImagem.title}`);
+      await updateMetadata(imagemRef, {
+        customMetadata: { alt: novaImagem.alt },
+      }).catch(() => {
+        throw new FirebaseError(
+          "storage-error",
+          "Erro adicionando informações do arquivo"
+        );
       });
-      if(!docSnap.exists()) {
-        throw Error("Documento não encontrado");
+      return imagemRef.name;
+    } else {
+      throw new Error("Nova imagem deve ser um arquivo");
+    }
+  } else {
+    const novaImagemRef = ref(storage, `images/${novaImagem.src.name}`);
+    try {
+      const metadata = { customMetadata: { alt: novaImagem.alt } };
+      //sobrescrever a imagem antiga
+      if (novaImagemRef == imagemAntigaRef || imagemAntigaRef == null) {
+        await uploadBytes(novaImagemRef, novaImagem.src, metadata).catch(() => {
+          throw new FirebaseError("storage-error", "Erro salvando nova imagem");
+        });
       } else {
-        if(info.imagem.src instanceof File) {
-          const data = docSnap.data();
-          if (data) {
-            const imagemRef = ref(storage, `images/${data.imagem}`);
-            await deleteObject(imagemRef);
-          }
-          const storageRef = ref(storage, `images/${info.imagem.src.name}`);
-          await uploadBytesResumable(storageRef, info.imagem.src).catch(() => {
-            throw new FirebaseError("Erro ao adicionar imagem", "not-found");
+        // remover a imagem antiga apenas se não estiver sendo utilizada por outro documento
+        if ((await getInfoUsingImageCount(imagemAntigaRef.name)) == 1) {
+          await deleteObject(imagemAntigaRef).catch(() => {
+            throw new FirebaseError(
+              "storage-error",
+              "Erro deletando imagem antiga"
+            );
           });
-          const metadata = {customMetadata: {alt: info.imagem.alt}}
-          updateMetadata (storageRef, metadata).catch(() => {
-            throw new FirebaseError("Erro ao adicionar metadados", "not-found");
-          });
-          const file = {nome: info.nome, texto: info.texto, imagem: info.imagem.src.name};
-          await updateDoc(docRef, file).catch(() => {
-            throw new FirebaseError("Erro ao atualizar documento", "not-found");
-          })
-        } else {
-          throw new FirebaseError("Sem imagem para adicionar", "no-image");
         }
+        await uploadBytes(novaImagemRef, novaImagem.src, metadata).catch(() => {
+          throw new FirebaseError("storage-error", "Erro salvando nova imagem");
+        });
       }
+      return novaImagemRef.name;
     } catch (error) {
-      throw new FirebaseError("Erro ao atualizar documento", "not-found");
+      if ((error as FirebaseError).code == "storage/object-not-found") {
+        (error as Error).message = "Nenhuma imagem encontrada";
+      } else if ((error as FirebaseError).code == "storage/unauthenticated") {
+        (error as Error).message =
+          "Você não tem permissão para alterar imagens";
+      }
+
+      throw new Error(`${(error as Error).message}`);
     }
   }
+}
 
-async function adicionarInfoMuseu(info: InfoMuseu) {
+/**
+ *
+ * @param info
+ * @returns o id do documento adicionado
+ */
+async function adicionarInfoMuseu(info: InfoMuseu): Promise<string> {
   try {
-    if (info.imagem.src instanceof File) {
-      const collectionRef = collection(db, "informações-museu")
+    const collectionRef = collection(db, "informações-museu");
+    let newDoc: InfoMuseu = {
+      nome: info.nome,
+      texto: info.texto,
+    };
+    if (info?.imagem) {
+      const imagemPath = await adicionarImagemInfoMuseu(info.imagem).catch(
+        (error) => {
+          throw new FirebaseError(
+            "storage-error",
+            "Erro ao adicionar imagem:" + error.message
+          );
+        }
+      );
+      newDoc = { ...newDoc, imagem: imagemPath } as typeof newDoc & {
+        imagem: string;
+      };
+    }
+    const docReference = await addDoc(collectionRef, newDoc).catch((error) => {
+      throw new FirebaseError(
+        "firestore-error",
+        "Erro ao adicionar documento:" + error.message
+      );
+    });
+    return docReference.id;
+  } catch (error) {
+    throw new Error(`${(error as Error).message}`);
+  }
+}
 
-      const file = {nome: info.nome, texto: info.texto, imagem: info.imagem.src.name};
-
-      await addDoc(collectionRef, file).catch(() => {
-        throw new FirebaseError("Erro ao adicionar documento", "not-found");
-      })
-
-      const storageRef = ref(storage, `images/${info.imagem.src.name}`);
-
-      // 'file' comes from the Blob or File API
-      await uploadBytesResumable(storageRef, info.imagem.src).catch(() => {
-        throw new FirebaseError("Erro ao adicionar imagem", "not-found");
+async function adicionarImagemInfoMuseu(imagem: Imagem): Promise<string> {
+  try {
+    if (imagem.src instanceof File) {
+      const storageRef = ref(storage, `images/${imagem.src.name}`);
+      await uploadBytesResumable(storageRef, imagem.src).catch(() => {
+        throw new FirebaseError("storage-error", "Erro salvando conteúdo");
       });
-      const metadata = {customMetadata: {alt: info.imagem.alt}}
-      updateMetadata (storageRef, metadata).catch(() => {
-        throw new FirebaseError("Erro ao adicionar metadados", "not-found");
+      const metadata = { customMetadata: { alt: imagem.alt } };
+      updateMetadata(storageRef, metadata).catch(() => {
+        throw new FirebaseError(
+          "storage-error",
+          "Erro ao adicionar informações do arquivo"
+        );
       });
+      return storageRef.name;
     } else {
-      throw new FirebaseError("Sem imagem para adicionar", "no-image");
+      throw new FirebaseError("storage-error", "Imagem deve ser um arquivo");
     }
   } catch (error) {
-    throw new FirebaseError("Erro ao adicionar documento", "not-found");
+    throw new Error(`${(error as Error).message}`);
   }
 }
 
@@ -107,31 +306,55 @@ async function deletarInfoMuseu(id: string) {
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
-      // Deletar a imagem associada
       const data = docSnap.data();
-      if (data) {
-        const imagemRef = ref(storage, `images/${data.imagem}`);
-        await deleteObject(imagemRef);
-      } else {
-        throw new Error("Erro ao deletar imagem");
+      if (data.imagem) {
+        //remover a imagem apenas se não estiver sendo utilizada por outro documento
+        if ((await getInfoUsingImageCount(data.imagem)) == 1) {
+          const imagemRef = ref(storage, `images/${data.imagem}`);
+          await deleteObject(imagemRef).catch((error) => {
+            throw new FirebaseError(error.code, "Erro ao deletar imagem");
+          });
+        }
       }
       // Deletar o documento
-      await deleteDoc(docRef);
-
-      // Se o documento existia, também delete a imagem associada
+      await deleteDoc(docRef).catch((error) => {
+        throw new FirebaseError(error.code, "Erro ao deletar informação");
+      });
     } else {
-      throw new FirebaseError("No such document!", "not-found");
+      throw new FirebaseError("not-found", "Informação não encontrada");
     }
   } catch (error) {
-    throw new FirebaseError("Erro ao deletar documento", "not-found");
+    if ((error as FirebaseError).code == "permission-denied") {
+      (error as Error).message =
+        "Você não tem permissão para deletar informações";
+    }
+    throw new Error(`${(error as Error).message}`);
   }
 }
 
-const infoMuseuMethods = {
-  getInfoMuseu,
-  atualizarInfoMuseu,
-  adicionarInfoMuseu,
-  deletarInfoMuseu
+// retorna o numero de documentos na coleção que estão utilizando uma mesma imagem
+const getInfoUsingImageCount = async (nomeImagem: string): Promise<number> => {
+  const collectionRef = collection(db, "informações-museu");
+
+  const queryForImage = query(collectionRef, where("imagem", "==", nomeImagem));
+  const querySnapshot = await getDocs(queryForImage);
+  return querySnapshot.docs.length;
 };
 
-export {infoMuseuMethods, getInfoMuseu, atualizarInfoMuseu, adicionarInfoMuseu, deletarInfoMuseu}
+const infoMuseuMethods = {
+  getInfoMuseu,
+  subscribeInfoMuseu,
+  atualizarInfoMuseu,
+  adicionarInfoMuseu,
+  deletarInfoMuseu,
+};
+
+export {
+  adicionarInfoMuseu,
+  atualizarInfoMuseu,
+  deletarInfoMuseu,
+  getInfoMuseu,
+  infoMuseuMethods,
+  subscribeInfoMuseu
+};
+
