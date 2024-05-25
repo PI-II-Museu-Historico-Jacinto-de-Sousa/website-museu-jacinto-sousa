@@ -2,11 +2,11 @@ import PhoneIcon from '@mui/icons-material/Phone'
 import WhatsAppIcon from '@mui/icons-material/WhatsApp'
 import EmailIcon from '@mui/icons-material/Email'
 import PlaceIcon from '@mui/icons-material/Place'
-import { Theme, styled } from '@mui/material'
+import { Theme, Typography, styled } from '@mui/material'
 import { getAuth } from 'firebase/auth'
 import { app } from '../../../firebase/firebase'
 import { useEffect, useState } from 'react'
-import { collection, doc, getDocs, getFirestore, setDoc } from 'firebase/firestore'
+import { collection, doc, getDoc, getDocs, getFirestore, query, setDoc, where } from 'firebase/firestore'
 
 interface IFooterData {
   address: string,
@@ -22,6 +22,8 @@ const Footer = () => {
   const [edit, setEdit] = useState(false)
 
   const [logged, setLogged] = useState(false)
+
+  const [dataLess, setDataLess] = useState(false)
 
   const [footerData, setFooterData] = useState<IFooterData>({
     address: '',
@@ -70,21 +72,15 @@ const Footer = () => {
   const getFooterData = async () => {
     try {
       const db = getFirestore()
-      const queryFooter = collection(db, "informações-museu")
-      const collections = await getDocs(queryFooter)
-      const data = collections.docs.map(doc => doc.data())[0]
-
-      if(data === undefined || data === null){
-        setFooterData({
-          address: "",
-          email: "",
-          telephone: "",
-          whatsapp: ""
-        })
-      }
-      else{
+      const footerRef = doc(db, "informações-museu", "footer")
+      
+      await getDoc(footerRef).then((footerDoc) =>{
+        const data = footerDoc.data()
         setFooterData(data as IFooterData)
-      }
+      })
+      .catch(() =>{
+        setDataLess(true)
+      })
     }
     catch (error) {
       console.log(error)
@@ -115,13 +111,23 @@ const Footer = () => {
     getFooterData()
   }, [])
 
-  return (
-    <FooterContainer data-cy='footer-container'>
+  if(dataLess === true){
+    return(
+      <FooterContainer data-cy="footer-container" sx={{height: '6vh'}}>
+          <Typography sx={{fontSize: '3vh'}}>
+            Erro ao carregar informações do rodapé
+          </Typography>
+      </FooterContainer>
+    )
+  }
+  else{
+    return (
+      <FooterContainer data-cy='footer-container'>
       {edit ?
 
         // component apply to edition
 
-        <>
+          <>
           <FooterContent>
             <FooterItem>
               <PhoneIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
@@ -180,8 +186,8 @@ const Footer = () => {
 
           {
             logged ?
-
-              <FooterEditable>
+            
+            <FooterEditable>
                 <EditableButton onClick={() => startEdit()} data-cy='footer-edit-button'><strong>(Editar)</strong></EditableButton>
               </FooterEditable>
               :
@@ -191,7 +197,8 @@ const Footer = () => {
         </>
       }
     </ FooterContainer>
-  )
+    )
+  }
 }
 
 const FooterContainer = styled('footer')(({ theme }: { theme: Theme }) => ({
