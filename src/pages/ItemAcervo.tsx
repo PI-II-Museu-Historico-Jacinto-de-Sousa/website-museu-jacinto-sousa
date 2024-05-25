@@ -23,12 +23,12 @@ import { ItemAcervo } from "../interfaces/ItemAcervo";
 import { useForm, SubmitHandler, Controller } from "react-hook-form"
 import EditIcon from '@mui/icons-material/Edit';
 import { auth, db } from "../../firebase/firebase";
-import { Timestamp, collection, doc, getDocs, updateDoc } from "firebase/firestore";
-import { FirebaseError } from "firebase/app";
+import { collection, getDocs } from "firebase/firestore";
 import dayjs from "dayjs";
 import { useNavigate } from 'react-router-dom'; // Importe useNavigate
 import  { deleteItemAcervo }  from "../Utils/itemAcervoFirebase";
-import { getItemAcervo } from "../Utils/itemAcervoFirebase";
+//import useItemAcervo from "../hooks/useItemAcervo";
+import { updateItemAcervo } from "../Utils/itemAcervoFirebase";
 
 const ItemAcervoComponent = () => {
   const { id } = useParams<{ id: string }>();
@@ -60,7 +60,7 @@ const ItemAcervoComponent = () => {
   }, [logged]); // Dependência vazia para garantir que o efeito seja executado apenas uma vez
 
   //Definindo atributos da página
-  const { register, watch, control, handleSubmit, formState, setValue } = useForm<ItemAcervo>(
+  const { register, control, handleSubmit, formState, setValue } = useForm<ItemAcervo>(
     {
       defaultValues: {
         privado: false,
@@ -106,34 +106,8 @@ const ItemAcervoComponent = () => {
   const { errors } = formState
 
   //função que é chamada ao submeter o formulário
-  const onSubmit: SubmitHandler<ItemAcervo> = async () => {
-    try {
-      const formData = watch(); // Obtém os valores atualizados do formulário
-      setPrivado(formData.privado);
-      setColecao(formData.colecao);
-      setDescricao(formData.descricao);
-      setCuriosidades(formData.curiosidades);
-      const dataAquisicao = dayjs(formData.dataDoacao);
-      setDataAquisicao(dataAquisicao);
-      setNome(formData.nome);
-
-      if (id && typeof id === 'string') {
-        const docRef = doc(db, "acervo", id);
-        const file = {
-          nome: formData.nome,
-          dataDoacao: formData.dataDoacao ? Timestamp.fromMillis(formData.dataDoacao.valueOf()) : null,
-          descricao: formData.descricao,
-          curiosidades: formData.curiosidades,
-          privado: Boolean(formData.privado) ,
-          colecao: formData.colecao,
-        };
-        await updateDoc(docRef, file).catch(() => {
-          throw new FirebaseError("Erro ao atualizar documento", "not-found");
-        });
-      }
-    } catch (error) {
-      throw new Error("Erro ao atualizar documento");
-    }
+  const onSubmit: SubmitHandler<ItemAcervo> = async (formData: ItemAcervo) => {
+    updateItemAcervo(formData, id ?? '')
   }
 
   //query que verifica se a resolução for menor que 600px

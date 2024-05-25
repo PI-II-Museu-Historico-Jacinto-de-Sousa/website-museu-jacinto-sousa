@@ -3,34 +3,100 @@
 import {
   DocumentData,
   DocumentReference,
+  Timestamp,
   addDoc,
   collection,
   deleteDoc,
   doc,
   getDoc,
+  onSnapshot,
   updateDoc,
 } from "firebase/firestore";
-import { deleteObject, getMetadata, ref, uploadBytes } from "firebase/storage";
+import { StorageReference, deleteObject, getDownloadURL, getMetadata, ref, uploadBytes } from "firebase/storage";
 import { db, storage } from "../../firebase/firebase";
 import { ItemAcervo } from "../interfaces/ItemAcervo";
 import { FirebaseError } from "firebase/app";
+import { Unsubscribe } from "firebase/auth";
+
+type Status = "loading" | "success" | "error.permission-denied" | "error.not-found";
+
+function subscribeItemAcervo(
+  id: string,
+  currentInfo: ItemAcervo | null,
+  callback: React.Dispatch<React.SetStateAction<ItemAcervo | null>>,
+  statusUpdate: React.Dispatch<React.SetStateAction<Status>>
+): Unsubscribe {
+  try {
+    const docRef = doc(db, "informações-museu", id);
+    const unsubscribe = onSnapshot(
+      docRef,
+      async (snapshot) => {
+        const itemAcervo = snapshot.data();
+        if (!itemAcervo) {
+          statusUpdate("error.not-found");
+          return;
+        } else {
+          //atualizar imagem somente se houver mudança
+          if (itemAcervo?.imagens != currentInfo?.imagens) {
+            itemAcervo.imagens = await getImagensItemAcervo(
+              ref(storage, `images/${itemAcervo.imagens}`)
+            ).catch(() => {
+              statusUpdate("error.not-found");
+              return;
+            });
+          }
+          callback(itemAcervo as ItemAcervo);
+          statusUpdate((previousState) =>
+            previousState === "error.not-found" ? "error.not-found" : "success"
+          );
+        }
+      },
+      (error) => {
+        console.error(error)
+        statusUpdate("error.not-found");
+      }
+    );
+    return unsubscribe;
+  } catch (error) {
+    statusUpdate("error.permission-denied");
+    throw new Error(`${(error as Error).message}`);
+  }
+}
+
+async function getImagensItemAcervo(
+  storageRef: StorageReference
+): Promise<Imagem> {
+  const url = await getDownloadURL(storageRef).catch(() => {
+    throw new FirebaseError("not-found", "Imagem não encontrada");
+  });
+  const metadata = await getMetadata(storageRef).catch(() => {
+    throw new FirebaseError("not-found", "Metadados não encontrados");
+  });
+  const imagem = {
+    src: url,
+    title: metadata?.name,
+    alt:
+      metadata?.customMetadata?.alt === undefined
+        ? ""
+        : metadata.customMetadata.alt,
+  };
+  return imagem;
+}
 
 const getItemAcervo = async (id: string) => {
   try {
     const docRef = doc(db, "acervo", id);
-    console.log(id);
-    const docSnap = await getDoc(docRef).catch((error) => {
-      console.error(error.code);
+    const docSnap = await getDoc(docRef).catch(() => {
       throw new FirebaseError("Erro ao buscar documento", "not-found");
     });
     if (!docSnap.exists()) {
-      throw new Error("Documento não encontrado");
+      throw new FirebaseError("Documento não encontrado", "not-found");
     } else {
       const dataMuseu = docSnap.data();
-      return dataMuseu;
+      return dataMuseu as ItemAcervo;
     }
   } catch (error) {
-    throw new FirebaseError("Erro ao buscar documento", "not-found");
+    throw new FirebaseError("Permissão negada", "permission-denied");
   }
 }
 
@@ -96,6 +162,27 @@ const adicionarImagens = async (imagens: Imagem[]) => {
   }
 };
 
+const updateItemAcervo = async (formData: ItemAcervo, id: string) => {
+  try {
+    if (id && typeof id === 'string') {
+      const docRef = doc(db, "acervo", id);
+      const file = {
+        nome: formData.nome,
+        dataDoacao: formData.dataDoacao ? Timestamp.fromMillis(formData.dataDoacao.valueOf()) : null,
+        descricao: formData.descricao,
+        curiosidades: formData.curiosidades,
+        privado: Boolean(formData.privado) ,
+        colecao: formData.colecao,
+      };
+      await updateDoc(docRef, file).catch(() => {
+        throw new FirebaseError("Erro ao atualizar documento", "not-found");
+      });
+    }
+  } catch (error) {
+    throw new Error("Erro ao atualizar documento");
+  }
+}
+
 const removerImagens = async (imagens: Imagem[], idItemAcervo: string) => {
   imagens.forEach(async (imagem) => {
     const storageRef = ref(storage, "images/" + imagem.title);
@@ -156,10 +243,13 @@ const deleteItemAcervo = async (id: string) => {
 
 const methodsItemAcervo = {
   adicionarItemAcervo,
-  getItemAcervo,
   deleteItemAcervo,
   removerImagens,
+  getItemAcervo,
   adicionarImagens,
+  updateItemAcervo,
+  subscribeItemAcervo,
+  getImagensItemAcervo,
 };
 
-export { methodsItemAcervo, adicionarImagens, removerImagens, deleteItemAcervo, getItemAcervo }
+export { methodsItemAcervo, adicionarImagens, removerImagens, deleteItemAcervo, getItemAcervo, updateItemAcervo, subscribeItemAcervo, getImagensItemAcervo };

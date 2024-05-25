@@ -1,20 +1,32 @@
-import { getItemAcervo } from "../Utils/itemAcervoFirebase";
-import { useForm } from "react-hook-form";
 import { ItemAcervo } from "../interfaces/ItemAcervo";
+import { useState } from "react";
+import {subscribeItemAcervo, updateItemAcervo} from "../Utils/itemAcervoFirebase";
 
-const useItemAcervo = async (id: string) => {
-  const defaultValues = {nome: "", descricao: "", curiosidades: "", dataDoacao: "", privado: false, colecao: "", imagens: null, error: null}
-  const { data: itemData , error: itemError } = await getItemAcervo(id);
-  const { register, watch, setError, control, handleSubmit, formState, reset } =
-    useForm<ItemAcervo>({
-      defaultValues: { ...defaultValues },
-    });
-    console.log(itemError)
-    console.log(itemData)
-  return {
-    data: itemData || defaultValues,
-    error: itemError,
-  };
-};
+/** Hook contendo o formulario para as informacoes de um item do acervo,
+ * podendo ser usado tanto para criar como atualizar. No caso de um item ser
+ * passado para o formulário, os valores default retornados serão os do item */
 
+type Status = "loading" | "success" | "error.permission-denied" | "error.not-found";
+
+interface useItemAcervoReturnType {
+  status: Status;
+  itemAcervo: ItemAcervo | null;
+  atualizarItemAcervo: (itemAcervo: ItemAcervo) => Promise<void>;
+}
+
+const useItemAcervo = (
+  id: string
+): useItemAcervoReturnType => {
+  const [data, setData] = useState<ItemAcervo | null>(null);
+  const [status, setStatus] = useState<Status>("loading");
+  const unsubscribe = subscribeItemAcervo(id??'', data, setData, setStatus);
+
+  if (status === "error.not-found" || status === 'error.permission-denied' || status === "success") {
+    unsubscribe();
+  }
+  // função de update fixada no id passado
+  const update = updateItemAcervo.bind(null, id);
+
+  return { status: status, itemAcervo: data, atualizarItemAcervo: update };
+}
 export default useItemAcervo;
