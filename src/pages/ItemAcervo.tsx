@@ -59,6 +59,7 @@ const ItemAcervoComponent = () => {
 
   const watchName = watch('nome');
   const watchPrivado = watch('privado');
+  console.log(ItemAcervo)
 
 
   useEffect(() => {
@@ -735,7 +736,7 @@ const Alt = styled('section')(({ theme }: { theme: Theme }) => ({
 
 
 //Será usado quando tiver o slide banner
-const AltText = styled(Typography)(({ theme }: { theme: Theme }) => ({
+/*const AltText = styled(Typography)(({ theme }: { theme: Theme }) => ({
   color: theme.palette.outline.main, //var(--Schemes-Outline, #85736C);
   //material-theme/label/large
   fontFamily: theme.typography.labelMedium.fontFamily,
@@ -744,7 +745,7 @@ const AltText = styled(Typography)(({ theme }: { theme: Theme }) => ({
   fontWeight: 500,
   lineHeight: '20px', //142.857%
   letterSpacing: '0.1px',
-}))
+}))*/
 
 const Description = styled('section')(({ theme }: { theme: Theme }) => ({
   display: 'flex',

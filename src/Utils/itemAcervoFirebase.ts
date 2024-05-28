@@ -55,7 +55,11 @@ function subscribeItemAcervo(
         }
       },
       (error) => {
-        statusUpdate("error.permission-denied");
+        if(error.code === "permission-denied") {
+          statusUpdate("error.permission-denied");
+        } else {
+          statusUpdate("error.not-found");
+        }
         throw new Error(`${(error as Error).message}`);
       }
     );
