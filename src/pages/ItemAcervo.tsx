@@ -34,12 +34,12 @@ const ItemAcervoComponent = () => {
   const [logged, setLogged] = useState(false);
   const [editing, setEditing] = useState(false);
   const [dataFetched, setDataFetched] = useState(false);
-  const theme = useTheme()
-  const palette = theme.palette
-  const navigate = useNavigate()
+  const theme = useTheme();
+  const palette = theme.palette;
+  const navigate = useNavigate();
   const [open, setOpenDialog] = useState(false)
   const [openDialogSave, setOpenDialogSave] = useState(false);
-  const [documentoExiste, setDocumentoExiste] = useState(false)
+  const [documentoExiste, setDocumentoExiste] = useState(false);
   const ItemAcervo = useItemAcervo(id ?? '');
   const { register, control, handleSubmit, formState, setValue, watch } = useFormItemAcervo(ItemAcervo.itemAcervo===null?undefined:ItemAcervo.itemAcervo)
 
@@ -59,8 +59,6 @@ const ItemAcervoComponent = () => {
 
   const watchName = watch('nome');
   const watchPrivado = watch('privado');
-  console.log(ItemAcervo)
-
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -303,6 +301,7 @@ const ItemAcervoComponent = () => {
                                 helperText={errors.nome?.message}
                                 label="Nome"
                                 variant="filled"
+                                id="Textfield-nome"
                                 data-cy="Textfield-nome"
                                 onChange={(event) => field.onChange(event.target.value)}
                               >
@@ -513,9 +512,11 @@ const ItemAcervoComponent = () => {
             if(itemAcervoStatus === 'error.permission-denied') {
               return (
                 <>
-                <Content data-cy="error-403">
+                <Content>
                   <Heading>
-                    <Typography variant="displayLarge" color={palette.onSurface.main} alignSelf={'stretch'}>
+                    <Typography variant="displayLarge" color={palette.onSurface.main} alignSelf={'stretch'}
+                      data-cy="error-403"
+                    >
                       Acesso negado
                     </Typography>
                     <Typography variant="headlineSmall" color={palette.onSurface.main} alignSelf={'stretch'}>
