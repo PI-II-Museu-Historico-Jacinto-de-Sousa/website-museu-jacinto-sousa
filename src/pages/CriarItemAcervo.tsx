@@ -11,22 +11,21 @@ import ImageCard from "../components/ImageCard/ImageCard";
 import useFormItemAcervo from "../hooks/useItemAcervoForm";
 import useNomeColecoes from "../hooks/useNomeColecoes";
 import { ItemAcervo } from "../interfaces/ItemAcervo";
+import { useNavigate } from "react-router-dom";
 
 //altura de cada item no select
 const SELECT_MENU_ITEM_HEIGHT = 48;
 
 const CriarItemAcervo = () => {
-
-  //adicionando estado para verificar se o usuário está logado
-  const [logged, setLogged] = useState<boolean>(false)
-  //alterando o estado de logged ao verificar se o usuário está logado
+  const navigate = useNavigate()
+  //ao realizar logout enquanto na página de criação de item, redirecionar para a página de login
   useEffect(() => {
     auth.onAuthStateChanged((user) => {
-      if (user) {
-        setLogged(true)
+      if (!user) {
+        navigate('/login')
       }
     })
-  })
+  }, [])
 
   const theme = useTheme()
   const palette = theme.palette
@@ -109,20 +108,6 @@ const CriarItemAcervo = () => {
 
   const collectionList = useNomeColecoes()
 
-  if (!logged) {
-    return (
-      <Content>
-        <Heading>
-          <Typography variant="displayLarge" color={palette.onSurface.main} alignSelf={'stretch'}>
-            Acesso negado
-          </Typography>
-          <Typography variant="headlineSmall" color={palette.onSurface.main} alignSelf={'stretch'}>
-            Você precisa estar logado para acessar essa página
-          </Typography>
-        </Heading>
-      </Content>
-    )
-  }
 
   return (
     <Content>
