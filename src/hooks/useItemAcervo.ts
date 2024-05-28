@@ -25,7 +25,7 @@ const useItemAcervo = (
     unsubscribe();
   }
   // função de update fixada no id passado
-  const update = updateItemAcervo.bind(null, id);
+  const update = (itemAcervo: ItemAcervo) => updateItemAcervo(itemAcervo, id); // Swap the arguments
 
   return { status: status, itemAcervo: data, atualizarItemAcervo: update };
 }

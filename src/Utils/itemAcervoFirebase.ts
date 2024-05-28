@@ -27,7 +27,7 @@ function subscribeItemAcervo(
   statusUpdate: React.Dispatch<React.SetStateAction<Status>>
 ): Unsubscribe {
   try {
-    const docRef = doc(db, "informações-museu", id);
+    const docRef = doc(db, "acervo", id);
     const unsubscribe = onSnapshot(
       docRef,
       async (snapshot) => {
@@ -38,12 +38,15 @@ function subscribeItemAcervo(
         } else {
           //atualizar imagem somente se houver mudança
           if (itemAcervo?.imagens != currentInfo?.imagens) {
-            itemAcervo.imagens = await getImagensItemAcervo(
-              ref(storage, `images/${itemAcervo.imagens}`)
-            ).catch(() => {
-              statusUpdate("error.not-found");
-              return;
-            });
+            const imagensPaths = itemAcervo.imagens;
+            const imagensPromises = imagensPaths.map((path: string) =>
+              getImagemItemAcervo(ref(storage, `images/${path}`))
+            );
+            try {
+              itemAcervo.imagens = await Promise.all(imagensPromises);
+            } catch (error) {
+              throw new Error("Erro ao buscar imagens",);
+            }
           }
           callback(itemAcervo as ItemAcervo);
           statusUpdate((previousState) =>
@@ -52,8 +55,8 @@ function subscribeItemAcervo(
         }
       },
       (error) => {
-        console.error(error)
-        statusUpdate("error.not-found");
+        statusUpdate("error.permission-denied");
+        throw new Error(`${(error as Error).message}`);
       }
     );
     return unsubscribe;
@@ -63,7 +66,7 @@ function subscribeItemAcervo(
   }
 }
 
-async function getImagensItemAcervo(
+async function getImagemItemAcervo(
   storageRef: StorageReference
 ): Promise<Imagem> {
   const url = await getDownloadURL(storageRef).catch(() => {
@@ -249,7 +252,7 @@ const methodsItemAcervo = {
   adicionarImagens,
   updateItemAcervo,
   subscribeItemAcervo,
-  getImagensItemAcervo,
+  getImagemItemAcervo,
 };
 
-export { methodsItemAcervo, adicionarImagens, removerImagens, deleteItemAcervo, getItemAcervo, updateItemAcervo, subscribeItemAcervo, getImagensItemAcervo };
+export { methodsItemAcervo, adicionarImagens, removerImagens, deleteItemAcervo, getItemAcervo, updateItemAcervo, subscribeItemAcervo, getImagemItemAcervo };

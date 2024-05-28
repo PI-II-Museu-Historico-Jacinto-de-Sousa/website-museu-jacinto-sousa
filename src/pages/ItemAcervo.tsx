@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-//import { TextField, Button, Theme, styled, Typography, IconButton, Select, Checkbox, MenuItem, useMediaQuery, useTheme, Stack, Dialog, DialogTitle, DialogContent } from "@mui/material";
 import TextField  from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import { Theme } from "@mui/material/styles";
@@ -16,37 +15,51 @@ import Stack from "@mui/material/Stack";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
-//import { DatePicker, MobileDatePicker } from "@mui/x-date-pickers";
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
 import { ItemAcervo } from "../interfaces/ItemAcervo";
-import { useForm, SubmitHandler, Controller } from "react-hook-form"
+import { SubmitHandler, Controller } from "react-hook-form"
 import EditIcon from '@mui/icons-material/Edit';
 import { auth, db } from "../../firebase/firebase";
 import { collection, getDocs } from "firebase/firestore";
 import dayjs from "dayjs";
-import { useNavigate } from 'react-router-dom'; // Importe useNavigate
 import  { deleteItemAcervo }  from "../Utils/itemAcervoFirebase";
-//import useItemAcervo from "../hooks/useItemAcervo";
+import useItemAcervo from "../hooks/useItemAcervo";
 import { updateItemAcervo } from "../Utils/itemAcervoFirebase";
+import useFormItemAcervo from "../hooks/useItemAcervoForm";
+import { useNavigate } from "react-router-dom";
 
 const ItemAcervoComponent = () => {
   const { id } = useParams<{ id: string }>();
   const [logged, setLogged] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [dataAquisicao, setDataAquisicao] = useState(dayjs());
-  const [nome, setNome] = useState('');
-  const [descricao, setDescricao] = useState('');
-  const [curiosidades, setCuriosidades] = useState('');
-  const [colecao, setColecao] = useState('');
-  const [privado, setPrivado] = useState<boolean>(false);
   const [dataFetched, setDataFetched] = useState(false);
   const theme = useTheme()
   const palette = theme.palette
+  const navigate = useNavigate()
   const [open, setOpenDialog] = useState(false)
   const [openDialogSave, setOpenDialogSave] = useState(false);
   const [documentoExiste, setDocumentoExiste] = useState(false)
-  const navigate = useNavigate(); // Inicialize useNavigate
+  const ItemAcervo = useItemAcervo(id ?? '');
+  const { register, control, handleSubmit, formState, setValue, watch } = useFormItemAcervo(ItemAcervo.itemAcervo===null?undefined:ItemAcervo.itemAcervo)
+
+  const itemAcervoNome = ItemAcervo.itemAcervo?.nome===undefined?'':ItemAcervo.itemAcervo?.nome;
+
+  const itemAcervoDescricao = ItemAcervo.itemAcervo?.descricao===undefined?'':ItemAcervo.itemAcervo?.descricao;
+
+  const itemAcervoCuriosidades = ItemAcervo.itemAcervo?.curiosidades===undefined?'':ItemAcervo.itemAcervo?.curiosidades;
+
+  const itemAcervoColecao = ItemAcervo.itemAcervo?.colecao===undefined?'':ItemAcervo.itemAcervo?.colecao;
+
+  const itemAcervoDataDoacao = dayjs(ItemAcervo.itemAcervo?.dataDoacao?.toDate());
+
+  const itemAcervoPrivado = ItemAcervo.itemAcervo?.privado===undefined?false:ItemAcervo.itemAcervo?.privado;
+
+  const itemAcervoStatus = ItemAcervo.status;
+
+  const watchName = watch('nome');
+  const watchPrivado = watch('privado');
+
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -59,48 +72,24 @@ const ItemAcervoComponent = () => {
     return () => unsubscribe();
   }, [logged]); // Dependência vazia para garantir que o efeito seja executado apenas uma vez
 
-  //Definindo atributos da página
-  const { register, control, handleSubmit, formState, setValue } = useForm<ItemAcervo>(
-    {
-      defaultValues: {
-        privado: false,
-        colecao: '',
-        descricao: '',
-        curiosidades: '',
-        nome: '',
-        dataDoacao: '',
-        imagens: [],
-      }
-    }
-  )
-
-
   useEffect(() => {
-    if (!dataFetched) {
-      getItemAcervo(id ?? '')
-        .then((data) => {
-          setValue('privado', data.privado);
-          setPrivado(data.privado);
-          setValue('colecao', data.colecao === undefined ? '' : data.colecao);
-          setColecao(data.colecao === undefined ? '' : data.colecao);
-          setValue('descricao', data.descricao === undefined ? '' : data.descricao);
-          setDescricao(data.descricao === undefined ? '' : data.descricao);
-          setValue('curiosidades', data.curiosidades === undefined ? '' : data.curiosidades);
-          setCuriosidades(data.curiosidades === undefined ? '' : data.curiosidades);
-          setValue('nome', data.nome === undefined ? '' : data.itemName);
-          setNome(data.nome === undefined ? '' : data.nome);
-          const dataAquisicao = data.dataDoacao ? dayjs(data.dataDoacao.toDate()) : null;
-          setValue('dataDoacao', dataAquisicao === null ? dayjs('') : dataAquisicao);
-          setDataAquisicao(dataAquisicao === null ? dayjs() : dataAquisicao);
-          setDataFetched(true); // Marcando os dados como buscados
-          setDocumentoExiste(true);
-        })
-        .catch(() => {
-          setDocumentoExiste(false);
-          throw new Error("Erro ao buscar documento");
-        });
+    if (!dataFetched && ItemAcervo.status === 'success' && ItemAcervo.itemAcervo) {
+      setValue('privado', ItemAcervo.itemAcervo.privado ?? false);
+      setValue('colecao', ItemAcervo.itemAcervo.colecao ?? '');
+      setValue('descricao', ItemAcervo.itemAcervo.descricao ?? '');
+      setValue('curiosidades', ItemAcervo.itemAcervo.curiosidades ?? '');
+      setValue('nome', ItemAcervo.itemAcervo.nome ?? '');
+      const dataAquisicao = ItemAcervo.itemAcervo.dataDoacao ? dayjs(ItemAcervo.itemAcervo.dataDoacao.toDate()) : null;
+      setValue('dataDoacao', dataAquisicao ?? dayjs(''));
+
+      setDataFetched(true);
+      setDocumentoExiste(true);
+    } else if (ItemAcervo.status === 'error.permission-denied') {
+      setDocumentoExiste(true);
+    } else if (ItemAcervo.status === 'error.not-found') {
+      setDocumentoExiste(false);
     }
-  }, [id, dataFetched]);
+  }, [ItemAcervo, dataFetched, setValue, onchange]);
 
   //valor desses campos é observado para alterar a renderização da página
   const { errors } = formState
@@ -140,6 +129,11 @@ const ItemAcervoComponent = () => {
     setEditing(false);
   }
 
+  const redirecionarExclusao = () => {
+    deleteItemAcervo(id ?? '')
+    navigate('/')
+  }
+
   const renderFields = () => {
     //se o documento não existir, renderiza uma mensagem de erro
       if(!documentoExiste) {
@@ -174,11 +168,11 @@ const ItemAcervoComponent = () => {
                       </BotaoEditar>
                         <TextoTitulo>
                           {
-                            nome
+                            itemAcervoNome
                           }
                         </TextoTitulo>
                         {
-                          privado? <EstadoItem>Item Privado</EstadoItem> : <div></div>
+                          itemAcervoPrivado? <EstadoItem>Item Privado</EstadoItem> : <div></div>
                         }
                     </Title>
                     <Imagens>
@@ -195,7 +189,7 @@ const ItemAcervoComponent = () => {
                       <DateView>
                         <Date>
                           {
-                            dataAquisicao.format('DD/MM/YYYY')
+                            itemAcervoDataDoacao.format('DD/MM/YYYY')
                           }
                         </Date>
                       </DateView>
@@ -209,7 +203,7 @@ const ItemAcervoComponent = () => {
                       <LineHorizontal></LineHorizontal>
                       <TextBody>
                             {
-                              descricao
+                              itemAcervoDescricao
                             }
                       </TextBody>
                     </Description>
@@ -222,7 +216,7 @@ const ItemAcervoComponent = () => {
                       <LineHorizontal></LineHorizontal>
                       <TextBody>
                         {
-                          curiosidades
+                          itemAcervoCuriosidades
                         }
                       </TextBody>
                     </Curiosities>
@@ -233,7 +227,7 @@ const ItemAcervoComponent = () => {
                       <LabelColecao>
                         <TextoColecao>
                           {
-                            colecao
+                            itemAcervoColecao
                           }
                         </TextoColecao>
                       </LabelColecao>
@@ -260,7 +254,7 @@ const ItemAcervoComponent = () => {
                             data-cy="cancel-button-dialog-excluir"
                           >Cancelar</BotaoCancelar>
                           <BotaoExcluir
-                            onClick={() => deleteItemAcervo(id??'')}
+                            onClick={() => redirecionarExclusao()}
                             data-cy="confirm-button-dialog-excluir"
                           >Excluir</BotaoExcluir>
                         </CustomDialogContent>
@@ -284,7 +278,7 @@ const ItemAcervoComponent = () => {
                             <BotaoSalvar
                               type="submit"
                               data-cy="save-button"
-                              onClick={() => setOpenDialogSave(nome!=='')}
+                              onClick={() => setOpenDialogSave(watchName !=='')}
                             >
                               Salvar
                             </BotaoSalvar>
@@ -297,10 +291,10 @@ const ItemAcervoComponent = () => {
                           <Controller
                             name="nome"
                             control={control}
-                            defaultValue={nome}
                             render={({ field }) => (
                               <TextFieldTitulo
                                 {...field}
+                                value={field.value}
                                 {...register('nome', {
                                   required: "Nome do item é obrigatório"
                                 })}
@@ -309,13 +303,14 @@ const ItemAcervoComponent = () => {
                                 label="Nome"
                                 variant="filled"
                                 data-cy="Textfield-nome"
+                                onChange={(event) => field.onChange(event.target.value)}
                               >
                               </TextFieldTitulo>
                             )}
                             data-cy="controller-textfield-nome"
                           />
                           <CheckPrivacidade>
-                            {privado? <EstadoItem>Item Privado</EstadoItem> : <div></div>}
+                            {watchPrivado? <EstadoItem>Item Privado</EstadoItem> : <div></div>}
                             <Controller
                               name="privado"
                               control={control}
@@ -327,7 +322,6 @@ const ItemAcervoComponent = () => {
                                   onChange={(event) => field.onChange(event.target.checked)}
                                   data-cy="checkbox-privado"
                                   style={{color: '#6750A4'}}
-                                  onClick={() => setPrivado(!privado)}
                                 />
                               )}
                               data-cy="controller-checkbox-privado"
@@ -347,10 +341,10 @@ const ItemAcervoComponent = () => {
                               <Controller
                                 name="dataDoacao"
                                 control={control}
-                                defaultValue={dataAquisicao}
+                                defaultValue={itemAcervoDataDoacao}
                                 render={({ field }) => (
                                   <DatePickerMobileDataAquisicao
-                                    defaultValue={dataAquisicao}
+                                    defaultValue={itemAcervoDataDoacao}
                                     label="Data da doação"
                                     {...register('dataDoacao')}
                                     onChange={(value) => field.onChange(value)}
@@ -363,10 +357,10 @@ const ItemAcervoComponent = () => {
                               <Controller
                                 name="dataDoacao"
                                 control={control}
-                                defaultValue={dataAquisicao}
+                                defaultValue={itemAcervoDataDoacao}
                                 render={({ field }) => (
                                   <DatePickerDataAquisicao
-                                    defaultValue={dataAquisicao}
+                                    defaultValue={itemAcervoDataDoacao}
                                     {...register('dataDoacao')}
                                     onChange={(value) => field.onChange(value)}
                                     data-cy="datepicker-desktop"
@@ -387,10 +381,10 @@ const ItemAcervoComponent = () => {
                           <Controller
                             name="descricao"
                             control={control}
-                            defaultValue={descricao}
                             render={({ field }) => (
                               <TextFieldDescricao
                                 {...field}
+                                value={field.value}
                                 error={errors.descricao?.message !== undefined}
                                 helperText={errors.descricao?.message}
                                 label="Descrição"
@@ -412,10 +406,11 @@ const ItemAcervoComponent = () => {
                           <Controller
                             name="curiosidades"
                             control={control}
-                            defaultValue={curiosidades}
                             render={({ field }) => (
                               <TextFieldCuriosidades
                                 {...field}
+                                value={field.value}
+                                {...register('curiosidades')}
                                 error={errors.curiosidades?.message !== undefined}
                                 helperText={errors.curiosidades?.message}
                                 label="Curiosidades"
@@ -440,6 +435,7 @@ const ItemAcervoComponent = () => {
                                   render={({ field }) => (
                                     <Select
                                       {...field}
+                                      value={field.value}
                                       {...register('colecao')}
                                       label="Seleção de Coleção"
                                       variant="filled"
@@ -502,7 +498,7 @@ const ItemAcervoComponent = () => {
                             data-cy="cancel-button-dialog-excluir"
                           >Cancelar</BotaoCancelar>
                           <BotaoExcluir
-                            onClick={() => deleteItemAcervo(id??'')}
+                            onClick={() => redirecionarExclusao()}
                             data-cy="confirm-button-dialog-excluir"
                           >Excluir</BotaoExcluir>
                         </CustomDialogContent>
@@ -513,7 +509,7 @@ const ItemAcervoComponent = () => {
           }
         } else {
           //se o usuário não estiver logado e o item for privado, renderiza uma mensagem de erro
-            if(privado) {
+            if(itemAcervoStatus === 'error.permission-denied') {
               return (
                 <>
                 <Content data-cy="error-403">
@@ -538,7 +534,7 @@ const ItemAcervoComponent = () => {
                       >
                           <TextoTitulo>
                             {
-                              nome
+                              itemAcervoNome
                             }
                           </TextoTitulo>
                       </Title>
@@ -551,7 +547,7 @@ const ItemAcervoComponent = () => {
                         <DateView>
                           <Date>
                             {
-                              dataAquisicao.format('DD/MM/YYYY')
+                              itemAcervoDataDoacao.format('DD/MM/YYYY')
                             }
                           </Date>
                         </DateView>
@@ -565,7 +561,7 @@ const ItemAcervoComponent = () => {
                         <LineHorizontal></LineHorizontal>
                         <TextBody>
                               {
-                                descricao
+                                itemAcervoDescricao
                               }
                         </TextBody>
                       </Description>
@@ -578,7 +574,7 @@ const ItemAcervoComponent = () => {
                         <LineHorizontal></LineHorizontal>
                         <TextBody>
                           {
-                            curiosidades
+                            itemAcervoCuriosidades
                           }
                         </TextBody>
                       </Curiosities>
@@ -589,7 +585,7 @@ const ItemAcervoComponent = () => {
                         <LabelColecao>
                           <TextoColecao>
                             {
-                              colecao
+                              itemAcervoColecao
                             }
                           </TextoColecao>
                         </LabelColecao>
