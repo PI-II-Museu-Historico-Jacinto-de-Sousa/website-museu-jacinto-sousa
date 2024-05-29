@@ -41,7 +41,7 @@ const ItemAcervoComponent = () => {
   const [openDialogSave, setOpenDialogSave] = useState(false);
   const [documentoExiste, setDocumentoExiste] = useState(false);
   const ItemAcervo = useItemAcervo(id ?? '');
-  const { register, control, handleSubmit, formState, setValue, watch } = useFormItemAcervo(ItemAcervo.itemAcervo===null?undefined:ItemAcervo.itemAcervo)
+  const { register, control, handleSubmit, formState, setValue, watch, reset } = useFormItemAcervo(ItemAcervo.itemAcervo===null?undefined:ItemAcervo.itemAcervo)
 
   const itemAcervoNome = ItemAcervo.itemAcervo?.nome===undefined?'':ItemAcervo.itemAcervo?.nome;
 
@@ -88,7 +88,7 @@ const ItemAcervoComponent = () => {
     } else if (ItemAcervo.status === 'error.not-found') {
       setDocumentoExiste(false);
     }
-  }, [ItemAcervo, dataFetched, setValue, onchange]);
+  }, [ItemAcervo, dataFetched, setValue, editing]);
 
   //valor desses campos é observado para alterar a renderização da página
   const { errors } = formState
@@ -133,6 +133,19 @@ const ItemAcervoComponent = () => {
     navigate('/')
   }
 
+  const cancelarEdicao = () => {
+    setEditing(false);
+    if (ItemAcervo.itemAcervo) {
+      reset({
+        nome: ItemAcervo.itemAcervo.nome ?? '',
+        descricao: ItemAcervo.itemAcervo.descricao ?? '',
+        curiosidades: ItemAcervo.itemAcervo.curiosidades ?? '',
+        colecao: ItemAcervo.itemAcervo.colecao ?? '',
+        dataDoacao: ItemAcervo.itemAcervo.dataDoacao ? dayjs(ItemAcervo.itemAcervo.dataDoacao.toDate()) : dayjs(''),
+        privado: ItemAcervo.itemAcervo.privado ?? false,
+      });
+    }
+  };
   const renderFields = () => {
     //se o documento não existir, renderiza uma mensagem de erro
       if(!documentoExiste) {
@@ -282,7 +295,7 @@ const ItemAcervoComponent = () => {
                               Salvar
                             </BotaoSalvar>
                             <BotaoCancelar
-                                onClick={() => setEditing(false)}
+                                onClick={() => cancelarEdicao() }
                                 data-cy="cancel-button"
                               >Cancelar
                             </BotaoCancelar>

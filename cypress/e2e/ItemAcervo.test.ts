@@ -1,7 +1,7 @@
 import dayjs = require("dayjs");
 import { Timestamp } from "firebase/firestore";
 
-/*describe("Remover um item e tentar acessar a mesma página de novo deve resultar em erro (404)", () => {
+describe("Remover um item e tentar acessar a mesma página de novo deve resultar em erro (404)", () => {
   let itemId;
 
   before(() => {
@@ -108,9 +108,9 @@ describe("Alterar a privacidade de um item para privado e acessar deslogado deve
       });
     });
   });
-});*/
+});
 
-/*describe("Nome atualizado não pode ser vazio", () => {
+describe("Nome atualizado não pode ser vazio", () => {
   let itemId: string;
   beforeEach(() => {
     cy.login()
@@ -131,6 +131,28 @@ describe("Alterar a privacidade de um item para privado e acessar deslogado deve
       cy.get('#Textfield-nome-helper-text').should('have.text', 'Nome do item é obrigatório');
     });
   });
-})*/
+})
 
-
+describe("Nenhuma informação deve ser modificada ao clicar em cancelar alterações", () => {
+  let itemId: string;
+  beforeEach(() => {
+    cy.login()
+  });
+  it("Nenhuma informação deve ser modificada ao clicar em cancelar alterações", () => {
+    const itemDonationDate: Timestamp = new Timestamp(dayjs().unix(), 0);
+    cy.callFirestore("add", "coleções", { nome: "Fotografia" })
+    cy.callFirestore("add", "acervo", { nome: "Item de teste 5", descricao: "Descrição", curiosidades: "Curiosidades", dataDoacao: itemDonationDate , privado: false, colecao: "Fotografia" })
+    .then((docRef) => {
+      itemId = docRef._path.segments[1] // Pegando o ID do item criado
+      cy.visit(`http://localhost:5173/acervo/${itemId}`);
+      cy.get('[data-cy="edit-button"]').should("exist");
+      cy.get('[data-cy="edit-button"]').click();
+      cy.get('[data-cy="Textfield-nome"]').should("exist")
+      cy.get('[data-cy="Textfield-nome"]').type("Item de teste 5 alterado");
+      cy.get('[data-cy="cancel-button"]').should("exist");
+      cy.get('[data-cy="cancel-button"]').click();
+      cy.get('[data-cy="title-item-acervo"]').should("exist");
+      cy.get('[data-cy="title-item-acervo"]').should("contain.text", "Item de teste 5");
+    });
+  });
+})
