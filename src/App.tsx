@@ -6,7 +6,6 @@ import getDesignTokens from './theme/theme';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
 
-
 function App() {
       
   const [mode, setMode] = useState<PaletteMode>('light'); //estado do tema escolhido 
