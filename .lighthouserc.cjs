@@ -2,7 +2,7 @@ module.exports = {
   ci: {
     collect: {
       url: ["http://localhost:4173/"],
-      startServerCommand: "npm run preview",
+      startServerCommand: "npm run build && npm run preview",
     },
     assert: {
       assertions: {
