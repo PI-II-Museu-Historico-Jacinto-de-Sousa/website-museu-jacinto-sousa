@@ -34,8 +34,6 @@ const logout = () => {
     .catch((error) => {
       console.log(error);
     });
-
-  window.location.reload();
 };
 
 const loginMethods = { loginGoogle, logout };
