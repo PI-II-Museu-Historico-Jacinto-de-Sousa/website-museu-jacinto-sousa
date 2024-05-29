@@ -31,3 +31,5 @@ cypress/videos
 # Env
 .env
 .env.test
+serviceAccountKey.json
+cypress.env.json

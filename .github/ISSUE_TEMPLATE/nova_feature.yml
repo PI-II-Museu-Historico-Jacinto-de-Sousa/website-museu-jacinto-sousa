@@ -27,9 +27,3 @@ body:
     attributes:
       label: Issues Necessárias
       description: Liste as issues que são necessárias para essa tarefa
-
-  - type: textarea
-    id: dependent_tasks
-    attributes:
-      label: Tarefas Dependentes
-      description: Liste as tarefas que dependem dessa feature

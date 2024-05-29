@@ -5,6 +5,7 @@ import CardItemAcerto from '../components/CardItemAcervo/CardItemAcervo';
 const Home = () => {
     return (
         <div>
+
         </div>
     );
 }

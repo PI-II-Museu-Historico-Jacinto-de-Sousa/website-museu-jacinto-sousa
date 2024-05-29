@@ -1,13 +1,22 @@
 name: Reportar bug
 description: Encontrou um erro? Detalhe aqui qual o problema
 labels:
-  - 'bug'
+  - "bug"
 body:
   - type: markdown
     attributes:
-      value: 
-       Obrigado por colaborar para melhoria do nosso projeto. Para reportar um erro adequadamente, por favor preencha a descrição com o máximo de detalhes. Lembrando que este é um repositório público, então não exponha nenhuma informação pessoal sua
-
+      value: Obrigado por colaborar para melhoria do nosso projeto. Para reportar um erro adequadamente, por favor preencha a descrição com o máximo de detalhes. Lembrando que este é um repositório público, então não exponha nenhuma informação pessoal sua
+  - type: checkboxes
+    id: validation
+    attributes:
+      label: Verificação
+      description: Confirme se as seguintes ações foram realizadas
+      options:
+        - label: Estou utilizando o último commit da branch alvo
+          required: true
+        - label: Instalei novas dependências (caso necessário)
+        - label: Não existe outra issue tratando do mesmo bug
+          required: true
   - type: textarea
     id: description
     attributes:
@@ -20,7 +29,7 @@ body:
     id: reproduzir
     attributes:
       label: Passos para reproduzir o erro
-      description: 'Qual a sequência de passos para chegar até esse erro?'
+      description: "Qual a sequência de passos para chegar até esse erro?"
       placeholder: |
         1. Ir para o link '...'
         2. Clicar em '....'
@@ -31,14 +40,19 @@ body:
     id: screenshots
     attributes:
       label: Capturas de tela
-      description: 'Inclua capturas de tela que possam nos ajudar a entender o problema'
-
-# necessario somente no front end
+      description: "Inclua capturas de tela que possam nos ajudar a entender o problema"
+  - type: input
+    id: Branch
+    attributes:
+      label: Branch
+      description: "Em quais branchs você encontrou esse problema?"
+    validations:
+      required: true
   - type: dropdown
     id: navegador
     attributes:
       label: Navegador
-      description: 'Em quais navegadores você encontrou esse problema?'
+      description: "Em quais navegadores você encontrou esse problema?"
       multiple: true
       options:
         - Chrome

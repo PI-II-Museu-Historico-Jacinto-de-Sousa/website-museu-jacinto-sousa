@@ -1,0 +1,16 @@
+{
+  "name": "integration_test",
+  "version": "1.0.0",
+  "description": "testing firebase rules",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "mocha '*.test.js' --exit"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^3.0.2",
+    "mocha": "^10.4.0"
+  }
+}
