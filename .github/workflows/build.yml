@@ -1,0 +1,25 @@
+name: Build
+on:
+  pull_request:
+
+jobs:
+  build-and-bundle-report:
+    name: build-project-and-bundle-report
+    runs-on: ubuntu-22.04
+    steps:
+      # instalando dependências e gerando relatório do bundle
+      # comando vite-bundle-visualizer também realiza build do projeto
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+      - run: |
+          npm install
+          npx vite-bundle-visualizer -o reports/bundle-report.html
+      # salvando o relatório do bundle como um artefato
+      - uses: actions/upload-artifact@v2
+        with:
+          name: bundle-report
+          path: reports/bundle-report.html
+      # instalando dependências e rodando o lighthouse
+      - run: |
+          npm install -g @lhci/cli@0.13.0
+          lhci autorun
