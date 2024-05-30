@@ -1,13 +1,26 @@
 import ToggleLightMode from '../ToggleLightMode/ToggleLightMode'
 import logo from '../../assets/cityLogo.svg'
 import { useEffect, useState } from 'react'
-import { AppBar, Button, IconButton, Menu, MenuItem, PaletteMode, Snackbar, Theme, Toolbar, Typography, styled, useMediaQuery, useTheme } from '@mui/material'
+import AppBar from '@mui/material/AppBar'
+import Button from '@mui/material/Button'
+import IconButton from '@mui/material/IconButton'
+import Menu from '@mui/material/Menu'
+import MenuItem from '@mui/material/MenuItem'
+import { PaletteMode } from '@mui/material'
+import Snackbar from '@mui/material/Snackbar'
+import { Theme } from '@mui/material'
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import { styled } from '@mui/material'
+import useMediaQuery from '@mui/material/useMediaQuery'
+import useTheme from '@mui/material/styles/useTheme'
 import { getAuth } from 'firebase/auth'
 import { app } from '../../../firebase/firebase'
-import { AccountCircle } from '@mui/icons-material'
+import AccountCircle from '@mui/icons-material/AccountCircle'
 import MenuIcon from '@mui/icons-material/Menu';
 import { Link } from 'react-router-dom'
 import { loginMethods } from '../../Utils/loginGoogle'
+import useThemeMode from '../../hooks/useThemeMode'
 
 //Need to define links to other pages
 const pages = [
@@ -364,12 +377,14 @@ const MenuLogout = () => {
   )
 }
 
-const NavBar = ({ colorMode, mode }: { colorMode: any, mode: PaletteMode }) => {
+const NavBar = ({ colorMode }: { colorMode: any }) => {
   const theme = useTheme()
 
   const mobile = useMediaQuery(theme.breakpoints.down('sm'))
 
   const [logged, setLogged] = useState(false)
+
+  const { mode } = useThemeMode()
 
   useEffect(() => {
     const auth = getAuth(app)
