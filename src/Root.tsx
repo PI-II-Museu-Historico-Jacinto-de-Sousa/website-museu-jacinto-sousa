@@ -13,9 +13,6 @@ import useThemeMode from "./hooks/useThemeMode";
 const Root = ({ children }: { children?: React.ReactNode }) => {
   const { mode, colorMode } = useThemeMode(); //função para mudar o tema, passada para o componente ToggleLightMode
 
-  console.log(mode);
-  console.log(colorMode);
-
   const theme = useMemo(() => responsiveFontSizes(createTheme(getDesignTokens(mode) as ThemeOptions)), [mode]); //quando o modo selecionado muda, o tema é atualizado
   return (<>
     <ThemeProvider theme={theme}> {/*Para aplicar o tema*/}
