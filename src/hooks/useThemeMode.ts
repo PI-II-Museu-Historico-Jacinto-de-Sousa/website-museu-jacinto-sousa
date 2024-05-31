@@ -6,7 +6,8 @@ const useThemeMode = () => {
     const savedMode = localStorage.getItem('mode') as PaletteMode;
     return savedMode || 'light'; // Default to 'light' theme if no saved theme
   });
-  const savedColorMode = useMemo(() => ({
+
+  const colorMode = useMemo(() => ({
     toggleColorMode: () => {
       setMode((prevMode: PaletteMode) =>
         prevMode === 'light' ? 'dark' : 'light',
@@ -14,20 +15,11 @@ const useThemeMode = () => {
     },
   }), []);
 
-  const [colorMode, setColorMode] = useState(savedColorMode || '{}'); // Default to 'light' theme if no saved theme
-
   useEffect(() => {
     localStorage.setItem('mode', mode);
-    localStorage.setItem('colorMode', JSON.stringify(colorMode));
-  }, [mode, colorMode]);
+  }, [mode]);
 
-  const toggleMode = () => {
-    setMode(prevMode => (prevMode === 'light' ? 'dark' : 'light'));
-  };
-
-
-
-  return { mode, setMode, toggleMode, colorMode, setColorMode };
+  return { mode, setMode, colorMode };
 };
 
 export default useThemeMode;
