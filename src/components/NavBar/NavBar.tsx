@@ -20,7 +20,6 @@ import AccountCircle from '@mui/icons-material/AccountCircle'
 import MenuIcon from '@mui/icons-material/Menu';
 import { Link } from 'react-router-dom'
 import { loginMethods } from '../../Utils/loginGoogle'
-import useThemeMode from '../../hooks/useThemeMode'
 
 //Need to define links to other pages
 const pages = [
@@ -377,14 +376,12 @@ const MenuLogout = () => {
   )
 }
 
-const NavBar = ({ colorMode }: { colorMode: any }) => {
+const NavBar = ({ colorMode, mode }: { colorMode: any, mode: PaletteMode }) => {
   const theme = useTheme()
 
   const mobile = useMediaQuery(theme.breakpoints.down('sm'))
 
   const [logged, setLogged] = useState(false)
-
-  const { mode } = useThemeMode()
 
   useEffect(() => {
     const auth = getAuth(app)
