@@ -13,21 +13,25 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import useTheme from "@mui/material/styles/useTheme";
 import Stack from "@mui/material/Stack";
 import Dialog from "@mui/material/Dialog";
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
+import Divider from "@mui/material/Divider";
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
 import { ItemAcervo } from "../interfaces/ItemAcervo";
 import { SubmitHandler, Controller } from "react-hook-form"
 import EditIcon from '@mui/icons-material/Edit';
-import { auth, db } from "../../firebase/firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { auth } from "../../firebase/firebase";
 import dayjs from "dayjs";
 import  { deleteItemAcervo }  from "../Utils/itemAcervoFirebase";
 import useItemAcervo from "../hooks/useItemAcervo";
 import { updateItemAcervo } from "../Utils/itemAcervoFirebase";
 import useFormItemAcervo from "../hooks/useItemAcervoForm";
 import { useNavigate } from "react-router-dom";
+import { getNomesColecoes } from "../Utils/colecaoFirebase";
+import ErrorPage from "./Erro";
 
 const ItemAcervoComponent = () => {
   const { id } = useParams<{ id: string }>();
@@ -35,7 +39,6 @@ const ItemAcervoComponent = () => {
   const [editing, setEditing] = useState(false);
   const [dataFetched, setDataFetched] = useState(false);
   const theme = useTheme();
-  const palette = theme.palette;
   const navigate = useNavigate();
   const [open, setOpenDialog] = useState(false)
   const [openDialogSave, setOpenDialogSave] = useState(false);
@@ -106,21 +109,10 @@ const ItemAcervoComponent = () => {
 
    const [collectionList, setCollectionList] = useState<string[]>([]);
 
-  const getCollections = async () => {
-    const collectionsRef = collection(db, 'coleções')
-    try {
-      const collections = await getDocs(collectionsRef)
-      return collections.docs.map(doc => doc.data().nome)
-    }
-    catch {
-      return []
-    }
-  }
-
   useEffect(() => {
-    getCollections().then((collections) => {
-      return setCollectionList(collections || []);
-    });
+    getNomesColecoes().then((collections) => {
+      setCollectionList(collections)
+    })
   }, []);
 
   const fechaDialog = () => {
@@ -149,18 +141,15 @@ const ItemAcervoComponent = () => {
   const renderFields = () => {
     //se o documento não existir, renderiza uma mensagem de erro
       if(!documentoExiste) {
+        const error = {
+          status: 404,
+          statusText: "Item não encontrado",
+          data: {
+            message: `Não foi possível encontrar o item \n"${id}"`
+          }
+        }
         return (
-          <Content>
-            <Heading>
-              <Title>
-                <TextoTitulo
-                  data-cy="error-404"
-                >
-                  Item não encontrado
-                </TextoTitulo>
-              </Title>
-            </Heading>
-          </Content>
+          <ErrorPage error={error}/>
         )
       //se o usuário estiver logado, renderiza a página de acordo com o estado de edição
       } else {
@@ -207,30 +196,42 @@ const ItemAcervoComponent = () => {
                       </DateView>
                     </Info>
                     <Description>
-                      <TitleSections>
-                        <TextoTitulo>
-                            Descrição
-                        </TextoTitulo>
-                      </TitleSections>
-                      <LineHorizontal></LineHorizontal>
-                      <TextBody>
-                            {
-                              itemAcervoDescricao
-                            }
-                      </TextBody>
+                      <List>
+                        <ListItem>
+                          <TitleSections>
+                            <TextoTitulo>
+                                Descrição
+                            </TextoTitulo>
+                          </TitleSections>
+                        </ListItem>
+                        <Divider/>
+                        <ListItem>
+                          <TextBody>
+                              {
+                                itemAcervoDescricao
+                              }
+                        </TextBody>
+                        </ListItem>
+                      </List>
                     </Description>
                     <Curiosities>
-                      <TitleSections>
-                        <TextoTitulo>
-                            Curiosidades
-                        </TextoTitulo>
-                      </TitleSections>
-                      <LineHorizontal></LineHorizontal>
-                      <TextBody>
-                        {
-                          itemAcervoCuriosidades
-                        }
-                      </TextBody>
+                      <List>
+                        <ListItem>
+                          <TitleSections>
+                            <TextoTitulo>
+                                Curiosidades
+                            </TextoTitulo>
+                          </TitleSections>
+                        </ListItem>
+                        <Divider/>
+                        <ListItem>
+                          <TextBody>
+                            {
+                              itemAcervoCuriosidades
+                            }
+                          </TextBody>
+                        </ListItem>
+                      </List>
                     </Curiosities>
                     <Collection>
                       <TextoColecao>
@@ -523,21 +524,17 @@ const ItemAcervoComponent = () => {
         } else {
           //se o usuário não estiver logado e o item for privado, renderiza uma mensagem de erro
             if(itemAcervoStatus === 'error.permission-denied') {
+              const error = {
+                status: 403,
+                statusText: "Acesso negado",
+                data: {
+                  message: "Você precisa estar logado para acessar essa página"
+                }
+              }
               return (
                 <>
-                <Content>
-                  <Heading>
-                    <Typography variant="displayLarge" color={palette.onSurface.main} alignSelf={'stretch'}
-                      data-cy="error-403"
-                    >
-                      Acesso negado
-                    </Typography>
-                    <Typography variant="headlineSmall" color={palette.onSurface.main} alignSelf={'stretch'}>
-                      Você precisa estar logado para acessar essa página
-                    </Typography>
-                  </Heading>
-                </Content>
-              </>
+                  <ErrorPage error={error}/>
+                </>
               )
             } else {
               //se o usuário não estiver logado e o item for público, renderiza a página normalmente mas sem a opção de edição
@@ -789,7 +786,7 @@ const Curiosities = styled('section')(({ theme }: { theme: Theme }) => ({
   backgroundColor: theme.palette.surfaceContainerLow.main,
 }))
 
-const LineHorizontal = styled('section')(({ theme }: { theme: Theme }) => ({
+const LineHorizontal = styled(Divider)(({ theme }: { theme: Theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'center',
