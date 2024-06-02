@@ -46,20 +46,6 @@ const ItemAcervoComponent = () => {
   const ItemAcervo = useItemAcervo(id ?? '');
   const { register, control, handleSubmit, formState, setValue, watch, reset } = useFormItemAcervo(ItemAcervo.itemAcervo===null?undefined:ItemAcervo.itemAcervo)
 
-  const itemAcervoNome = ItemAcervo.itemAcervo?.nome===undefined?'':ItemAcervo.itemAcervo?.nome;
-
-  const itemAcervoDescricao = ItemAcervo.itemAcervo?.descricao===undefined?'':ItemAcervo.itemAcervo?.descricao;
-
-  const itemAcervoCuriosidades = ItemAcervo.itemAcervo?.curiosidades===undefined?'':ItemAcervo.itemAcervo?.curiosidades;
-
-  const itemAcervoColecao = ItemAcervo.itemAcervo?.colecao===undefined?'':ItemAcervo.itemAcervo?.colecao;
-
-  const itemAcervoDataDoacao = ItemAcervo.itemAcervo?.dataDoacao ? dayjs(ItemAcervo.itemAcervo.dataDoacao.toDate()) : dayjs();
-
-  const itemAcervoPrivado = ItemAcervo.itemAcervo?.privado===undefined?false:ItemAcervo.itemAcervo?.privado;
-
-  const itemAcervoStatus = ItemAcervo.status;
-
   const watchName = watch('nome');
   const watchPrivado = watch('privado');
 
@@ -67,6 +53,8 @@ const ItemAcervoComponent = () => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         setLogged(true);
+      } else {
+        setLogged(false);
       }
     });
 
@@ -162,11 +150,11 @@ const ItemAcervoComponent = () => {
                       </BotaoAlterarDados>
                         <TextoTitulo>
                           {
-                            itemAcervoNome
+                            ItemAcervo.itemAcervo?.nome
                           }
                         </TextoTitulo>
                         {
-                          itemAcervoPrivado? <EstadoItem>Item Privado</EstadoItem> : <div></div>
+                          ItemAcervo.itemAcervo?.privado? <EstadoItem>Item Privado</EstadoItem> : <div></div>
                         }
                     </Title>
                     <Imagens>
@@ -183,7 +171,7 @@ const ItemAcervoComponent = () => {
                       <DateView>
                         <Date>
                           {
-                            itemAcervoDataDoacao.format('DD/MM/YYYY')
+                            dayjs(ItemAcervo.itemAcervo?.dataDoacao?.toDate()).format('DD/MM/YYYY')
                           }
                         </Date>
                       </DateView>
@@ -204,7 +192,7 @@ const ItemAcervoComponent = () => {
                       <Item>
                         <TextBody>
                           {
-                            itemAcervoDescricao
+                            ItemAcervo.itemAcervo?.descricao
                           }
                         </TextBody>
                       </Item>
@@ -225,7 +213,7 @@ const ItemAcervoComponent = () => {
                         <Item>
                           <TextBody>
                             {
-                              itemAcervoCuriosidades
+                              ItemAcervo.itemAcervo?.curiosidades
                             }
                           </TextBody>
                         </Item>
@@ -235,7 +223,7 @@ const ItemAcervoComponent = () => {
                         Coleção
                       </TextoColecao>
                       <LabelColecao>
-                        <Chip label={itemAcervoColecao} style={{backgroundColor: theme.palette.tertiaryContainer.main}} />
+                        <Chip label={ItemAcervo.itemAcervo?.colecao} style={{backgroundColor: theme.palette.tertiaryContainer.main}} />
                       </LabelColecao>
                     </Collection>
                     <Options>
@@ -350,10 +338,10 @@ const ItemAcervoComponent = () => {
                               <Controller
                                 name="dataDoacao"
                                 control={control}
-                                defaultValue={itemAcervoDataDoacao}
+                                defaultValue={dayjs(ItemAcervo.itemAcervo?.dataDoacao?.toDate())}
                                 render={({ field }) => (
                                   <DatePickerMobileDataAquisicao
-                                    defaultValue={itemAcervoDataDoacao}
+                                    defaultValue={dayjs(ItemAcervo.itemAcervo?.dataDoacao?.toDate())}
                                     label="Data da doação"
                                     {...register('dataDoacao')}
                                     onChange={(value) => field.onChange(value)}
@@ -366,10 +354,10 @@ const ItemAcervoComponent = () => {
                               <Controller
                                 name="dataDoacao"
                                 control={control}
-                                defaultValue={itemAcervoDataDoacao}
+                                defaultValue={dayjs(ItemAcervo.itemAcervo?.dataDoacao?.toDate())}
                                 render={({ field }) => (
                                   <DatePickerDataAquisicao
-                                    defaultValue={itemAcervoDataDoacao}
+                                    defaultValue={dayjs(ItemAcervo.itemAcervo?.dataDoacao?.toDate())}
                                     {...register('dataDoacao')}
                                     onChange={(value) => field.onChange(value)}
                                     data-cy="datepicker-desktop"
@@ -534,7 +522,7 @@ const ItemAcervoComponent = () => {
           }
         } else {
           //se o usuário não estiver logado e o item for privado, renderiza uma mensagem de erro
-            if(itemAcervoStatus === 'error.permission-denied') {
+            if(ItemAcervo.status === 'error.permission-denied') {
               const error = {
                 status: 403,
                 statusText: "Acesso negado",
@@ -557,7 +545,7 @@ const ItemAcervoComponent = () => {
                       >
                           <TextoTitulo>
                             {
-                              itemAcervoNome
+                              ItemAcervo.itemAcervo?.nome
                             }
                           </TextoTitulo>
                       </Title>
@@ -570,7 +558,7 @@ const ItemAcervoComponent = () => {
                         <DateView>
                           <Date>
                             {
-                              itemAcervoDataDoacao.format('DD/MM/YYYY')
+                              dayjs(ItemAcervo.itemAcervo?.dataDoacao?.toDate()).format('DD/MM/YYYY')
                             }
                           </Date>
                         </DateView>
@@ -591,7 +579,7 @@ const ItemAcervoComponent = () => {
                           <Item>
                             <TextBody>
                               {
-                                itemAcervoDescricao
+                                ItemAcervo.itemAcervo?.descricao
                               }
                             </TextBody>
                           </Item>
@@ -612,7 +600,7 @@ const ItemAcervoComponent = () => {
                         <Item>
                           <TextBody>
                             {
-                              itemAcervoCuriosidades
+                              ItemAcervo.itemAcervo?.curiosidades
                             }
                           </TextBody>
                         </Item>
@@ -622,7 +610,7 @@ const ItemAcervoComponent = () => {
                           Coleção
                         </TextoColecao>
                         <LabelColecao>
-                          <Chip label={itemAcervoColecao} style={{backgroundColor: theme.palette.tertiaryContainer.main}} />
+                          <Chip label={ItemAcervo.itemAcervo?.colecao} style={{backgroundColor: theme.palette.tertiaryContainer.main}} />
                         </LabelColecao>
                       </Collection>
                       <Options>

@@ -18,9 +18,11 @@ const useFormItemAcervo = (itemAcervo?: ItemAcervo) => {
     useForm<ItemAcervo>({
       defaultValues: { ...defaultValues },
     });
+
     useEffect(() => {
       reset(itemAcervo ? itemAcervo : { ...defaultValues });
     }, [itemAcervo]);
+
   return {
     register,
     watch,

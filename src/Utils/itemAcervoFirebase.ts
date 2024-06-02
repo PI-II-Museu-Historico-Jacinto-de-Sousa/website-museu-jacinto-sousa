@@ -17,6 +17,7 @@ import { db, storage } from "../../firebase/firebase";
 import { ItemAcervo } from "../interfaces/ItemAcervo";
 import { FirebaseError } from "firebase/app";
 import { Unsubscribe } from "firebase/auth";
+import dayjs from "dayjs";
 
 type Status = "loading" | "success" | "error.permission-denied" | "error.not-found";
 
@@ -173,19 +174,22 @@ const updateItemAcervo = async (formData: ItemAcervo, id: string) => {
   try {
     if (id && typeof id === 'string') {
       const docRef = doc(db, "acervo", id);
+      console.log(formData);
+      console.log(Timestamp.fromDate(dayjs(formData.dataDoacao).toDate()))
       const file = {
         nome: formData.nome,
-        dataDoacao: formData.dataDoacao ? Timestamp.fromMillis(formData.dataDoacao.valueOf()) : null,
         descricao: formData.descricao,
         curiosidades: formData.curiosidades,
         privado: Boolean(formData.privado) ,
         colecao: formData.colecao,
+        dataDoacao: formData?.dataDoacao ? Timestamp.fromDate(formData.dataDoacao.toDate()) : null,
       };
       await updateDoc(docRef, file).catch(() => {
         throw new FirebaseError("Erro ao atualizar documento", "not-found");
       });
     }
   } catch (error) {
+    console.error(error);
     throw new Error("Erro ao atualizar documento");
   }
 }
