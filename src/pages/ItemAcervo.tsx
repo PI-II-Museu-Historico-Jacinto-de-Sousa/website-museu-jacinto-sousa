@@ -18,6 +18,7 @@ import ListItem from '@mui/material/ListItem';
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import Divider from "@mui/material/Divider";
+import Chip from "@mui/material/Chip";
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
 import { ItemAcervo } from "../interfaces/ItemAcervo";
@@ -162,11 +163,11 @@ const ItemAcervoComponent = () => {
                     <Title
                       data-cy="title-item-acervo"
                     >
-                      <BotaoEditar
+                      <BotaoAlterarDados
                           onClick={() => setEditing(true)}
                           data-cy="edit-button"
                         >Editar
-                      </BotaoEditar>
+                      </BotaoAlterarDados>
                         <TextoTitulo>
                           {
                             itemAcervoNome
@@ -199,9 +200,12 @@ const ItemAcervoComponent = () => {
                       <List>
                         <ListItem>
                           <TitleSections>
-                            <TextoTitulo>
-                                Descrição
-                            </TextoTitulo>
+                            <Typography
+                              variant="displayLarge"
+                              color={theme.palette.tertiary.main}
+                            >
+                              Descrição
+                            </Typography>
                           </TitleSections>
                         </ListItem>
                         <Divider/>
@@ -218,9 +222,12 @@ const ItemAcervoComponent = () => {
                       <List>
                         <ListItem>
                           <TitleSections>
-                            <TextoTitulo>
-                                Curiosidades
-                            </TextoTitulo>
+                            <Typography
+                              variant="displayLarge"
+                              color={theme.palette.tertiary.main}
+                            >
+                              Curiosidades
+                            </Typography>
                           </TitleSections>
                         </ListItem>
                         <Divider/>
@@ -238,11 +245,7 @@ const ItemAcervoComponent = () => {
                         Coleção
                       </TextoColecao>
                       <LabelColecao>
-                        <TextoColecao>
-                          {
-                            itemAcervoColecao
-                          }
-                        </TextoColecao>
+                        <Chip label={itemAcervoColecao} style={{backgroundColor: theme.palette.tertiaryContainer.main}} />
                       </LabelColecao>
                     </Collection>
                     <Options>
@@ -288,13 +291,13 @@ const ItemAcervoComponent = () => {
                           data-cy="title-item-acervo"
                         >
                           <SessaoBotoes>
-                            <BotaoSalvar
+                            <BotaoAlterarDados
                               type="submit"
                               data-cy="save-button"
                               onClick={() => setOpenDialogSave(watchName !=='')}
                             >
                               Salvar
-                            </BotaoSalvar>
+                            </BotaoAlterarDados>
                             <BotaoCancelar
                                 onClick={() => cancelarEdicao() }
                                 data-cy="cancel-button"
@@ -343,7 +346,9 @@ const ItemAcervoComponent = () => {
                           </CheckPrivacidade>
                         </Title>
                         <Imagens>
-                          <BotaoAdicionarImagem>Adicionar imagem</BotaoAdicionarImagem>
+                          <BotaoAlterarDados>
+                            Adicionar imagem
+                          </BotaoAlterarDados>
                         </Imagens>
                         <Info>
                           <TextoInfo>
@@ -387,9 +392,12 @@ const ItemAcervoComponent = () => {
                         </Info>
                         <Description>
                         <TitleSections>
-                          <TextoTitulo>
-                              Descrição
-                          </TextoTitulo>
+                          <Typography
+                            variant="displayLarge"
+                            color={theme.palette.tertiary.main}
+                          >
+                            Descrição
+                          </Typography>
                         </TitleSections>
                           <LineHorizontal></LineHorizontal>
                           <Controller
@@ -412,9 +420,12 @@ const ItemAcervoComponent = () => {
                         </Description>
                         <Curiosities>
                         <TitleSections>
-                          <TextoTitulo>
-                              Curiosidades
-                          </TextoTitulo>
+                          <Typography
+                            variant="displayLarge"
+                            color={theme.palette.tertiary.main}
+                          >
+                            Curiosidades
+                          </Typography>
                         </TitleSections>
                           <LineHorizontal></LineHorizontal>
                           <Controller
@@ -566,9 +577,12 @@ const ItemAcervoComponent = () => {
                       </Info>
                       <Description>
                           <TitleSections>
-                            <TextoTitulo>
-                                Descrição
-                            </TextoTitulo>
+                            <Typography
+                              variant="displayLarge"
+                              color={theme.palette.tertiary.main}
+                            >
+                              Descrição
+                            </Typography>
                           </TitleSections>
                         <LineHorizontal></LineHorizontal>
                         <TextBody>
@@ -579,9 +593,12 @@ const ItemAcervoComponent = () => {
                       </Description>
                       <Curiosities>
                           <TitleSections>
-                            <TextoTitulo>
-                                Curiosidades
-                            </TextoTitulo>
+                            <Typography
+                              variant="displayLarge"
+                              color={theme.palette.tertiary.main}
+                            >
+                              Curiosidades
+                            </Typography>
                           </TitleSections>
                         <LineHorizontal></LineHorizontal>
                         <TextBody>
@@ -595,11 +612,7 @@ const ItemAcervoComponent = () => {
                           Coleção
                         </TextoColecao>
                         <LabelColecao>
-                          <TextoColecao>
-                            {
-                              itemAcervoColecao
-                            }
-                          </TextoColecao>
+                          <Chip label={itemAcervoColecao} style={{backgroundColor: theme.palette.tertiaryContainer.main}} />
                         </LabelColecao>
                       </Collection>
                       <Options>
@@ -631,16 +644,6 @@ const Content = styled('section')(({ theme }: { theme: Theme }) => ({
   gap: theme.spacing(5),
   backgroundColor: theme.palette.Background.main,
 }));
-
-const Heading = styled(Stack)(({ theme }: { theme: Theme }) => ({
-  padding: `${theme.spacing(3)} ${theme.spacing(2)}`,
-  gap: `${theme.spacing(2)}`,
-  justifyContent: "center",
-  alignItems: 'flex-start',
-  alignSelf: 'stretch',
-  borderColor: 'red',
-  borderRadius: '400px',
-}))
 
 const Title = styled('section')(({ theme }: { theme: Theme }) => ({
   margin: `${theme.spacing(2)} 0`, //var(--space-2, 16px) 0;
@@ -870,21 +873,12 @@ const TextFieldCuriosidades = styled(TextField)(({ theme }: { theme: Theme }) =>
   backgroundColor: theme.palette.surfaceContainerHighest.main,
 }))
 
-const BotaoEditar = styled(Button)(({ theme }: { theme: Theme }) => ({
+const BotaoAlterarDados = styled(Button)(({ theme }: { theme: Theme }) => ({
   display: 'flex',
   flexDirection: 'column',
+  justifyContent: 'center',
   alignItems: 'center',
-  gap: theme.spacing(2), //15px;
-  backgroundColor: theme.palette.primary.main,
-  borderRadius: '100px',
-  color: theme.palette.onPrimary.main,
-}))
-
-const BotaoSalvar = styled(Button)(({ theme }: { theme: Theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  gap: theme.spacing(2), //15px;
+  gap: theme.spacing(2),
   borderRadius: '100px',
   backgroundColor: theme.palette.primary.main,
   color: theme.palette.onPrimary.main,
@@ -899,16 +893,6 @@ const BotaoCancelar = styled(Button)(({ theme }: { theme: Theme }) => ({
   borderRadius: '100px',
   backgroundColor: theme.palette.secondary.main,
   color: theme.palette.onSecondary.main,
-}))
-
-const BotaoAdicionarImagem = styled(Button)(({ theme }: { theme: Theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  gap: theme.spacing(2), //15px;
-  backgroundColor: theme.palette.primary.main,
-  borderRadius: '100px',
-  color: theme.palette.onPrimary.main,
 }))
 
 const LabelColecao = styled('label')(({ theme }: { theme: Theme }) => ({

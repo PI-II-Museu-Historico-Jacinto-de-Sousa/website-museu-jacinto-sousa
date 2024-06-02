@@ -175,7 +175,7 @@ const updateItemAcervo = async (formData: ItemAcervo, id: string) => {
       const docRef = doc(db, "acervo", id);
       const file = {
         nome: formData.nome,
-        dataDoacao: formData.dataDoacao ? Timestamp.fromMillis(formData.dataDoacao.valueOf()) : null,
+        dataDoacao: formData.dataDoacao ? Timestamp.fromMillis(Number(formData.dataDoacao)) : null,
         descricao: formData.descricao,
         curiosidades: formData.curiosidades,
         privado: Boolean(formData.privado) ,

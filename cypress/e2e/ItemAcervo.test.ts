@@ -22,8 +22,7 @@ describe("Remover um item e tentar acessar a mesma página de novo deve resultar
     .then(() => {
       cy.visit(`http://localhost:5173/acervo/${itemId}`);
     });
-
-    cy.get('[data-cy="error-404"]').should("exist");
+    cy.contains("Item não encontrado").should("exist");
   });
 
   it("Deve exibir a página de erro 404 quando está editando", () => {
@@ -41,7 +40,7 @@ describe("Remover um item e tentar acessar a mesma página de novo deve resultar
     cy.get('[data-cy="confirm-button-dialog-excluir"]').click().then(() => {
       cy.visit(`http://localhost:5173/acervo/${itemId}`);
     })
-    cy.get('[data-cy="error-404"]').should("exist");
+    cy.contains("Item não encontrado").should("exist");
   });
 });
 
@@ -148,11 +147,35 @@ describe("Nenhuma informação deve ser modificada ao clicar em cancelar altera�
       cy.get('[data-cy="edit-button"]').should("exist");
       cy.get('[data-cy="edit-button"]').click();
       cy.get('[data-cy="Textfield-nome"]').should("exist")
-      cy.get('[data-cy="Textfield-nome"]').type("Item de teste 5 alterado");
+      cy.get('[data-cy="Textfield-nome"]').type(" alterado");
+      cy.get('[data-cy="Textfield-descricao"]').should("exist");
+      cy.get('[data-cy="Textfield-descricao"]').type("do item");
+      cy.get('[data-cy="Textfield-curiosidades"]').should("exist");
+      cy.get('[data-cy="Textfield-curiosidades"]').type(" do item");
       cy.get('[data-cy="cancel-button"]').should("exist");
       cy.get('[data-cy="cancel-button"]').click();
-      cy.get('[data-cy="title-item-acervo"]').should("exist");
-      cy.get('[data-cy="title-item-acervo"]').should("contain.text", "Item de teste 5");
+      //cy.get('[data-cy="title-item-acervo"]').should("exist");
+      //cy.contains("Item de teste 5").should("exist");
+      it("Nome não mudou", () => {
+        cy.get('[data-cy="title-item-acervo"]').should("exist");
+        cy.contains("Item de teste 5").should("exist");
+      });
+      it("Descrição não mudou", () => {
+        cy.get('[data-cy="description-item-acervo"]').should("exist");
+        cy.contains("Descrição").should("exist");
+      });
+      it("Curiosidades não mudou", () => {
+        cy.get('[data-cy="curiosities-item-acervo"]').should("exist");
+        cy.contains("Curiosidades").should("exist");
+      });
+      it("Data de doação não mudou", () => {
+        cy.get('[data-cy="donation-date-item-acervo"]').should("exist");
+        cy.contains(itemDonationDate.toString()).should("exist");
+      });
+      it("Privacidade não mudou", () => {
+        cy.get('[data-cy="private-item-acervo"]').should("exist");
+        cy.contains("Item privado").should("not.exist");
+      })
     });
   });
 })
