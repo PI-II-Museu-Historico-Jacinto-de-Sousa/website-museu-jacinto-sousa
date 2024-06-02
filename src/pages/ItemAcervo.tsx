@@ -13,11 +13,10 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import useTheme from "@mui/material/styles/useTheme";
 import Stack from "@mui/material/Stack";
 import Dialog from "@mui/material/Dialog";
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import Divider from "@mui/material/Divider";
+import Item from "@mui/material/ListItem";
 import Chip from "@mui/material/Chip";
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
@@ -55,7 +54,7 @@ const ItemAcervoComponent = () => {
 
   const itemAcervoColecao = ItemAcervo.itemAcervo?.colecao===undefined?'':ItemAcervo.itemAcervo?.colecao;
 
-  const itemAcervoDataDoacao = dayjs(ItemAcervo.itemAcervo?.dataDoacao?.toDate());
+  const itemAcervoDataDoacao = ItemAcervo.itemAcervo?.dataDoacao ? dayjs(ItemAcervo.itemAcervo.dataDoacao.toDate()) : dayjs();
 
   const itemAcervoPrivado = ItemAcervo.itemAcervo?.privado===undefined?false:ItemAcervo.itemAcervo?.privado;
 
@@ -77,14 +76,6 @@ const ItemAcervoComponent = () => {
 
   useEffect(() => {
     if (!dataFetched && ItemAcervo.status === 'success' && ItemAcervo.itemAcervo) {
-      setValue('privado', ItemAcervo.itemAcervo.privado ?? false);
-      setValue('colecao', ItemAcervo.itemAcervo.colecao ?? '');
-      setValue('descricao', ItemAcervo.itemAcervo.descricao ?? '');
-      setValue('curiosidades', ItemAcervo.itemAcervo.curiosidades ?? '');
-      setValue('nome', ItemAcervo.itemAcervo.nome ?? '');
-      const dataAquisicao = ItemAcervo.itemAcervo.dataDoacao ? dayjs(ItemAcervo.itemAcervo.dataDoacao.toDate()) : null;
-      setValue('dataDoacao', dataAquisicao ?? dayjs(''));
-
       setDataFetched(true);
       setDocumentoExiste(true);
     } else if (ItemAcervo.status === 'error.permission-denied') {
@@ -139,6 +130,7 @@ const ItemAcervoComponent = () => {
       });
     }
   };
+
   const renderFields = () => {
     //se o documento não existir, renderiza uma mensagem de erro
       if(!documentoExiste) {
@@ -196,49 +188,47 @@ const ItemAcervoComponent = () => {
                         </Date>
                       </DateView>
                     </Info>
-                    <Description>
-                      <List>
-                        <ListItem>
-                          <TitleSections>
+                    <Description
+                      divider={<Divider orientation="horizontal" flexItem />}
+                    >
+                      <Item>
+                        <TitleSections>
                             <Typography
                               variant="displayLarge"
                               color={theme.palette.tertiary.main}
                             >
                               Descrição
                             </Typography>
-                          </TitleSections>
-                        </ListItem>
-                        <Divider/>
-                        <ListItem>
-                          <TextBody>
-                              {
-                                itemAcervoDescricao
-                              }
+                        </TitleSections>
+                      </Item>
+                      <Item>
+                        <TextBody>
+                          {
+                            itemAcervoDescricao
+                          }
                         </TextBody>
-                        </ListItem>
-                      </List>
+                      </Item>
                     </Description>
-                    <Curiosities>
-                      <List>
-                        <ListItem>
+                    <Curiosities
+                      divider={<Divider orientation="horizontal" flexItem />}
+                    >
+                        <Item>
                           <TitleSections>
-                            <Typography
-                              variant="displayLarge"
-                              color={theme.palette.tertiary.main}
-                            >
-                              Curiosidades
-                            </Typography>
+                              <Typography
+                                variant="displayLarge"
+                                color={theme.palette.tertiary.main}
+                              >
+                                Curiosidades
+                              </Typography>
                           </TitleSections>
-                        </ListItem>
-                        <Divider/>
-                        <ListItem>
+                        </Item>
+                        <Item>
                           <TextBody>
                             {
                               itemAcervoCuriosidades
                             }
                           </TextBody>
-                        </ListItem>
-                      </List>
+                        </Item>
                     </Curiosities>
                     <Collection>
                       <TextoColecao>
@@ -390,62 +380,72 @@ const ItemAcervoComponent = () => {
                             }
                           </DateView>
                         </Info>
-                        <Description>
-                        <TitleSections>
-                          <Typography
-                            variant="displayLarge"
-                            color={theme.palette.tertiary.main}
-                          >
-                            Descrição
-                          </Typography>
-                        </TitleSections>
-                          <LineHorizontal></LineHorizontal>
-                          <Controller
-                            name="descricao"
-                            control={control}
-                            render={({ field }) => (
-                              <TextFieldDescricao
-                                {...field}
-                                value={field.value}
-                                error={errors.descricao?.message !== undefined}
-                                helperText={errors.descricao?.message}
-                                label="Descrição"
-                                variant="filled"
-                                data-cy="Textfield-descricao"
+                        <Description
+                          divider={<Divider orientation="horizontal" flexItem />}
+                        >
+                          <Item>
+                            <TitleSections>
+                              <Typography
+                                variant="displayLarge"
+                                color={theme.palette.tertiary.main}
                               >
-                              </TextFieldDescricao>
-                            )}
-                            data-cy="controller-textfield-descricao"
-                          />
+                                Descrição
+                              </Typography>
+                            </TitleSections>
+                          </Item>
+                          <Item>
+                            <Controller
+                              name="descricao"
+                              control={control}
+                              render={({ field }) => (
+                                <TextFieldDescricao
+                                  {...field}
+                                  value={field.value}
+                                  error={errors.descricao?.message !== undefined}
+                                  helperText={errors.descricao?.message}
+                                  label="Descrição"
+                                  variant="filled"
+                                  data-cy="Textfield-descricao"
+                                >
+                                </TextFieldDescricao>
+                              )}
+                              data-cy="controller-textfield-descricao"
+                            />
+                          </Item>
                         </Description>
-                        <Curiosities>
-                        <TitleSections>
-                          <Typography
-                            variant="displayLarge"
-                            color={theme.palette.tertiary.main}
-                          >
-                            Curiosidades
-                          </Typography>
-                        </TitleSections>
-                          <LineHorizontal></LineHorizontal>
-                          <Controller
-                            name="curiosidades"
-                            control={control}
-                            render={({ field }) => (
-                              <TextFieldCuriosidades
-                                {...field}
-                                value={field.value}
-                                {...register('curiosidades')}
-                                error={errors.curiosidades?.message !== undefined}
-                                helperText={errors.curiosidades?.message}
-                                label="Curiosidades"
-                                variant="filled"
-                                data-cy="Textfield-curiosidades"
-                              >
-                              </TextFieldCuriosidades>
-                            )}
-                            data-cy="controller-textfield-curiosidades"
-                          />
+                        <Curiosities
+                          divider={<Divider orientation="horizontal" flexItem />}
+                        >
+                        <Item>
+                          <TitleSections>
+                            <Typography
+                              variant="displayLarge"
+                              color={theme.palette.tertiary.main}
+                            >
+                              Curiosidades
+                            </Typography>
+                          </TitleSections>
+                        </Item>
+                          <Item>
+                            <Controller
+                              name="curiosidades"
+                              control={control}
+                              render={({ field }) => (
+                                <TextFieldCuriosidades
+                                  {...field}
+                                  value={field.value}
+                                  {...register('curiosidades')}
+                                  error={errors.curiosidades?.message !== undefined}
+                                  helperText={errors.curiosidades?.message}
+                                  label="Curiosidades"
+                                  variant="filled"
+                                  data-cy="Textfield-curiosidades"
+                                >
+                                </TextFieldCuriosidades>
+                              )}
+                              data-cy="controller-textfield-curiosidades"
+                            />
+                          </Item>
                         </Curiosities>
                         <Collection>
                           <TextoColecao>
@@ -575,37 +575,47 @@ const ItemAcervoComponent = () => {
                           </Date>
                         </DateView>
                       </Info>
-                      <Description>
-                          <TitleSections>
-                            <Typography
-                              variant="displayLarge"
-                              color={theme.palette.tertiary.main}
-                            >
-                              Descrição
-                            </Typography>
-                          </TitleSections>
-                        <LineHorizontal></LineHorizontal>
-                        <TextBody>
+                      <Description
+                        divider={<Divider orientation="horizontal" flexItem />}
+                      >
+                          <Item>
+                            <TitleSections>
+                              <Typography
+                                variant="displayLarge"
+                                color={theme.palette.tertiary.main}
+                              >
+                                Descrição
+                              </Typography>
+                            </TitleSections>
+                          </Item>
+                          <Item>
+                            <TextBody>
                               {
                                 itemAcervoDescricao
                               }
-                        </TextBody>
+                            </TextBody>
+                          </Item>
                       </Description>
-                      <Curiosities>
-                          <TitleSections>
-                            <Typography
-                              variant="displayLarge"
-                              color={theme.palette.tertiary.main}
-                            >
-                              Curiosidades
-                            </Typography>
-                          </TitleSections>
-                        <LineHorizontal></LineHorizontal>
-                        <TextBody>
-                          {
-                            itemAcervoCuriosidades
-                          }
-                        </TextBody>
+                      <Curiosities
+                         divider={<Divider orientation="horizontal" flexItem />}
+                      >
+                          <Item>
+                            <TitleSections>
+                              <Typography
+                                variant="displayLarge"
+                                color={theme.palette.tertiary.main}
+                              >
+                                Curiosidades
+                              </Typography>
+                            </TitleSections>
+                          </Item>
+                        <Item>
+                          <TextBody>
+                            {
+                              itemAcervoCuriosidades
+                            }
+                          </TextBody>
+                        </Item>
                       </Curiosities>
                       <Collection>
                         <TextoColecao>
@@ -761,7 +771,7 @@ const Alt = styled('section')(({ theme }: { theme: Theme }) => ({
   letterSpacing: '0.1px',
 }))*/
 
-const Description = styled('section')(({ theme }: { theme: Theme }) => ({
+const Description = styled(Stack)(({ theme }: { theme: Theme }) => ({
   display: 'flex',
   padding: `${theme.spacing(0)} ${theme.spacing(1)}`, //var(--space-0, 0px) var(--space, 8px);
   flexDirection: 'column',
@@ -774,7 +784,7 @@ const Description = styled('section')(({ theme }: { theme: Theme }) => ({
   backgroundColor: theme.palette.surfaceContainerLow.main,
 }))
 
-const Curiosities = styled('section')(({ theme }: { theme: Theme }) => ({
+const Curiosities = styled(Stack)(({ theme }: { theme: Theme }) => ({
   display: 'flex',
   padding: `${theme.spacing(0)} ${theme.spacing(1)}`, //var(--space-0, 0px) var(--space, 8px);
   flexDirection: 'column',
@@ -787,14 +797,6 @@ const Curiosities = styled('section')(({ theme }: { theme: Theme }) => ({
   borderStyle: 'solid',
   borderColor: theme.palette.outline.main,
   backgroundColor: theme.palette.surfaceContainerLow.main,
-}))
-
-const LineHorizontal = styled(Divider)(({ theme }: { theme: Theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  alignItems: 'flex-start',
-  backgroundColor: theme.palette.outlineVariant.main,
 }))
 
 const Collection = styled('section')(({ theme }: { theme: Theme }) => ({
