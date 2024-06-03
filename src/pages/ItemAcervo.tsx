@@ -66,9 +66,11 @@ const ItemAcervoComponent = () => {
     if (!dataFetched && ItemAcervo.status === 'success' && ItemAcervo.itemAcervo) {
       setDataFetched(true);
       setDocumentoExiste(true);
-    } else if (ItemAcervo.status === 'error.permission-denied') {
+    } else if (ItemAcervo.status === 'error.permission-denied' && ItemAcervo.itemAcervo !== null) {
       setDocumentoExiste(true);
     } else if (ItemAcervo.status === 'error.not-found') {
+      setDocumentoExiste(false);
+    } else if(ItemAcervo.itemAcervo === null) {
       setDocumentoExiste(false);
     }
   }, [ItemAcervo, dataFetched, setValue, editing]);
@@ -120,73 +122,338 @@ const ItemAcervoComponent = () => {
   };
 
   const renderFields = () => {
-    //se o documento não existir, renderiza uma mensagem de erro
-      if(!documentoExiste) {
-        const error = {
-          status: 404,
-          statusText: "Item não encontrado",
-          data: {
-            message: `Não foi possível encontrar o item \n"${id}"`
-          }
+    if(!documentoExiste) {
+      const error = {
+        status: 404,
+        statusText: "Item não encontrado",
+        data: {
+          message: `Não foi possível encontrar o item \n"${id}"`
         }
-        return (
-          <ErrorPage error={error}/>
-        )
-      //se o usuário estiver logado, renderiza a página de acordo com o estado de edição
-      } else {
-        if (logged) {
-          //se não estiver editando, renderiza a página normalmente
-          if(!editing) {
-              return (
-                <>
-                  <Content>
-                    <Title
-                      data-cy="title-item-acervo"
-                    >
-                      <BotaoAlterarDados
-                          onClick={() => setEditing(true)}
-                          data-cy="edit-button"
-                        >Editar
-                      </BotaoAlterarDados>
-                        <TextoTitulo>
+      }
+      return (
+        <ErrorPage error={error}/>
+      )
+    } else {
+      if(ItemAcervo.status === 'success') {
+        if(editing) {
+          return (
+            <>
+                <form
+                  onSubmit={handleSubmit(onSubmit)}
+                  data-cy="form-item-acervo"
+                >
+                    <Content>
+                      <Title
+                        data-cy="title-item-acervo"
+                      >
+                        <SessaoBotoes>
+                          <BotaoAlterarDados
+                            type="submit"
+                            data-cy="save-button"
+                            onClick={() => setOpenDialogSave(watchName !=='')}
+                          >
+                            Salvar
+                          </BotaoAlterarDados>
+                          <BotaoCancelar
+                              onClick={() => cancelarEdicao() }
+                              data-cy="cancel-button"
+                            >Cancelar
+                          </BotaoCancelar>
+                        </SessaoBotoes>
+                        <Controller
+                          name="nome"
+                          control={control}
+                          render={({ field }) => (
+                            <TextFieldTitulo
+                              {...field}
+                              value={field.value}
+                              {...register('nome', {
+                                required: "Nome do item é obrigatório"
+                              })}
+                              error={errors.nome?.message !== undefined}
+                              helperText={errors.nome?.message}
+                              label="Nome"
+                              variant="filled"
+                              id="Textfield-nome"
+                              data-cy="Textfield-nome"
+                              onChange={(event) => field.onChange(event.target.value)}
+                            >
+                            </TextFieldTitulo>
+                          )}
+                          data-cy="controller-textfield-nome"
+                        />
+                        <CheckPrivacidade>
+                          {watchPrivado? <EstadoItem>Item Privado</EstadoItem> : <div></div>}
+                          <Controller
+                            name="privado"
+                            control={control}
+                            render={({ field }) => (
+                              <Checkbox
+                                {...field}
+                                {...register('privado')}
+                                checked={Boolean(field.value)}
+                                onChange={(event) => field.onChange(event.target.checked)}
+                                data-cy="checkbox-privado"
+                                style={{color: '#6750A4'}}
+                              />
+                            )}
+                            data-cy="controller-checkbox-privado"
+                          />
+                        </CheckPrivacidade>
+                      </Title>
+                      <Imagens>
+                        <BotaoAlterarDados>
+                          Adicionar imagem
+                        </BotaoAlterarDados>
+                      </Imagens>
+                      <Info>
+                        <TextoInfo>
+                          Adicionado ao acervo em :
+                        </TextoInfo>
+                        <DateView>
                           {
-                            ItemAcervo.itemAcervo?.nome
+                            mobile ?
+                            <Controller
+                              name="dataDoacao"
+                              control={control}
+                              defaultValue={dayjs(ItemAcervo.itemAcervo?.dataDoacao?.toDate())}
+                              render={({ field }) => (
+                                <DatePickerMobileDataAquisicao
+                                  defaultValue={dayjs(ItemAcervo.itemAcervo?.dataDoacao?.toDate())}
+                                  label="Data da doação"
+                                  {...register('dataDoacao')}
+                                  onChange={(value) => field.onChange(value)}
+                                  data-cy="datepicker-mobile"
+                                />
+                              )}
+                              data-cy="controller-datepicker-mobile"
+                            />
+                            :
+                            <Controller
+                              name="dataDoacao"
+                              control={control}
+                              defaultValue={dayjs(ItemAcervo.itemAcervo?.dataDoacao?.toDate())}
+                              render={({ field }) => (
+                                <DatePickerDataAquisicao
+                                  defaultValue={dayjs(ItemAcervo.itemAcervo?.dataDoacao?.toDate())}
+                                  {...register('dataDoacao')}
+                                  onChange={(value) => field.onChange(value)}
+                                  data-cy="datepicker-desktop"
+                                />
+                              )}
+                              data-cy="controller-datepicker-desktop"
+                            />
                           }
-                        </TextoTitulo>
-                        {
-                          ItemAcervo.itemAcervo?.privado? <EstadoItem>Item Privado</EstadoItem> : <div></div>
-                        }
-                    </Title>
-                    <Imagens>
-                      <Alt>
-                        <IconButton>
-                          <EditIcon/>
-                        </IconButton>
-                      </Alt>
-                    </Imagens>
-                    <Info>
-                      <TextoInfo>
-                        Adicionado ao acervo em :
-                      </TextoInfo>
-                      <DateView>
-                        <Date>
-                          {
-                            dayjs(ItemAcervo.itemAcervo?.dataDoacao?.toDate()).format('DD/MM/YYYY')
-                          }
-                        </Date>
-                      </DateView>
-                    </Info>
-                    <Description
-                      divider={<Divider orientation="horizontal" flexItem />}
-                    >
-                      <Item>
-                        <TitleSections>
+                        </DateView>
+                      </Info>
+                      <Description
+                        divider={<Divider orientation="horizontal" flexItem />}
+                      >
+                        <Item>
+                          <TitleSections>
                             <Typography
                               variant="displayLarge"
                               color={theme.palette.tertiary.main}
                             >
                               Descrição
                             </Typography>
+                          </TitleSections>
+                        </Item>
+                        <Item>
+                          <Controller
+                            name="descricao"
+                            control={control}
+                            render={({ field }) => (
+                              <TextFieldDescricao
+                                {...field}
+                                value={field.value}
+                                error={errors.descricao?.message !== undefined}
+                                helperText={errors.descricao?.message}
+                                label="Descrição"
+                                variant="filled"
+                                data-cy="Textfield-descricao"
+                              >
+                              </TextFieldDescricao>
+                            )}
+                            data-cy="controller-textfield-descricao"
+                          />
+                        </Item>
+                      </Description>
+                      <Curiosities
+                        divider={<Divider orientation="horizontal" flexItem />}
+                      >
+                      <Item>
+                        <TitleSections>
+                          <Typography
+                            variant="displayLarge"
+                            color={theme.palette.tertiary.main}
+                          >
+                            Curiosidades
+                          </Typography>
+                        </TitleSections>
+                      </Item>
+                        <Item>
+                          <Controller
+                            name="curiosidades"
+                            control={control}
+                            render={({ field }) => (
+                              <TextFieldCuriosidades
+                                {...field}
+                                value={field.value}
+                                {...register('curiosidades')}
+                                error={errors.curiosidades?.message !== undefined}
+                                helperText={errors.curiosidades?.message}
+                                label="Curiosidades"
+                                variant="filled"
+                                data-cy="Textfield-curiosidades"
+                              >
+                              </TextFieldCuriosidades>
+                            )}
+                            data-cy="controller-textfield-curiosidades"
+                          />
+                        </Item>
+                      </Curiosities>
+                      <Collection>
+                        <TextoColecao>
+                          Coleção
+                        </TextoColecao>
+                        <MenuColecao>
+                          <BuildingBlocks>
+                            <StateLayer>
+                              <Controller
+                                name="colecao"
+                                control={control}
+                                render={({ field }) => (
+                                  <Select
+                                    {...field}
+                                    value={field.value}
+                                    {...register('colecao')}
+                                    label="Seleção de Coleção"
+                                    variant="filled"
+                                    data-cy="select-collection"
+                                  >
+                                    {
+                                      collectionList.map((collection) => (
+                                        <MenuItem
+                                          key={collection}
+                                          value={collection}
+                                          data-cy="select-collection-item"
+                                        >
+                                          {collection}
+                                        </MenuItem>
+                                      ))
+                                    }
+                                  </Select>
+                                )}
+                                data-cy="controller-select-collection"
+                              />
+                            </StateLayer>
+                          </BuildingBlocks>
+                        </MenuColecao>
+                      </Collection>
+                      <Options>
+                        <BotaoExcluir
+                          onClick={() => setOpenDialog(true)}
+                          data-cy="delete-button"
+                        >
+                          Excluir item
+                        </BotaoExcluir>
+                      </Options>
+                  </Content>
+                  <Dialog
+                    open={openDialogSave}
+                    onClose={() => setOpenDialogSave(false)}
+                    data-cy="dialog-confirm-save"
+                  >
+                    <CustomDialogContent>
+                      Alterações salvas com sucesso!
+                    </CustomDialogContent>
+                    <CustomDialogContent>
+                      <BotaoOk
+                        onClick={() => fechaDialog()}
+                        data-cy="button-ok-dialog-save"
+                      >Ok</BotaoOk>
+                    </CustomDialogContent>
+                  </Dialog>
+                  <Dialog
+                    open={open}
+                    onClose={() => setOpenDialog(false)}
+                    data-cy="dialog-excluir"
+                  >
+                    <CustomDialogTitle>
+                        Deseja mesmo excluir esse item?
+                      </CustomDialogTitle>
+                      <CustomDialogContent>
+                        <BotaoCancelar
+                          onClick={() => setOpenDialog(false)}
+                          data-cy="cancel-button-dialog-excluir"
+                        >Cancelar</BotaoCancelar>
+                        <BotaoExcluir
+                          onClick={() => redirecionarExclusao()}
+                          data-cy="confirm-button-dialog-excluir"
+                        >Excluir</BotaoExcluir>
+                      </CustomDialogContent>
+                  </Dialog>
+                </form>
+            </>
+          )
+        } else {
+          return (
+            <>
+                <Content>
+                  <Title
+                    data-cy="title-item-acervo"
+                  >
+                      {
+                        logged?
+                        <BotaoAlterarDados
+                              onClick={() => setEditing(true)}
+                              data-cy="edit-button"
+                            >Editar
+                        </BotaoAlterarDados> : <div></div>
+                      }
+                      <TextoTitulo>
+                        {
+                          ItemAcervo.itemAcervo?.nome
+                        }
+                      </TextoTitulo>
+                      {
+                        watch('privado')? <EstadoItem>Item Privado</EstadoItem> : <div></div>
+                      }
+                  </Title>
+                  <Imagens>
+                    <Alt>
+                      {
+                        logged?
+                        <IconButton>
+                          <EditIcon/>
+                        </IconButton> : <div></div>
+                      }
+                    </Alt>
+                  </Imagens>
+                  <Info>
+                    <TextoInfo>
+                      Adicionado ao acervo em :
+                    </TextoInfo>
+                    <DateView>
+                      <Date>
+                        {
+                          dayjs(ItemAcervo.itemAcervo?.dataDoacao?.toDate()).format('DD/MM/YYYY')
+                        }
+                      </Date>
+                    </DateView>
+                  </Info>
+                  <Description
+                    divider={<Divider orientation="horizontal" flexItem />}
+                  >
+                      <Item>
+                        <TitleSections>
+                          <Typography
+                            variant="displayLarge"
+                            color={theme.palette.tertiary.main}
+                          >
+                            Descrição
+                          </Typography>
                         </TitleSections>
                       </Item>
                       <Item>
@@ -196,45 +463,49 @@ const ItemAcervoComponent = () => {
                           }
                         </TextBody>
                       </Item>
-                    </Description>
-                    <Curiosities
-                      divider={<Divider orientation="horizontal" flexItem />}
-                    >
-                        <Item>
-                          <TitleSections>
-                              <Typography
-                                variant="displayLarge"
-                                color={theme.palette.tertiary.main}
-                              >
-                                Curiosidades
-                              </Typography>
-                          </TitleSections>
-                        </Item>
-                        <Item>
-                          <TextBody>
-                            {
-                              ItemAcervo.itemAcervo?.curiosidades
-                            }
-                          </TextBody>
-                        </Item>
-                    </Curiosities>
-                    <Collection>
-                      <TextoColecao>
-                        Coleção
-                      </TextoColecao>
-                      <LabelColecao>
-                        <Chip label={ItemAcervo.itemAcervo?.colecao} style={{backgroundColor: theme.palette.tertiaryContainer.main}} />
-                      </LabelColecao>
-                    </Collection>
-                    <Options>
+                  </Description>
+                  <Curiosities
+                     divider={<Divider orientation="horizontal" flexItem />}
+                  >
+                      <Item>
+                        <TitleSections>
+                          <Typography
+                            variant="displayLarge"
+                            color={theme.palette.tertiary.main}
+                          >
+                            Curiosidades
+                          </Typography>
+                        </TitleSections>
+                      </Item>
+                    <Item>
+                      <TextBody>
+                        {
+                          ItemAcervo.itemAcervo?.curiosidades
+                        }
+                      </TextBody>
+                    </Item>
+                  </Curiosities>
+                  <Collection>
+                    <TextoColecao>
+                      Coleção
+                    </TextoColecao>
+                    <LabelColecao>
+                      <Chip label={ItemAcervo.itemAcervo?.colecao} style={{backgroundColor: theme.palette.tertiaryContainer.main}} />
+                    </LabelColecao>
+                  </Collection>
+                  <Options>
+                    {
+                      logged?
                       <BotaoExcluir
                         onClick={() => setOpenDialog(true)}
                         data-cy="delete-button"
                       >
                         Excluir item
                       </BotaoExcluir>
-                    </Options>
-                    <Dialog
+                      : <div></div>
+                    }
+                  </Options>
+                  <Dialog
                       open={open}
                       onClose={() => setOpenDialog(false)}
                       data-cy="dialog-excluir"
@@ -253,375 +524,54 @@ const ItemAcervoComponent = () => {
                           >Excluir</BotaoExcluir>
                         </CustomDialogContent>
                     </Dialog>
-                  </Content>
+
+                </Content>
+            </>
+          )
+        }
+      } else {
+        if(ItemAcervo.status === 'loading') {
+          return (
+            <Content>
+              <TextoTitulo>
+                Carregando...
+              </TextoTitulo>
+            </Content>
+          )
+        } else {
+          console.log('olá')
+          console.log(ItemAcervo.itemAcervo)
+          console.log(ItemAcervo.status)
+          console.log(documentoExiste)
+          if(ItemAcervo.status === 'error.permission-denied') {
+            const error = {
+              status: 403,
+              statusText: "Acesso negado",
+              data: {
+                message: "Você precisa estar logado para acessar essa página"
+              }
+            }
+            return (
+              <>
+                <ErrorPage error={error}/>
               </>
             )
           } else {
-            //se estiver editando, renderiza o formulário de edição
-            return (
-              <>
-                  <form
-                    onSubmit={handleSubmit(onSubmit)}
-                    data-cy="form-item-acervo"
-                  >
-                      <Content>
-                        <Title
-                          data-cy="title-item-acervo"
-                        >
-                          <SessaoBotoes>
-                            <BotaoAlterarDados
-                              type="submit"
-                              data-cy="save-button"
-                              onClick={() => setOpenDialogSave(watchName !=='')}
-                            >
-                              Salvar
-                            </BotaoAlterarDados>
-                            <BotaoCancelar
-                                onClick={() => cancelarEdicao() }
-                                data-cy="cancel-button"
-                              >Cancelar
-                            </BotaoCancelar>
-                          </SessaoBotoes>
-                          <Controller
-                            name="nome"
-                            control={control}
-                            render={({ field }) => (
-                              <TextFieldTitulo
-                                {...field}
-                                value={field.value}
-                                {...register('nome', {
-                                  required: "Nome do item é obrigatório"
-                                })}
-                                error={errors.nome?.message !== undefined}
-                                helperText={errors.nome?.message}
-                                label="Nome"
-                                variant="filled"
-                                id="Textfield-nome"
-                                data-cy="Textfield-nome"
-                                onChange={(event) => field.onChange(event.target.value)}
-                              >
-                              </TextFieldTitulo>
-                            )}
-                            data-cy="controller-textfield-nome"
-                          />
-                          <CheckPrivacidade>
-                            {watchPrivado? <EstadoItem>Item Privado</EstadoItem> : <div></div>}
-                            <Controller
-                              name="privado"
-                              control={control}
-                              render={({ field }) => (
-                                <Checkbox
-                                  {...field}
-                                  {...register('privado')}
-                                  checked={Boolean(field.value)}
-                                  onChange={(event) => field.onChange(event.target.checked)}
-                                  data-cy="checkbox-privado"
-                                  style={{color: '#6750A4'}}
-                                />
-                              )}
-                              data-cy="controller-checkbox-privado"
-                            />
-                          </CheckPrivacidade>
-                        </Title>
-                        <Imagens>
-                          <BotaoAlterarDados>
-                            Adicionar imagem
-                          </BotaoAlterarDados>
-                        </Imagens>
-                        <Info>
-                          <TextoInfo>
-                            Adicionado ao acervo em :
-                          </TextoInfo>
-                          <DateView>
-                            {
-                              mobile ?
-                              <Controller
-                                name="dataDoacao"
-                                control={control}
-                                defaultValue={dayjs(ItemAcervo.itemAcervo?.dataDoacao?.toDate())}
-                                render={({ field }) => (
-                                  <DatePickerMobileDataAquisicao
-                                    defaultValue={dayjs(ItemAcervo.itemAcervo?.dataDoacao?.toDate())}
-                                    label="Data da doação"
-                                    {...register('dataDoacao')}
-                                    onChange={(value) => field.onChange(value)}
-                                    data-cy="datepicker-mobile"
-                                  />
-                                )}
-                                data-cy="controller-datepicker-mobile"
-                              />
-                              :
-                              <Controller
-                                name="dataDoacao"
-                                control={control}
-                                defaultValue={dayjs(ItemAcervo.itemAcervo?.dataDoacao?.toDate())}
-                                render={({ field }) => (
-                                  <DatePickerDataAquisicao
-                                    defaultValue={dayjs(ItemAcervo.itemAcervo?.dataDoacao?.toDate())}
-                                    {...register('dataDoacao')}
-                                    onChange={(value) => field.onChange(value)}
-                                    data-cy="datepicker-desktop"
-                                  />
-                                )}
-                                data-cy="controller-datepicker-desktop"
-                              />
-                            }
-                          </DateView>
-                        </Info>
-                        <Description
-                          divider={<Divider orientation="horizontal" flexItem />}
-                        >
-                          <Item>
-                            <TitleSections>
-                              <Typography
-                                variant="displayLarge"
-                                color={theme.palette.tertiary.main}
-                              >
-                                Descrição
-                              </Typography>
-                            </TitleSections>
-                          </Item>
-                          <Item>
-                            <Controller
-                              name="descricao"
-                              control={control}
-                              render={({ field }) => (
-                                <TextFieldDescricao
-                                  {...field}
-                                  value={field.value}
-                                  error={errors.descricao?.message !== undefined}
-                                  helperText={errors.descricao?.message}
-                                  label="Descrição"
-                                  variant="filled"
-                                  data-cy="Textfield-descricao"
-                                >
-                                </TextFieldDescricao>
-                              )}
-                              data-cy="controller-textfield-descricao"
-                            />
-                          </Item>
-                        </Description>
-                        <Curiosities
-                          divider={<Divider orientation="horizontal" flexItem />}
-                        >
-                        <Item>
-                          <TitleSections>
-                            <Typography
-                              variant="displayLarge"
-                              color={theme.palette.tertiary.main}
-                            >
-                              Curiosidades
-                            </Typography>
-                          </TitleSections>
-                        </Item>
-                          <Item>
-                            <Controller
-                              name="curiosidades"
-                              control={control}
-                              render={({ field }) => (
-                                <TextFieldCuriosidades
-                                  {...field}
-                                  value={field.value}
-                                  {...register('curiosidades')}
-                                  error={errors.curiosidades?.message !== undefined}
-                                  helperText={errors.curiosidades?.message}
-                                  label="Curiosidades"
-                                  variant="filled"
-                                  data-cy="Textfield-curiosidades"
-                                >
-                                </TextFieldCuriosidades>
-                              )}
-                              data-cy="controller-textfield-curiosidades"
-                            />
-                          </Item>
-                        </Curiosities>
-                        <Collection>
-                          <TextoColecao>
-                            Coleção
-                          </TextoColecao>
-                          <MenuColecao>
-                            <BuildingBlocks>
-                              <StateLayer>
-                                <Controller
-                                  name="colecao"
-                                  control={control}
-                                  render={({ field }) => (
-                                    <Select
-                                      {...field}
-                                      value={field.value}
-                                      {...register('colecao')}
-                                      label="Seleção de Coleção"
-                                      variant="filled"
-                                      data-cy="select-collection"
-                                    >
-                                      {
-                                        collectionList.map((collection) => (
-                                          <MenuItem
-                                            key={collection}
-                                            value={collection}
-                                            data-cy="select-collection-item"
-                                          >
-                                            {collection}
-                                          </MenuItem>
-                                        ))
-                                      }
-                                    </Select>
-                                  )}
-                                  data-cy="controller-select-collection"
-                                />
-                              </StateLayer>
-                            </BuildingBlocks>
-                          </MenuColecao>
-                        </Collection>
-                        <Options>
-                          <BotaoExcluir
-                            onClick={() => setOpenDialog(true)}
-                            data-cy="delete-button"
-                          >
-                            Excluir item
-                          </BotaoExcluir>
-                        </Options>
-                    </Content>
-                    <Dialog
-                      open={openDialogSave}
-                      onClose={() => setOpenDialogSave(false)}
-                      data-cy="dialog-confirm-save"
-                    >
-                      <CustomDialogContent>
-                        Alterações salvas com sucesso!
-                      </CustomDialogContent>
-                      <CustomDialogContent>
-                        <BotaoOk
-                          onClick={() => fechaDialog()}
-                          data-cy="button-ok-dialog-save"
-                        >Ok</BotaoOk>
-                      </CustomDialogContent>
-                    </Dialog>
-                    <Dialog
-                      open={open}
-                      onClose={() => setOpenDialog(false)}
-                      data-cy="dialog-excluir"
-                    >
-                      <CustomDialogTitle>
-                          Deseja mesmo excluir esse item?
-                        </CustomDialogTitle>
-                        <CustomDialogContent>
-                          <BotaoCancelar
-                            onClick={() => setOpenDialog(false)}
-                            data-cy="cancel-button-dialog-excluir"
-                          >Cancelar</BotaoCancelar>
-                          <BotaoExcluir
-                            onClick={() => redirecionarExclusao()}
-                            data-cy="confirm-button-dialog-excluir"
-                          >Excluir</BotaoExcluir>
-                        </CustomDialogContent>
-                    </Dialog>
-                  </form>
-              </>
-          )
-          }
-        } else {
-          //se o usuário não estiver logado e o item for privado, renderiza uma mensagem de erro
-            if(ItemAcervo.status === 'error.permission-denied') {
-              const error = {
-                status: 403,
-                statusText: "Acesso negado",
-                data: {
-                  message: "Você precisa estar logado para acessar essa página"
-                }
+            const error = {
+              status: 404,
+              statusText: "Item não encontrado",
+              data: {
+                message: `Não foi possível encontrar o item \n"${id}"`
               }
-              return (
-                <>
-                  <ErrorPage error={error}/>
-                </>
-              )
-            } else {
-              //se o usuário não estiver logado e o item for público, renderiza a página normalmente mas sem a opção de edição
-              return (
-                <>
-                    <Content>
-                      <Title
-                        data-cy="title-item-acervo"
-                      >
-                          <TextoTitulo>
-                            {
-                              ItemAcervo.itemAcervo?.nome
-                            }
-                          </TextoTitulo>
-                      </Title>
-                      <Imagens>
-                      </Imagens>
-                      <Info>
-                        <TextoInfo>
-                          Adicionado ao acervo em :
-                        </TextoInfo>
-                        <DateView>
-                          <Date>
-                            {
-                              dayjs(ItemAcervo.itemAcervo?.dataDoacao?.toDate()).format('DD/MM/YYYY')
-                            }
-                          </Date>
-                        </DateView>
-                      </Info>
-                      <Description
-                        divider={<Divider orientation="horizontal" flexItem />}
-                      >
-                          <Item>
-                            <TitleSections>
-                              <Typography
-                                variant="displayLarge"
-                                color={theme.palette.tertiary.main}
-                              >
-                                Descrição
-                              </Typography>
-                            </TitleSections>
-                          </Item>
-                          <Item>
-                            <TextBody>
-                              {
-                                ItemAcervo.itemAcervo?.descricao
-                              }
-                            </TextBody>
-                          </Item>
-                      </Description>
-                      <Curiosities
-                         divider={<Divider orientation="horizontal" flexItem />}
-                      >
-                          <Item>
-                            <TitleSections>
-                              <Typography
-                                variant="displayLarge"
-                                color={theme.palette.tertiary.main}
-                              >
-                                Curiosidades
-                              </Typography>
-                            </TitleSections>
-                          </Item>
-                        <Item>
-                          <TextBody>
-                            {
-                              ItemAcervo.itemAcervo?.curiosidades
-                            }
-                          </TextBody>
-                        </Item>
-                      </Curiosities>
-                      <Collection>
-                        <TextoColecao>
-                          Coleção
-                        </TextoColecao>
-                        <LabelColecao>
-                          <Chip label={ItemAcervo.itemAcervo?.colecao} style={{backgroundColor: theme.palette.tertiaryContainer.main}} />
-                        </LabelColecao>
-                      </Collection>
-                      <Options>
-                      </Options>
-                    </Content>
-                </>
-              )
             }
+            return (
+              <ErrorPage error={error}/>
+            )
+          }
+        }
       }
     }
-  };
+  }
 
   return (
     <>
