@@ -6,6 +6,16 @@ jobs:
   build-and-bundle-report:
     name: build-project-and-bundle-report
     runs-on: ubuntu-22.04
+    env:
+      # token usado para diferenciar uma nova run de uma repetida
+      GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      # variaveis com prefixo cypress são usadas pela sdk de administrador
+      VITE_FIREBASE_API_KEY: ${{secrets.VITE_FIREBASE_API_KEY}}
+      VITE_FIREBASE_AUTH_DOMAIN: ${{secrets.VITE_FIREBASE_AUTH_DOMAIN}}
+      VITE_FIREBASE_PROJECT_ID: ${{secrets.VITE_FIREBASE_PROJECT_ID}}
+      VITE_FIREBASE_STORAGE_BUCKET: ${{secrets.VITE_FIREBASE_STORAGE_BUCKET}}
+      VITE_FIREBASE_MESSAGING_SENDER_ID: ${{secrets.VITE_FIREBASE_MESSAGING_SENDER_ID}}
+      VITE_FIREBASE_APP_ID: ${{secrets.VITE_FIREBASE_APP_ID}}
     steps:
       # instalando dependências e gerando relatório do bundle
       # comando vite-bundle-visualizer também realiza build do projeto
