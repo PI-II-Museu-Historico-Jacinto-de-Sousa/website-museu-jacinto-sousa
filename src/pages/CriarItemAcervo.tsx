@@ -3,15 +3,16 @@ import { Theme, styled, useTheme, } from "@mui/material/styles";
 import { DesktopDatePicker, MobileDatePicker } from "@mui/x-date-pickers";
 import { Dayjs, isDayjs } from "dayjs";
 import { MuiTelInput } from "mui-tel-input";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Controller, SubmitHandler } from "react-hook-form";
 import { auth } from "../../firebase/firebase";
 import { adicionarItemAcervo } from "../Utils/itemAcervoFirebase";
-import ImageCard from "../components/ImageCard/ImageCard";
 import useFormItemAcervo from "../hooks/useItemAcervoForm";
 import useNomeColecoes from "../hooks/useNomeColecoes";
 import { ItemAcervo } from "../interfaces/ItemAcervo";
 import { useNavigate } from "react-router-dom";
+
+const ImageCard = React.lazy(() => import("../components/ImageCard/ImageCard"));
 
 //altura de cada item no select
 const SELECT_MENU_ITEM_HEIGHT = 48;

@@ -1,13 +1,21 @@
-import ToggleLightMode from '../ToggleLightMode/ToggleLightMode'
 import logo from '../../assets/cityLogo.svg'
-import { useEffect, useState } from 'react'
-import { AppBar, Button, IconButton, Menu, MenuItem, PaletteMode, Snackbar, Theme, Toolbar, Typography, styled, useMediaQuery, useTheme } from '@mui/material'
+import React, { useEffect, useState } from 'react'
+import AppBar from '@mui/material/AppBar'
+import Button from '@mui/material/Button'
+import IconButton  from '@mui/material/IconButton'
+import Menu from '@mui/material/Menu'
+import MenuItem from '@mui/material/MenuItem'
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import { PaletteMode, Snackbar, Theme, styled, useMediaQuery, useTheme } from '@mui/material'
 import { getAuth } from 'firebase/auth'
 import { app } from '../../../firebase/firebase'
-import { AccountCircle } from '@mui/icons-material'
+import AccountCircle from '@mui/icons-material/AccountCircle'
 import MenuIcon from '@mui/icons-material/Menu';
 import { Link } from 'react-router-dom'
 import { loginMethods } from '../../Utils/loginGoogle'
+
+const ToggleLightMode = React.lazy(() => import('../ToggleLightMode/ToggleLightMode'))
 
 //Need to define links to other pages
 const pages = [
@@ -100,7 +108,7 @@ const NavBarDesktop = ({ colorMode, mode, logged }: { colorMode: any, mode: Pale
 
   return (
     <NavContainer data-cy="NavContainer">
-      <img src={logo} alt="Prefeitura Municipal de Quixadá" style={{ height: '10vh' }} />
+      <img src={logo} alt="Prefeitura Municipal de Quixadá" height="70px" width="70px"/>
 
       <NavPages>
         <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }} data-cy="HomeOption">
@@ -296,7 +304,7 @@ const NavBarMobile = ({ colorMode, mode, logged }: { colorMode: any, mode: Palet
         <Toolbar sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <MenuConfigMobile />
 
-          <img src={logo} alt="Prefeitura Municipal de Quixadá" style={{ height: '10vh' }} />
+          <img src={logo} alt="Prefeitura Municipal de Quixadá" height="70px" width="70px"/>
 
           <Option>
             <ToggleLightMode colorMode={colorMode} mode={mode} />

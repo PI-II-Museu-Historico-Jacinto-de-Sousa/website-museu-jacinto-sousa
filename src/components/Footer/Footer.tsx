@@ -6,8 +6,7 @@ import { Theme, Typography, styled } from '@mui/material'
 import { getAuth } from 'firebase/auth'
 import { app } from '../../../firebase/firebase'
 import { useEffect, useState } from 'react'
-import { collection, doc, getDoc, getDocs, getFirestore, query, setDoc, where } from 'firebase/firestore'
-
+import { doc, getDoc, getFirestore, setDoc } from 'firebase/firestore'
 interface IFooterData {
   address: string,
   email: string,
