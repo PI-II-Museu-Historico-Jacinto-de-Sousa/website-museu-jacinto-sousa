@@ -67,7 +67,7 @@ const ItemAcervoComponent = () => {
     if (!dataFetched && ItemAcervo.status === 'success' && ItemAcervo.itemAcervo) {
       setDataFetched(true);
       setDocumentoExiste(true);
-    } else if (ItemAcervo.status === 'error.permission-denied' && ItemAcervo.itemAcervo !== null) {
+    } else if (ItemAcervo.status === 'error.permission-denied' || ItemAcervo.itemAcervo !== null) {
       setDocumentoExiste(true);
     } else if (ItemAcervo.status === 'error.not-found') {
       setDocumentoExiste(false);
@@ -91,6 +91,7 @@ const ItemAcervoComponent = () => {
    //funções relativas ao select
 
    const [collectionList, setCollectionList] = useState<string[]>([]);
+   console.log(ItemAcervo.status)
 
   useEffect(() => {
     getNomesColecoes().then((collections) => {
@@ -124,6 +125,7 @@ const ItemAcervoComponent = () => {
 
   const renderFields = () => {
     if(!documentoExiste) {
+      console.log(documentoExiste)
       const error = {
         status: 404,
         statusText: "Item não encontrado",
