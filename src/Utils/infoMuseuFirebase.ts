@@ -25,6 +25,8 @@ import {
 import { db, storage } from "../../firebase/firebase";
 import { InfoMuseu } from "../interfaces/InfoMuseu";
 
+const COLLECTION_REF = "informacoes-museu";
+
 type Status = "loading" | "success" | "error";
 
 /**
@@ -39,7 +41,7 @@ function subscribeInfoMuseu(
   statusUpdate: React.Dispatch<React.SetStateAction<Status>>
 ): Unsubscribe {
   try {
-    const docRef = doc(db, "informações-museu", id);
+    const docRef = doc(db, COLLECTION_REF, id);
     const unsubscribe = onSnapshot(
       docRef,
       async (snapshot) => {
@@ -64,7 +66,7 @@ function subscribeInfoMuseu(
         }
       },
       (error) => {
-        console.error(error)
+        console.error(error);
         statusUpdate("error");
       }
     );
@@ -76,7 +78,7 @@ function subscribeInfoMuseu(
 
 async function getInfoMuseu(id: string): Promise<InfoMuseu> {
   try {
-    const docRef = doc(db, "informações-museu", id);
+    const docRef = doc(db, COLLECTION_REF, id);
     const docSnap = await getDoc(docRef).catch(() => {
       throw new FirebaseError("Erro ao buscar documento", "not-found");
     });
@@ -124,7 +126,7 @@ async function getImagemInfoMuseu(
 
 async function atualizarInfoMuseu(id: string, info: InfoMuseu) {
   try {
-    const docRef = doc(db, "informações-museu", id);
+    const docRef = doc(db, COLLECTION_REF, id);
     const docSnap = await getDoc(docRef).catch(() => {
       throw new FirebaseError("firestore-error", "Erro ao buscar informação");
     });
@@ -245,7 +247,7 @@ async function atualizarImagemInfoMuseu(
  */
 async function adicionarInfoMuseu(info: InfoMuseu): Promise<string> {
   try {
-    const collectionRef = collection(db, "informações-museu");
+    const collectionRef = collection(db, COLLECTION_REF);
     let newDoc: InfoMuseu = {
       nome: info.nome,
       texto: info.texto,
@@ -300,7 +302,7 @@ async function adicionarImagemInfoMuseu(imagem: Imagem): Promise<string> {
 
 async function deletarInfoMuseu(id: string) {
   try {
-    const docRef = doc(db, "informações-museu", id);
+    const docRef = doc(db, COLLECTION_REF, id);
 
     // Verificar se o documento existe
     const docSnap = await getDoc(docRef);
@@ -334,7 +336,7 @@ async function deletarInfoMuseu(id: string) {
 
 // retorna o numero de documentos na coleção que estão utilizando uma mesma imagem
 const getInfoUsingImageCount = async (nomeImagem: string): Promise<number> => {
-  const collectionRef = collection(db, "informações-museu");
+  const collectionRef = collection(db, COLLECTION_REF);
 
   const queryForImage = query(collectionRef, where("imagem", "==", nomeImagem));
   const querySnapshot = await getDocs(queryForImage);
@@ -355,6 +357,5 @@ export {
   deletarInfoMuseu,
   getInfoMuseu,
   infoMuseuMethods,
-  subscribeInfoMuseu
+  subscribeInfoMuseu,
 };
-
