@@ -17,7 +17,6 @@ import { db, storage } from "../../firebase/firebase";
 import { ItemAcervo } from "../interfaces/ItemAcervo";
 import { FirebaseError } from "firebase/app";
 import { Unsubscribe } from "firebase/auth";
-import dayjs from "dayjs";
 
 type Status = "loading" | "success" | "error.permission-denied" | "error.not-found";
 
@@ -41,7 +40,7 @@ function subscribeItemAcervo(
           if (itemAcervo?.imagens != currentInfo?.imagens) {
             const imagensPaths = itemAcervo.imagens;
             const imagensPromises = imagensPaths.map((path: string) =>
-              getImagemItemAcervo(ref(storage, `images/${path}`))
+              getImagemItemAcervo(ref(storage, path))
             );
             try {
               itemAcervo.imagens = await Promise.all(imagensPromises);
@@ -130,7 +129,6 @@ export const adicionarItemAcervo = async (
     });
     return documentReference.id !== undefined;
   } catch (error) {
-    console.error(error);
     const errorMessage = [
       "Erro ao adicionar item ao acervo",
       (error as Error).message,
@@ -157,8 +155,7 @@ const adicionarImagens = async (imagens: Imagem[]) => {
           storageRef,
           imagem.src as File,
           metadata
-        ).catch((error) => {
-          console.error(error);
+        ).catch(() => {
           throw new Error(`Imagem ${imagem.title} não pôde ser adicionada`);
         });
         return uploadResult.ref.fullPath;
@@ -174,8 +171,6 @@ const updateItemAcervo = async (formData: ItemAcervo, id: string) => {
   try {
     if (id && typeof id === 'string') {
       const docRef = doc(db, "acervo", id);
-      console.log(formData);
-      console.log(Timestamp.fromDate(dayjs(formData.dataDoacao).toDate()))
       const file = {
         nome: formData.nome,
         descricao: formData.descricao,
@@ -189,7 +184,6 @@ const updateItemAcervo = async (formData: ItemAcervo, id: string) => {
       });
     }
   } catch (error) {
-    console.error(error);
     throw new Error("Erro ao atualizar documento");
   }
 }
@@ -203,8 +197,7 @@ const removerImagens = async (imagens: Imagem[], idItemAcervo: string) => {
       collection(db, "acervo"),
       idItemAcervo
     );
-    updateDoc(itemRef, { itemImages: [] }).catch((error) => {
-      console.error(error);
+    updateDoc(itemRef, { itemImages: [] }).catch(() => {
       throw new Error("Erro ao remover imagens de item inválido");
     });
   });
@@ -222,7 +215,7 @@ const deleteItemAcervo = async (id: string) => {
       const data = docSnap.data();
       if (data && Array.isArray(data.imagens)) {
           const imagensRefPromises = data.imagens.map(async (imagem) => {
-              const imagemRef = ref(storage, `images/${imagem}`);
+              const imagemRef = ref(storage, imagem);
               try {
                   await getMetadata(imagemRef);
                   return imagemRef;

@@ -8,7 +8,12 @@ describe("Remover um item e tentar acessar a mesma página de novo deve resultar
     cy.login();
   });
 
+  after(() => {
+    cy.logout();
+  });
+
   it("Deve exibir a página de erro 404 quando não está editando", () => {
+
     cy.callFirestore("add", "acervo", { nome: "Item de teste 1", privado: false }).then((docRef) => {
       itemId = docRef._path.segments[1]; // Pegando o ID do item criado
       cy.visit(`http://localhost:5173/acervo/${itemId}`);
@@ -23,9 +28,11 @@ describe("Remover um item e tentar acessar a mesma página de novo deve resultar
       cy.visit(`http://localhost:5173/acervo/${itemId}`);
     });
     cy.contains("Item não encontrado").should("exist");
+
   });
 
   it("Deve exibir a página de erro 404 quando está editando", () => {
+
     cy.callFirestore("add", "acervo", { itemName: "Item de teste 2", itemPrivate: false }).then((docRef) => {
       itemId = docRef._path.segments[1]; // Pegando o ID do item criado
       cy.visit(`http://localhost:5173/acervo/${itemId}`);
@@ -42,14 +49,22 @@ describe("Remover um item e tentar acessar a mesma página de novo deve resultar
     })
     cy.contains("Item não encontrado").should("exist");
   });
+
 });
 
 describe(" Alterar a privacidade de um item para público e acessar deslogado deve ser sucedido", () => {
     let itemId: string;
-    beforeEach(() => {
+
+    before(() => {
       cy.login()
     });
+
+    after(() => {
+      cy.logout();
+    });
+
     it("Deve alterar a privacidade de um item para público e acessar deslogado deve ser sucedido", () => {
+
         const itemDonationDate: Timestamp = new Timestamp(dayjs().unix(), 0);
         cy.callFirestore("add", "coleções", { nome: "Fotografia" })
         cy.callFirestore("add", "acervo", { nome: "Item de teste 3", descricao: "Descrição", curiosidades: "Curiosidades", dataDoacao: itemDonationDate , privado: true, colecao: "Fotografia" })
@@ -72,15 +87,17 @@ describe(" Alterar a privacidade de um item para público e acessar deslogado de
           });
         });
     });
+
 });
 
 
-describe("Alterar a privacidade de um item para privado e acessar deslogado deve falhar (403)", () =>
-{
+describe("Alterar a privacidade de um item para privado e acessar deslogado deve falhar (403)", () => {
+
   let itemId: string;
-  beforeEach(() => {
+  before(() => {
     cy.login()
   });
+
   it("Deve alterar a privacidade de um item para privado e acessar deslogado deve falhar (403)", () => {
     const itemDonationDate: Timestamp = new Timestamp(dayjs().unix(), 0);
     cy.callFirestore("add", "coleções", { nome: "Fotografia" })
@@ -101,19 +118,25 @@ describe("Alterar a privacidade de um item para privado e acessar deslogado deve
         cy.logout();
         cy.visit(`http://localhost:5173/acervo/${itemId}`);
         cy.reload();
-        //cy.get('[data-cy="error-403"]').should("exist");
-        //cy.contains('Acesso negado').should('exist');
+
         cy.get('[data-cy="title-item-acervo"]').should("not.exist");
       });
     });
   });
+
+  after(() => {
+    cy.logout();
+  });
+
 });
 
 describe("Nome atualizado não pode ser vazio", () => {
   let itemId: string;
-  beforeEach(() => {
+
+  before(() => {
     cy.login()
   });
+
   it("Nome atualizado não pode ser vazio", () => {
     const itemDonationDate: Timestamp = new Timestamp(dayjs().unix(), 0);
     cy.callFirestore("add", "coleções", { nome: "Fotografia" })
@@ -126,21 +149,32 @@ describe("Nome atualizado não pode ser vazio", () => {
       cy.get('[data-cy="Textfield-nome"]').should("exist")
       cy.get('[data-cy="save-button"]').should("exist");
       cy.get('[data-cy="save-button"]').click();
-      //cy.get('.Mui-error').should('contain.text', 'Nome do item é obrigatório');
+
       cy.get('#Textfield-nome-helper-text').should('have.text', 'Nome do item é obrigatório');
     });
+  });
+
+  after(() => {
+    cy.logout();
   });
 })
 
 describe("Nenhuma informação deve ser modificada ao clicar em cancelar alterações", () => {
   let itemId: string;
-  beforeEach(() => {
+
+  before(() => {
     cy.login()
   });
+
+  after(() => {
+    cy.logout();
+  });
+
   it("Nenhuma informação deve ser modificada ao clicar em cancelar alterações", () => {
     const itemDonationDate: Timestamp = new Timestamp(dayjs().unix(), 0);
     cy.callFirestore("add", "coleções", { nome: "Fotografia" })
     cy.callFirestore("add", "acervo", { nome: "Item de teste 5", descricao: "Descrição", curiosidades: "Curiosidades", dataDoacao: itemDonationDate , privado: false, colecao: "Fotografia" })
+
     .then((docRef) => {
       itemId = docRef._path.segments[1] // Pegando o ID do item criado
       cy.visit(`http://localhost:5173/acervo/${itemId}`);
@@ -153,29 +187,32 @@ describe("Nenhuma informação deve ser modificada ao clicar em cancelar altera�
       cy.get('[data-cy="Textfield-curiosidades"]').should("exist");
       cy.get('[data-cy="Textfield-curiosidades"]').type(" do item");
       cy.get('[data-cy="cancel-button"]').should("exist");
-      cy.get('[data-cy="cancel-button"]').click();
-      //cy.get('[data-cy="title-item-acervo"]').should("exist");
-      //cy.contains("Item de teste 5").should("exist");
+
       it("Nome não mudou", () => {
         cy.get('[data-cy="title-item-acervo"]').should("exist");
         cy.contains("Item de teste 5").should("exist");
       });
+
       it("Descrição não mudou", () => {
         cy.get('[data-cy="description-item-acervo"]').should("exist");
         cy.contains("Descrição").should("exist");
       });
+
       it("Curiosidades não mudou", () => {
         cy.get('[data-cy="curiosities-item-acervo"]').should("exist");
         cy.contains("Curiosidades").should("exist");
       });
+
       it("Data de doação não mudou", () => {
         cy.get('[data-cy="donation-date-item-acervo"]').should("exist");
         cy.contains(itemDonationDate.toString()).should("exist");
       });
+
       it("Privacidade não mudou", () => {
         cy.get('[data-cy="private-item-acervo"]').should("exist");
         cy.contains("Item privado").should("not.exist");
-      })
+      });
+
     });
   });
 })

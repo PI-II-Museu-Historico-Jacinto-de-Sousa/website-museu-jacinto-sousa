@@ -17,6 +17,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import Divider from "@mui/material/Divider";
 import Item from "@mui/material/ListItem";
+import FormControlLabel from '@mui/material/FormControlLabel';
 import Chip from "@mui/material/Chip";
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
@@ -184,23 +185,27 @@ const ItemAcervoComponent = () => {
                         />
                         <CheckPrivacidade>
                           {watchPrivado? <EstadoItem>Item Privado</EstadoItem> : <div></div>}
-                          <Controller
-                            name="privado"
-                            control={control}
-                            render={({ field }) => (
-                              <Checkbox
-                                {...field}
-                                {...register('privado')}
-                                checked={Boolean(field.value)}
-                                onChange={(event) => field.onChange(event.target.checked)}
-                                data-cy="checkbox-privado"
-                                style={{color: '#6750A4'}}
-                              />
-                            )}
-                            data-cy="controller-checkbox-privado"
-                          />
+                          <FormControlLabel
+                            control={<Controller
+                              name="privado"
+                              control={control}
+                              render={({ field }) => (
+                                <Checkbox
+                                  {...field}
+                                  {...register('privado')}
+                                  checked={Boolean(field.value)}
+                                  onChange={(event) => field.onChange(event.target.checked)}
+                                  data-cy="checkbox-privado" />
+                              )}
+                              data-cy="controller-checkbox-privado" />} label={undefined}
+                            />
                         </CheckPrivacidade>
                       </Title>
+                      <Alt>
+                        <IconButton>
+                          <EditIcon/>
+                        </IconButton>
+                      </Alt>
                       <Imagens>
                         <BotaoAlterarDados>
                           Adicionar imagem
@@ -314,9 +319,9 @@ const ItemAcervoComponent = () => {
                         </Item>
                       </Curiosities>
                       <Collection>
-                        <TextoColecao>
+                        <Typography style={{color: theme.palette.tertiary.main}} variant="headlineMedium" >
                           Coleção
-                        </TextoColecao>
+                        </Typography>
                         <MenuColecao>
                           <BuildingBlocks>
                             <StateLayer>
@@ -405,12 +410,13 @@ const ItemAcervoComponent = () => {
                     data-cy="title-item-acervo"
                   >
                       {
-                        logged?
-                        <BotaoAlterarDados
-                              onClick={() => setEditing(true)}
-                              data-cy="edit-button"
-                            >Editar
-                        </BotaoAlterarDados> : <div></div>
+                        logged && (
+                          <BotaoAlterarDados
+                                onClick={() => setEditing(true)}
+                                data-cy="edit-button"
+                              >Editar
+                          </BotaoAlterarDados>
+                        )
                       }
                       <TextoTitulo>
                         {
@@ -423,12 +429,6 @@ const ItemAcervoComponent = () => {
                   </Title>
                   <Imagens>
                     <Alt>
-                      {
-                        logged?
-                        <IconButton>
-                          <EditIcon/>
-                        </IconButton> : <div></div>
-                      }
                     </Alt>
                   </Imagens>
                   <Info>
@@ -486,23 +486,25 @@ const ItemAcervoComponent = () => {
                     </Item>
                   </Curiosities>
                   <Collection>
-                    <TextoColecao>
+                    <Typography style={{color: theme.palette.tertiary.main}} variant="headlineMedium" >
                       Coleção
-                    </TextoColecao>
-                    <LabelColecao>
-                      <Chip label={ItemAcervo.itemAcervo?.colecao} style={{backgroundColor: theme.palette.tertiaryContainer.main}} />
-                    </LabelColecao>
+                    </Typography>
+                    <SecaoColecao>
+                      <Chip label={ItemAcervo.itemAcervo?.colecao} style={{backgroundColor: theme.palette.tertiaryContainer.main}}
+                        sx={{fontFamily: theme.typography.labelMedium.fontFamily, }}
+                      />
+                    </SecaoColecao>
                   </Collection>
                   <Options>
                     {
-                      logged?
-                      <BotaoExcluir
-                        onClick={() => setOpenDialog(true)}
-                        data-cy="delete-button"
-                      >
-                        Excluir item
-                      </BotaoExcluir>
-                      : <div></div>
+                      logged && (
+                        <BotaoExcluir
+                          onClick={() => setOpenDialog(true)}
+                          data-cy="delete-button"
+                        >
+                          Excluir item
+                        </BotaoExcluir>
+                      )
                     }
                   </Options>
                   <Dialog
@@ -539,35 +541,18 @@ const ItemAcervoComponent = () => {
             </Content>
           )
         } else {
-          console.log('olá')
-          console.log(ItemAcervo.itemAcervo)
-          console.log(ItemAcervo.status)
-          console.log(documentoExiste)
-          if(ItemAcervo.status === 'error.permission-denied') {
-            const error = {
-              status: 403,
-              statusText: "Acesso negado",
-              data: {
-                message: "Você precisa estar logado para acessar essa página"
-              }
+          const error = {
+            status: 403,
+            statusText: "Acesso negado",
+            data: {
+              message: "Você precisa estar logado para acessar essa página"
             }
-            return (
-              <>
-                <ErrorPage error={error}/>
-              </>
-            )
-          } else {
-            const error = {
-              status: 404,
-              statusText: "Item não encontrado",
-              data: {
-                message: `Não foi possível encontrar o item \n"${id}"`
-              }
-            }
-            return (
-              <ErrorPage error={error}/>
-            )
           }
+          return (
+            <>
+              <ErrorPage error={error}/>
+            </>
+          )
         }
       }
     }
@@ -822,6 +807,7 @@ const BotaoAlterarDados = styled(Button)(({ theme }: { theme: Theme }) => ({
   borderRadius: '100px',
   backgroundColor: theme.palette.primary.main,
   color: theme.palette.onPrimary.main,
+  textTransform: 'initial'
 }))
 
 const BotaoCancelar = styled(Button)(({ theme }: { theme: Theme }) => ({
@@ -833,11 +819,12 @@ const BotaoCancelar = styled(Button)(({ theme }: { theme: Theme }) => ({
   borderRadius: '100px',
   backgroundColor: theme.palette.secondary.main,
   color: theme.palette.onSecondary.main,
+  textTransform: 'initial'
 }))
 
-const LabelColecao = styled('label')(({ theme }: { theme: Theme }) => ({
+const SecaoColecao = styled('section')(({ theme }: { theme: Theme }) => ({
   display: 'flex',
-  padding: `${theme.spacing(2)} ${theme.spacing(3)}`, //var(--space-2, 16px) var(--space-3, 24px);
+  padding: `${theme.spacing(1)} ${theme.spacing(2)}`, //var(--space-2, 16px) var(--space-3, 24px);
   flexDirection: 'column',
   alignItems: 'center',
   gap: theme.spacing(1.25), //var(--space-1.25, 10px);
@@ -845,15 +832,6 @@ const LabelColecao = styled('label')(({ theme }: { theme: Theme }) => ({
   borderColor: theme.palette.outline.main,
   borderStyle: 'solid',
   backgroundColor: theme.palette.tertiaryContainer.main  //var(--Schemes-Tertiary-Container, #EDE4A9);
-}))
-
-const TextoColecao = styled(Typography)(({ theme }: { theme: Theme }) => ({
-  color: theme.palette.tertiary.main,
-  //material-theme/headline/medium
-  fontFamily: theme.typography.headlineMedium.fontFamily,
-  fontStyle: 'normal',
-  fontWeight: 400,
-  lineHeight: '36px', //128.571%
 }))
 
 const MenuColecao = styled('section')(() => ({
@@ -887,6 +865,7 @@ const BotaoExcluir = styled(Button)(({ theme }: { theme: Theme }) => ({
   borderRadius: '100px',
   backgroundColor: theme.palette.error.main,
   color: theme.palette.onPrimary.main,
+  textTransform: 'initial'
 }))
 
 const BotaoOk = styled(Button)(({ theme }: { theme: Theme }) => ({
@@ -899,11 +878,12 @@ const BotaoOk = styled(Button)(({ theme }: { theme: Theme }) => ({
   borderRadius: '100px',
   backgroundColor: theme.palette.primary.main,
   color: theme.palette.onPrimary.main,
+  textTransform: 'initial'
 }))
 
 const CustomDialogTitle = styled(DialogTitle)(({ theme }) => ({
   backgroundColor: theme.palette.secondaryContainer.main,
-  color: theme.palette.primary.main,
+  color: theme.palette.onBackground.main,
   padding: theme.spacing(2),
   display: 'flex',
   justifyContent: 'center',
