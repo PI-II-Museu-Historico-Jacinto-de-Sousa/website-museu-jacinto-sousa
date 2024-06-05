@@ -107,11 +107,18 @@ const getItemAcervo = async (id: string) => {
   }
 }
 
+const COLLECTION_REF = "acervo";
+
 /** Método para adicionar um item à coleção acervo no firestore, as imagens de um item são as referências para o arquivo no storage */
 export const adicionarItemAcervo = async (
   itemAcervo: ItemAcervo
 ): Promise<boolean> => {
-  const collectionRef = collection(db, "acervo");
+  //subcoleção do acervo onde o item será incluido
+  const itemCollectionRef = doc(
+    db,
+    COLLECTION_REF,
+    itemAcervo.privado ? "privado" : "publico"
+  );
 
   try {
     const imagesRef = await adicionarImagens(itemAcervo.imagens).catch(
@@ -122,7 +129,7 @@ export const adicionarItemAcervo = async (
     //item enviado utiliza referências das imagens no storage
     const sendingItemAcervo = { ...itemAcervo, imagens: imagesRef };
     const documentReference = await addDoc(
-      collectionRef,
+      collection(itemCollectionRef, "itens"),
       sendingItemAcervo
     ).catch((error) => {
       throw new Error(error);
@@ -194,7 +201,7 @@ const removerImagens = async (imagens: Imagem[], idItemAcervo: string) => {
     await deleteObject(storageRef);
 
     const itemRef: DocumentReference<DocumentData> = doc(
-      collection(db, "acervo"),
+      collection(db, COLLECTION_REF),
       idItemAcervo
     );
     updateDoc(itemRef, { itemImages: [] }).catch(() => {
