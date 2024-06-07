@@ -1,5 +1,6 @@
 import { useForm } from "react-hook-form";
 import { ItemAcervo } from "../interfaces/ItemAcervo";
+import { useEffect } from "react";
 
 /** Hook contendo o formulario para as informacoes de um item do acervo, podendo ser usado tanto para criar como atualizar. No caso de um item ser passado para o formulário, os valores default retornados serão os do item */
 const useFormItemAcervo = (itemAcervo?: ItemAcervo) => {
@@ -9,11 +10,19 @@ const useFormItemAcervo = (itemAcervo?: ItemAcervo) => {
     privado: false,
     colecao: "",
     telefoneDoador: "",
+    nome: "",
+    descricao: "",
+    curiosidades: "",
   };
-  const { register, watch, setError, control, handleSubmit, formState, reset } =
+  const { register, watch, setError, control, handleSubmit, formState, reset, setValue } =
     useForm<ItemAcervo>({
       defaultValues: { ...defaultValues },
     });
+
+    useEffect(() => {
+      reset(itemAcervo ? itemAcervo : { ...defaultValues });
+    }, [itemAcervo]);
+
   return {
     register,
     watch,
@@ -22,6 +31,7 @@ const useFormItemAcervo = (itemAcervo?: ItemAcervo) => {
     handleSubmit,
     formState,
     reset,
+    setValue,
   };
 };
 
