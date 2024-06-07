@@ -13,7 +13,7 @@ const useNomeColecoes = () => {
         console.error(error);
         setNomescolecoes([]);
       });
-  });
+  }, []);
   return nomesColecoes;
 };
 
