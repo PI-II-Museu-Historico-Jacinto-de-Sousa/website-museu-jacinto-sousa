@@ -7,7 +7,7 @@ import {
   collection,
   doc,
   updateDoc,
-} from "firebase/firestore";
+} from "firebase/firestore/lite";
 import { deleteObject, ref, uploadBytes } from "firebase/storage";
 import { db, storage } from "../../firebase/firebase";
 import { ItemAcervo } from "../interfaces/ItemAcervo";

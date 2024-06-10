@@ -16,7 +16,7 @@
 // Import commands.js using ES2015 syntax:
 import { connectAuthEmulator, getAuth } from "firebase/auth";
 import firebase from "firebase/compat/app";
-import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
+import { connectFirestoreEmulator, getFirestore } from "firebase/firestore/lite";
 import { connectStorageEmulator, getStorage } from "firebase/storage";
 import "firebase/compat/auth";
 import "firebase/compat/database";

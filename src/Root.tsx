@@ -2,12 +2,13 @@ import { ThemeProvider } from "@emotion/react";
 import { PaletteMode, responsiveFontSizes, createTheme, ThemeOptions, CssBaseline } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { Outlet } from "react-router-dom";
-import Footer from "./components/Footer/Footer";
-import NavBar from "./components/NavBar/NavBar";
-import ScrollToTop from "./components/ScrollToTop/ScrollToTop";
 import getDesignTokens from "./theme/theme";
+
+const Footer = React.lazy(() => import("./components/Footer/Footer"));
+const NavBar = React.lazy(() => import("./components/NavBar/NavBar"));
+const ScrollToTop = React.lazy(() => import("./components/ScrollToTop/ScrollToTop"));
 
 const Root = ({ children }: { children?: React.ReactNode }) => {
   const [mode, setMode] = useState<PaletteMode>('light'); //estado do tema escolhido

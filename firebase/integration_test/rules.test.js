@@ -14,7 +14,7 @@ import {
   getDoc,
   deleteDoc,
   updateDoc,
-} from "firebase/firestore";
+} from "firebase/firestore/lite";
 
 import { ref, uploadBytes } from "firebase/storage";
 import * as fs from "fs";

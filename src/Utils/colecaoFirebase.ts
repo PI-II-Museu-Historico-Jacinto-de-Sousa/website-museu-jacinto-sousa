@@ -1,4 +1,4 @@
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore/lite";
 import { db } from "../../firebase/firebase";
 
 export const getNomesColecoes = async (): Promise<string[]> => {

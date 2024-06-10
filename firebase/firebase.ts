@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { connectAuthEmulator, getAuth } from "firebase/auth";
 import firebase from "firebase/compat/app";
-import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
+import { connectFirestoreEmulator, getFirestore } from "firebase/firestore/lite";
 import { connectStorageEmulator, getStorage } from "firebase/storage";
 
 const firebaseConfig = {

@@ -2,11 +2,11 @@ import CircularProgress from "@mui/material/CircularProgress";
 import React, { Suspense } from "react";
 import { Await, Outlet, createBrowserRouter, defer, useLoaderData } from "react-router-dom";
 import { auth } from "../../firebase/firebase";
-import Root from "../Root";
-import Erro from "../pages/Erro";
 
 const Home = React.lazy(() => import("../pages/Home"));
 const CriarItemAcervo = React.lazy(() => import("../pages/CriarItemAcervo"));
+const Erro = React.lazy(() => import("../pages/Erro"));
+const Root = React.lazy(() => import("../Root"));
 
 const centeredLoading = (
   <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
@@ -47,9 +47,11 @@ const router = createBrowserRouter([
     path: "/",
     element: <Root />,
     errorElement:
-      <Root>
-        <Erro />
-      </Root>,
+      <Suspense fallback={centeredLoading}>
+        <Root>
+          <Erro />
+        </Root>
+      </Suspense>,
     children: [
       {
         index: true,
