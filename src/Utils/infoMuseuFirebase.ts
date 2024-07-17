@@ -1,5 +1,6 @@
 import { FirebaseError } from "firebase/app";
 import { Unsubscribe } from "firebase/auth";
+import { onSnapshot } from "firebase/firestore"
 import {
   addDoc,
   collection,
@@ -7,11 +8,10 @@ import {
   doc,
   getDoc,
   getDocs,
-  onSnapshot,
   query,
   setDoc,
   where,
-} from "firebase/firestore";
+} from "firebase/firestore/lite";
 import {
   StorageReference,
   deleteObject,
