@@ -1,28 +1,18 @@
 import { ThemeProvider } from "@emotion/react";
-import { PaletteMode, responsiveFontSizes, createTheme, ThemeOptions, CssBaseline } from "@mui/material";
+import { responsiveFontSizes, createTheme, ThemeOptions, CssBaseline } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import React, { useState, useMemo } from "react";
 import { Outlet } from "react-router-dom";
 import getDesignTokens from "./theme/theme";
+import useThemeMode from "./hooks/useThemeMode";
 
 const Footer = React.lazy(() => import("./components/Footer/Footer"));
 const NavBar = React.lazy(() => import("./components/NavBar/NavBar"));
 const ScrollToTop = React.lazy(() => import("./components/ScrollToTop/ScrollToTop"));
 
 const Root = ({ children }: { children?: React.ReactNode }) => {
-  const [mode, setMode] = useState<PaletteMode>('light'); //estado do tema escolhido
-
-  const colorMode = useMemo( //função para mudar o tema, passada para o componente ToggleLightMode
-    () => ({
-      toggleColorMode: () => {
-        setMode((prevMode: PaletteMode) =>
-          prevMode === 'light' ? 'dark' : 'light',
-        );
-      },
-    }),
-    [],
-  );
+  const { mode, colorMode } = useThemeMode(); //função para mudar o tema, passada para o componente ToggleLightMode
 
   const theme = useMemo(() => responsiveFontSizes(createTheme(getDesignTokens(mode) as ThemeOptions)), [mode]); //quando o modo selecionado muda, o tema é atualizado
   return (<>

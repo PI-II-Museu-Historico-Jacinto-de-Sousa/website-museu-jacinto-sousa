@@ -10,7 +10,9 @@ describe("Renderizar página de criar item do acervo não logado", () => {
 describe("Renderizar página de criar item do acervo logado", () => {
   before(() => {
     cy.login(); //login persiste nas próximas seções
-    cy.callFirestore("add", "coleções", { nome: "Coleção de teste" });
+    cy.callFirestore("add", "colecoes/publico/itens", {
+      nome: "Coleção de teste",
+    });
   });
   beforeEach(() => {
     cy.visit("http://localhost:5173/acervo/criar-item");

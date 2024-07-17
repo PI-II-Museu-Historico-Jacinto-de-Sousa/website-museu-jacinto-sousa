@@ -29,6 +29,8 @@ cypress/downloads
 cypress/screenshots
 cypress/videos
 
+# Report files
+reports
 # Env
 .env
 .env.test

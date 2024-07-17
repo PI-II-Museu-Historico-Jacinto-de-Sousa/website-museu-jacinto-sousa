@@ -1,12 +1,17 @@
-import PhoneIcon from '@mui/icons-material/Phone'
-import WhatsAppIcon from '@mui/icons-material/WhatsApp'
 import EmailIcon from '@mui/icons-material/Email'
+import PhoneIcon from '@mui/icons-material/Phone'
 import PlaceIcon from '@mui/icons-material/Place'
+import WhatsAppIcon from '@mui/icons-material/WhatsApp'
 import { Theme, Typography, styled } from '@mui/material'
 import { getAuth } from 'firebase/auth'
+import { doc, getDoc, getFirestore, setDoc } from 'firebase/firestore'
+import { useEffect, useState } from 'react'
 import { app } from '../../../firebase/firebase'
 import { useEffect, useState } from 'react'
 import { doc, getDoc, getFirestore, setDoc } from 'firebase/firestore/lite'
+
+const COLLECTION_REF = 'informacoes-museu'
+
 interface IFooterData {
   address: string,
   email: string,
@@ -44,11 +49,11 @@ const Footer = () => {
 
     setEdit(true)
   }
-  
+
   const cancelEdit = () => {
     setEdit(false)
   }
-  
+
   const applyEdit = async () => {
     const newFooterData = {
       address: newAddress,
@@ -56,7 +61,7 @@ const Footer = () => {
       telephone: newTelephone,
       whatsapp: newWhatsapp
     }
-    
+
     try {
       submitToFirestore(newFooterData)
       setEdit(false)
@@ -65,21 +70,25 @@ const Footer = () => {
       console.log(error)
     }
   }
-  
+
   //comunicate with firestore
-  
+
   const getFooterData = async () => {
     try {
       const db = getFirestore()
-      const footerRef = doc(db, "informações-museu", "footer")
-      
-      await getDoc(footerRef).then((footerDoc) =>{
+      const footerRef = doc(db, COLLECTION_REF, "footer")
+
+      await getDoc(footerRef).then((footerDoc) => {
+        if (!footerDoc.exists()) {
+          setDataLess(true)
+          return
+        }
         const data = footerDoc.data()
         setFooterData(data as IFooterData)
       })
-      .catch(() =>{
-        setDataLess(true)
-      })
+        .catch(() => {
+          setDataLess(true)
+        })
     }
     catch (error) {
       console.log(error)
@@ -89,7 +98,7 @@ const Footer = () => {
   const submitToFirestore = async (newFooterData: IFooterData) => {
     try {
       const db = getFirestore()
-      await setDoc(doc(db, "informações-museu", "footer"), newFooterData)
+      await setDoc(doc(db, COLLECTION_REF, "footer"), newFooterData)
 
       setFooterData(newFooterData)
     }
@@ -110,92 +119,92 @@ const Footer = () => {
     getFooterData()
   }, [])
 
-  if(dataLess === true){
-    return(
-      <FooterContainer data-cy="footer-container" sx={{height: '6vh'}}>
-          <Typography sx={{fontSize: '3vh'}}>
-            Erro ao carregar informações do rodapé
-          </Typography>
+  if (dataLess === true) {
+    return (
+      <FooterContainer data-cy="footer-container" sx={{ height: '6vh' }}>
+        <Typography sx={{ fontSize: '3vh' }}>
+          Erro ao carregar informações do rodapé
+        </Typography>
       </FooterContainer>
     )
   }
-  else{
+  else {
     return (
       <FooterContainer data-cy='footer-container'>
-      {edit ?
+        {edit ?
 
-        // component apply to edition
+          // component apply to edition
 
           <>
-          <FooterContent>
-            <FooterItem>
-              <PhoneIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
-              <TextField data-cy='footer-text-field' type='text' value={newTelephone} onChange={(e) => setNewTelephone(e.target.value)} />
-            </FooterItem>
+            <FooterContent>
+              <FooterItem>
+                <PhoneIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
+                <TextField data-cy='footer-text-field' type='text' value={newTelephone} onChange={(e) => setNewTelephone(e.target.value)} />
+              </FooterItem>
 
-            <FooterItem>
-              <WhatsAppIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
-              <TextField data-cy='footer-text-field' type='text' value={newWhatsapp} onChange={(e) => setNewWhatsapp(e.target.value)} />
-            </FooterItem>
+              <FooterItem>
+                <WhatsAppIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
+                <TextField data-cy='footer-text-field' type='text' value={newWhatsapp} onChange={(e) => setNewWhatsapp(e.target.value)} />
+              </FooterItem>
 
-            <FooterItem>
-              <EmailIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
-              <TextField data-cy='footer-text-field' type='text' value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
-            </FooterItem>
+              <FooterItem>
+                <EmailIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
+                <TextField data-cy='footer-text-field' type='text' value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
+              </FooterItem>
 
-            <FooterItem>
-              <PlaceIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
-              <TextField data-cy='footer-text-field' type='text' value={newAddress} onChange={(e) => setNewAddress(e.target.value)} />
-            </FooterItem>
-          </FooterContent>
+              <FooterItem>
+                <PlaceIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
+                <TextField data-cy='footer-text-field' type='text' value={newAddress} onChange={(e) => setNewAddress(e.target.value)} />
+              </FooterItem>
+            </FooterContent>
 
-          <FooterEditable>
-            <EditableButton onClick={() => applyEdit()}><strong>(Salvar)</strong></EditableButton>
-
-            <EditableButton onClick={() => cancelEdit()}><strong>(Cancelar)</strong></EditableButton>
-          </FooterEditable>
-        </>
-
-        :
-
-        // component out of edition
-
-        <>
-          <FooterContent>
-            <FooterItem>
-              <PhoneIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
-              {footerData.telephone}
-            </FooterItem>
-
-            <FooterItem>
-              <WhatsAppIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
-              {footerData.whatsapp}
-            </FooterItem>
-
-            <FooterItem>
-              <EmailIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
-              {footerData.email}
-            </FooterItem>
-
-            <FooterItem>
-              <PlaceIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
-              {footerData.address}
-            </FooterItem>
-          </FooterContent>
-
-          {
-            logged ?
-            
             <FooterEditable>
-                <EditableButton onClick={() => startEdit()} data-cy='footer-edit-button'><strong>(Editar)</strong></EditableButton>
-              </FooterEditable>
-              :
-              ''
-          }
+              <EditableButton onClick={() => applyEdit()}><strong>(Salvar)</strong></EditableButton>
 
-        </>
-      }
-    </ FooterContainer>
+              <EditableButton onClick={() => cancelEdit()}><strong>(Cancelar)</strong></EditableButton>
+            </FooterEditable>
+          </>
+
+          :
+
+          // component out of edition
+
+          <>
+            <FooterContent>
+              <FooterItem>
+                <PhoneIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
+                {footerData.telephone}
+              </FooterItem>
+
+              <FooterItem>
+                <WhatsAppIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
+                {footerData.whatsapp}
+              </FooterItem>
+
+              <FooterItem>
+                <EmailIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
+                {footerData.email}
+              </FooterItem>
+
+              <FooterItem>
+                <PlaceIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
+                {footerData.address}
+              </FooterItem>
+            </FooterContent>
+
+            {
+              logged ?
+
+                <FooterEditable>
+                  <EditableButton onClick={() => startEdit()} data-cy='footer-edit-button'><strong>(Editar)</strong></EditableButton>
+                </FooterEditable>
+                :
+                ''
+            }
+
+          </>
+        }
+      </ FooterContainer>
     )
   }
 }
