@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   atualizarInfoMuseu,
-  subscribeInfoMuseu,
+  getInfoMuseu,
 } from "../../Utils/infoMuseuFirebase";
 import { InfoMuseu } from "../../interfaces/InfoMuseu";
 
@@ -22,13 +22,26 @@ const useInfoMuseu = (id: string): useInfoSectionReturnType => {
   const [data, setData] = useState<InfoMuseu | null>(null);
   const [status, setStatus] = useState<Status>("loading");
 
-  const unsubscribe = subscribeInfoMuseu(id, data, setData, setStatus);
+  useEffect(() => {
+    const fetchInfoMuseu = async () => {
+      try {
+        const info = await getInfoMuseu(id);
+        setData(info);
+        setStatus("success");
+      } catch (_) {
+        setStatus("error");
+      }
+    };
+    fetchInfoMuseu();
+  }, [id]);
 
-  if (status === "error" || status === "success") {
-    unsubscribe();
-  }
   //função de update fixada no id passado
-  const update = atualizarInfoMuseu.bind(null, id);
+  const update = async (infoMuseu: InfoMuseu) => {
+    await atualizarInfoMuseu(id, infoMuseu);
+    if (data || data!.imagem != infoMuseu?.imagem) {
+      setData(infoMuseu);
+    }
+  };
 
   return { status: status, infoMuseu: data, atualizarInfoMuseu: update };
 };

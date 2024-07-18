@@ -1,18 +1,18 @@
 import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
+import Button from "@mui/material/Button";
+import { ButtonBaseProps } from "@mui/material/ButtonBase";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import Skeleton from "@mui/material/Skeleton";
+import { Theme } from "@mui/material/styles/createTheme";
 import styled from "@mui/material/styles/styled";
 import useTheme from "@mui/material/styles/useTheme";
-import { Theme } from "@mui/material/styles/createTheme";
-import useMediaQuery from "@mui/material/useMediaQuery";
-import Button from "@mui/material/Button"
-import { ButtonBaseProps } from "@mui/material/ButtonBase";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import Dialog from "@mui/material/Dialog"
-import DialogActions from "@mui/material/DialogActions"
-import DialogContent from "@mui/material/DialogContent"
-import DialogContentText from "@mui/material/DialogContentText"
-import Skeleton from "@mui/material/Skeleton";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 import { useEffect, useState } from "react";
 import { SubmitHandler } from "react-hook-form";
@@ -20,7 +20,6 @@ import { auth } from "../../../firebase/firebase";
 import useInfoMuseuForm from "../../hooks/useInfoMuseuForm";
 import { InfoMuseu } from "../../interfaces/InfoMuseu";
 import useInfoMuseu from './useInfoMuseu';
-
 interface InfoSectionProps {
   id: string
 }
@@ -70,24 +69,12 @@ const InfoSection = ({ id }: InfoSectionProps) => {
     await atualizarInfoMuseu(data).then(() => {
       setDialogMessage('Informação atualizada com sucesso')
       setEditing(false)
-      // todos os outros campos são atualizados com o listener onSnapshot,
-      // mas o firebase storage não suporta listeners. Por isso, quando os metadados são alterados
-      // é preciso atualizá-los manualmente
-      if (dirtyAltText()) {
-        const updatedAlt = data?.imagem?.alt ?? ''
-        if (infoMuseu && infoMuseu.imagem) {
-          infoMuseu.imagem.alt = updatedAlt
-        }
-      }
     }).catch((error) => {
       setDialogMessage(`Erro ao atualizar informação \n ${error.message}`)
     }).finally(() => {
       setShowDialog(true)
     }
     )
-  }
-  const dirtyAltText = (): boolean => {
-    return infoMuseu?.imagem?.alt !== currentImage?.alt
   }
 
   if (status === 'error') {
