@@ -10,6 +10,7 @@ import {
   doc,
   getDoc,
   onSnapshot,
+  setDoc,
   updateDoc,
 } from "firebase/firestore";
 import { StorageReference, deleteObject, getDownloadURL, getMetadata, ref, uploadBytes } from "firebase/storage";
@@ -27,7 +28,7 @@ function subscribeItemAcervo(
   statusUpdate: React.Dispatch<React.SetStateAction<Status>>
 ): Unsubscribe {
   try {
-    const docRef = doc(db, "acervo", id);
+    const docRef = doc(db, "colecoes", id);
     const unsubscribe = onSnapshot(
       docRef,
       async (snapshot) => {
@@ -90,26 +91,9 @@ async function getImagemItemAcervo(
   return imagem;
 }
 
-/*const getItemAcervo = async (id: string) => {
-  try {
-    const docRef = doc(db, "acervo", id);
-    const docSnap = await getDoc(docRef).catch(() => {
-      throw new FirebaseError("Erro ao buscar documento", "not-found");
-    });
-    if (!docSnap.exists()) {
-      throw new FirebaseError("Documento não encontrado", "not-found");
-    } else {
-      const dataMuseu = docSnap.data();
-      return dataMuseu as ItemAcervo;
-    }
-  } catch (error) {
-    throw new FirebaseError("Permissão negada", "permission-denied");
-  }
-}*/
-
 const getItemAcervo = async (fullPath: string) => {
   try {
-    const docRef: DocumentReference = doc(db, fullPath);
+    const docRef: DocumentReference = doc(db, `colecoes/${fullPath}`);
     console.log(docRef);
     const docSnap = await getDoc(docRef).catch(() => {
       throw new FirebaseError("Erro ao buscar documento", "not-found");
@@ -193,10 +177,39 @@ const adicionarImagens = async (imagens: Imagem[]) => {
   }
 };
 
-const updateItemAcervo = async (formData: ItemAcervo, id: string) => {
+const moveItemToCollection = async (formData: ItemAcervo, oldPath: string, newPath: string) => {
   try {
-    if (id && typeof id === 'string') {
-      const docRef = doc(db, "acervo", id);
+    // Ensure oldPath and newPath are strings
+    if (oldPath && newPath && typeof oldPath === 'string' && typeof newPath === 'string') {
+      const oldDocRef = doc(db, "colecoes", oldPath);
+
+      const newDocRef = doc(db, "colecoes", newPath);
+
+      const file = {
+        nome: formData.nome,
+        descricao: formData.descricao,
+        curiosidades: formData.curiosidades,
+        privado: Boolean(formData.privado),
+        colecao: formData.colecao,
+        dataDoacao: formData?.dataDoacao ? Timestamp.fromDate(formData.dataDoacao.toDate()) : null,
+      };
+
+      // Add the item to the new collection
+      await setDoc(newDocRef, file);
+
+      // Remove the item from the old collection
+      await deleteDoc(oldDocRef);
+    }
+  } catch (error) {
+    throw new Error("Erro ao mover documento");
+  }
+}
+
+const updateItemAcervo = async (formData: ItemAcervo, fullPath: string) => {
+  try {
+    const itemSelecionado = await getItemAcervo(fullPath);
+    if (fullPath && typeof fullPath === 'string') {
+      const docRef = doc(db, "colecoes", fullPath);
       const file = {
         nome: formData.nome,
         descricao: formData.descricao,
@@ -208,6 +221,9 @@ const updateItemAcervo = async (formData: ItemAcervo, id: string) => {
       await updateDoc(docRef, file).catch(() => {
         throw new FirebaseError("Erro ao atualizar documento", "not-found");
       });
+      if(itemSelecionado.privado != formData.privado) {
+        moveItemToCollection(formData, fullPath, formData.privado ? "privado/itens/" + formData.id : "publico/itens/" + formData.id);
+      }
     }
   } catch (error) {
     throw new Error("Erro ao atualizar documento");
@@ -229,9 +245,9 @@ const removerImagens = async (imagens: Imagem[], idItemAcervo: string) => {
   });
 };
 
-const deleteItemAcervo = async (id: string) => {
+const deleteItemAcervo = async (fullPath: string) => {
   try {
-    const docRef = doc(db, "acervo", id);
+    const docRef = doc(db, "colecoes", fullPath);
 
     // Verificar se o documento existe
     const docSnap = await getDoc(docRef);
@@ -280,6 +296,7 @@ const methodsItemAcervo = {
   updateItemAcervo,
   subscribeItemAcervo,
   getImagemItemAcervo,
+  moveItemToCollection,
 };
 
-export { methodsItemAcervo, adicionarImagens, removerImagens, deleteItemAcervo, getItemAcervo, updateItemAcervo, subscribeItemAcervo, getImagemItemAcervo };
+export { methodsItemAcervo, adicionarImagens, removerImagens, moveItemToCollection ,deleteItemAcervo, getItemAcervo, updateItemAcervo, subscribeItemAcervo, getImagemItemAcervo };
