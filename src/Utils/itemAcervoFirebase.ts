@@ -9,7 +9,6 @@ import {
   deleteDoc,
   doc,
   getDoc,
-  onSnapshot,
   setDoc,
   updateDoc,
 } from "firebase/firestore";
@@ -17,59 +16,6 @@ import { StorageReference, deleteObject, getDownloadURL, getMetadata, ref, uploa
 import { db, storage } from "../../firebase/firebase";
 import { ItemAcervo } from "../interfaces/ItemAcervo";
 import { FirebaseError } from "firebase/app";
-import { Unsubscribe } from "firebase/auth";
-
-type Status = "loading" | "success" | "error.permission-denied" | "error.not-found";
-
-function subscribeItemAcervo(
-  id: string,
-  currentInfo: ItemAcervo | null,
-  callback: React.Dispatch<React.SetStateAction<ItemAcervo | null>>,
-  statusUpdate: React.Dispatch<React.SetStateAction<Status>>
-): Unsubscribe {
-  try {
-    const docRef = doc(db, "colecoes", id);
-    const unsubscribe = onSnapshot(
-      docRef,
-      async (snapshot) => {
-        const itemAcervo = snapshot.data();
-        if (!itemAcervo) {
-          statusUpdate("error.not-found");
-          return;
-        } else {
-          //atualizar imagem somente se houver mudança
-          if (itemAcervo?.imagens != currentInfo?.imagens) {
-            const imagensPaths = itemAcervo.imagens;
-            const imagensPromises = imagensPaths.map((path: string) =>
-              getImagemItemAcervo(ref(storage, path))
-            );
-            try {
-              itemAcervo.imagens = await Promise.all(imagensPromises);
-            } catch (error) {
-              throw new Error("Erro ao buscar imagens",);
-            }
-          }
-          callback(itemAcervo as ItemAcervo);
-          statusUpdate((previousState) =>
-            previousState === "error.not-found" ? "error.not-found" : "success"
-          );
-        }
-      },
-      (error) => {
-        if(error.code === "permission-denied") {
-          statusUpdate("error.permission-denied");
-        } else {
-          statusUpdate("error.not-found");
-        }
-        throw new Error(`${(error as Error).message}`);
-      }
-    );
-    return unsubscribe;
-  } catch (error) {
-    statusUpdate("error.permission-denied");
-    throw new Error(`${(error as Error).message}`);
-  }
-}
 
 async function getImagemItemAcervo(
   storageRef: StorageReference
@@ -93,20 +39,18 @@ async function getImagemItemAcervo(
 
 const getItemAcervo = async (fullPath: string) => {
   try {
-    const docRef: DocumentReference = doc(db, `colecoes/${fullPath}`);
-    console.log(docRef);
+    const docRef: DocumentReference = doc(db, COLLECTION_REF, fullPath);
     const docSnap = await getDoc(docRef).catch(() => {
-      throw new FirebaseError("Erro ao buscar documento", "not-found");
+      throw new FirebaseError("not-found", "Erro ao buscar documento");
     });
     if (!docSnap.exists()) {
-      throw new FirebaseError("Documento não encontrado", "not-found");
+      throw new FirebaseError("not-found", "Documento não encontrado");
     } else {
-      console.log(docSnap.data());
       const dataMuseu = docSnap.data();
       return dataMuseu as ItemAcervo;
     }
   } catch (error) {
-    throw new FirebaseError("Permissão negada", "permission-denied");
+    throw new FirebaseError("permission-denied", "Acesso negado");
   }
 }
 
@@ -152,7 +96,7 @@ const adicionarImagens = async (imagens: Imagem[]) => {
   try {
     const resultRefs = Promise.all(
       imagens.map(async (imagem) => {
-        if (typeof imagem.src === "string") {
+        if (imagem.src) {
           throw new Error("Imagem adicionada deve ser um arquivo");
         }
         const storageRef = ref(storage, "images/" + imagem.title);
@@ -163,7 +107,7 @@ const adicionarImagens = async (imagens: Imagem[]) => {
         };
         const uploadResult = await uploadBytes(
           storageRef,
-          imagem.src as File,
+          imagem.src as unknown as File,
           metadata
         ).catch(() => {
           throw new Error(`Imagem ${imagem.title} não pôde ser adicionada`);
@@ -180,17 +124,17 @@ const adicionarImagens = async (imagens: Imagem[]) => {
 const moveItemToCollection = async (formData: ItemAcervo, oldPath: string, newPath: string) => {
   try {
     // Ensure oldPath and newPath are strings
-    if (oldPath && newPath && typeof oldPath === 'string' && typeof newPath === 'string') {
-      const oldDocRef = doc(db, "colecoes", oldPath);
+    if (oldPath && newPath) {
+      const oldDocRef = doc(db, COLLECTION_REF, oldPath);
 
-      const newDocRef = doc(db, "colecoes", newPath);
+      const newDocRef = doc(db, COLLECTION_REF, newPath);
 
+      //Cópia para evitar salvar o atributo coleção que vem do formulário
       const file = {
         nome: formData.nome,
         descricao: formData.descricao,
         curiosidades: formData.curiosidades,
         privado: Boolean(formData.privado),
-        colecao: formData.colecao,
         dataDoacao: formData?.dataDoacao ? Timestamp.fromDate(formData.dataDoacao.toDate()) : null,
       };
 
@@ -205,24 +149,36 @@ const moveItemToCollection = async (formData: ItemAcervo, oldPath: string, newPa
   }
 }
 
+function getStringBetweenFirstAndSecondSlash(path: string) {
+  const parts = path.split('/');
+  if (parts.length >= 3) {
+    return parts[1];
+  } else {
+    return null;
+  }
+}
+
+
 const updateItemAcervo = async (formData: ItemAcervo, fullPath: string) => {
   try {
     const itemSelecionado = await getItemAcervo(fullPath);
-    if (fullPath && typeof fullPath === 'string') {
-      const docRef = doc(db, "colecoes", fullPath);
+    const docRef = doc(db, COLLECTION_REF, fullPath);
+    const id = docRef.id;
+    if (fullPath) {
+      const docRef = doc(db, COLLECTION_REF, fullPath);
+      //Cópia para evitar salvar o atributo coleção que vem do formulário
       const file = {
         nome: formData.nome,
         descricao: formData.descricao,
         curiosidades: formData.curiosidades,
-        privado: Boolean(formData.privado) ,
-        colecao: formData.colecao,
+        privado: Boolean(formData.privado),
         dataDoacao: formData?.dataDoacao ? Timestamp.fromDate(formData.dataDoacao.toDate()) : null,
       };
       await updateDoc(docRef, file).catch(() => {
-        throw new FirebaseError("Erro ao atualizar documento", "not-found");
+        throw new FirebaseError("not-found", "Erro ao atualizar documento");
       });
-      if(itemSelecionado.privado != formData.privado) {
-        moveItemToCollection(formData, fullPath, formData.privado ? "privado/itens/" + formData.id : "publico/itens/" + formData.id);
+      if(itemSelecionado.privado != formData.privado || getStringBetweenFirstAndSecondSlash(fullPath) != formData.colecao) {
+        moveItemToCollection(formData, fullPath, formData.privado ? `privado/${formData.colecao}/${id}`: `publico/${formData.colecao}/${id}`);
       }
     }
   } catch (error) {
@@ -247,7 +203,7 @@ const removerImagens = async (imagens: Imagem[], idItemAcervo: string) => {
 
 const deleteItemAcervo = async (fullPath: string) => {
   try {
-    const docRef = doc(db, "colecoes", fullPath);
+    const docRef = doc(db, COLLECTION_REF, fullPath);
 
     // Verificar se o documento existe
     const docSnap = await getDoc(docRef);
@@ -256,34 +212,16 @@ const deleteItemAcervo = async (fullPath: string) => {
       // Deleta as imagens associadas ao documento
       const data = docSnap.data();
       if (data && Array.isArray(data.imagens)) {
-          const imagensRefPromises = data.imagens.map(async (imagem) => {
-              const imagemRef = ref(storage, imagem);
-              try {
-                  await getMetadata(imagemRef);
-                  return imagemRef;
-              } catch (error) {
-                  return null;
-              }
-          });
-          const imagensRefs = await Promise.all(imagensRefPromises);
-          for (const imagemRef of imagensRefs) {
-              if (imagemRef) {
-                  try {
-                      await deleteObject(imagemRef);
-                  } catch (error) {
-                      throw new FirebaseError("Erro ao deletar imagem", "not-found");
-                  }
-              }
-          }
+        removerImagens(data.imagens, docSnap.id);
       }
       // Deletar o documento
       await deleteDoc(docRef);
   } else {
-      throw new FirebaseError("No such document!", "not-found");
+      throw new FirebaseError("not-found", "Documento não encontrado");
   }
 
   } catch (error) {
-    throw new FirebaseError("Erro ao deletar documento", "not-found");
+    throw new FirebaseError("not-found", "Erro ao deletar documento");
   }
 }
 
@@ -294,9 +232,8 @@ const methodsItemAcervo = {
   getItemAcervo,
   adicionarImagens,
   updateItemAcervo,
-  subscribeItemAcervo,
   getImagemItemAcervo,
   moveItemToCollection,
 };
 
-export { methodsItemAcervo, adicionarImagens, removerImagens, moveItemToCollection ,deleteItemAcervo, getItemAcervo, updateItemAcervo, subscribeItemAcervo, getImagemItemAcervo };
+export { methodsItemAcervo, adicionarImagens, removerImagens, moveItemToCollection ,deleteItemAcervo, getItemAcervo, updateItemAcervo, getImagemItemAcervo };
