@@ -1,7 +1,6 @@
 /* utilitário contendo todos os métodos utilizados em itens do acervo gerenciados com firebase */
 
 import {
-  DocumentData,
   DocumentReference,
   Timestamp,
   addDoc,
@@ -16,6 +15,7 @@ import { StorageReference, deleteObject, getDownloadURL, getMetadata, ref, uploa
 import { db, storage } from "../../firebase/firebase";
 import { ItemAcervo } from "../interfaces/ItemAcervo";
 import { FirebaseError } from "firebase/app";
+import { Colecao } from "../interfaces/Colecao";
 
 async function getImagemItemAcervo(
   storageRef: StorageReference
@@ -39,7 +39,7 @@ async function getImagemItemAcervo(
 
 const getItemAcervo = async (fullPath: string) => {
   try {
-    const docRef: DocumentReference = doc(db, COLLECTION_REF, fullPath);
+    const docRef: DocumentReference = doc(db, fullPath);
     const docSnap = await getDoc(docRef).catch(() => {
       throw new FirebaseError("not-found", "Erro ao buscar documento");
     });
@@ -54,29 +54,33 @@ const getItemAcervo = async (fullPath: string) => {
   }
 }
 
-const COLLECTION_REF = "acervo";
-
 /** Método para adicionar um item à coleção acervo no firestore, as imagens de um item são as referências para o arquivo no storage */
 export const adicionarItemAcervo = async (
-  itemAcervo: ItemAcervo
+  itemAcervo: ItemAcervo,
+  colecao: Colecao
 ): Promise<boolean> => {
   //subcoleção do acervo onde o item será incluido
-  const itemCollectionRef = doc(
-    db,
-    COLLECTION_REF,
-    itemAcervo.privado ? "privado" : "publico"
-  );
+  if(colecao.privado && !itemAcervo.privado) {
+    throw new Error("Não é possível adicionar um item público a uma coleção privada");
+  }
+  if(colecao.id === undefined) {
+    throw new Error("Coleção inválida");
+  }
+  const itemPrivacidade = itemAcervo.privado ? "privado" : "publico";
+  const relativePath = colecao.privado ? "/itens" :  "/" + itemPrivacidade;
+  const path = colecao.id + relativePath;
 
   try {
-    const imagesRef = await adicionarImagens(itemAcervo.imagens).catch(
-      (error) => {
+    let imagesRef: string[] = [];
+    if (itemAcervo.imagens && itemAcervo.imagens.length > 0) {
+      imagesRef = await adicionarImagens(itemAcervo.imagens).catch((error) => {
         throw new Error(error);
-      }
-    );
+      });
+    }
     //item enviado utiliza referências das imagens no storage
     const sendingItemAcervo = { ...itemAcervo, imagens: imagesRef };
     const documentReference = await addDoc(
-      collection(itemCollectionRef, "itens"),
+      collection(db, path),
       sendingItemAcervo
     ).catch((error) => {
       throw new Error(error);
@@ -87,7 +91,6 @@ export const adicionarItemAcervo = async (
       "Erro ao adicionar item ao acervo",
       (error as Error).message,
     ].join("\n");
-    removerImagens(itemAcervo.imagens, itemAcervo.id as string);
     throw new Error(errorMessage);
   }
 };
@@ -125,85 +128,85 @@ const moveItemToCollection = async (formData: ItemAcervo, oldPath: string, newPa
   try {
     // Ensure oldPath and newPath are strings
     if (oldPath && newPath) {
-      const oldDocRef = doc(db, COLLECTION_REF, oldPath);
-
-      const newDocRef = doc(db, COLLECTION_REF, newPath);
-
-      //Cópia para evitar salvar o atributo coleção que vem do formulário
-      const file = {
-        nome: formData.nome,
-        descricao: formData.descricao,
-        curiosidades: formData.curiosidades,
-        privado: Boolean(formData.privado),
-        dataDoacao: formData?.dataDoacao ? Timestamp.fromDate(formData.dataDoacao.toDate()) : null,
-      };
+      const oldDocRef = doc(db, oldPath);
+      const newDocRef = doc(db, newPath);
 
       // Add the item to the new collection
-      await setDoc(newDocRef, file);
+      await setDoc(newDocRef, formData).catch(() => {
+        throw new FirebaseError("not-found", "Erro ao mover documento");
+      });
 
       // Remove the item from the old collection
-      await deleteDoc(oldDocRef);
+      await deleteDoc(oldDocRef).catch(() => {
+        throw new FirebaseError("not-found", "Erro ao mover documento");
+      });
     }
   } catch (error) {
     throw new Error("Erro ao mover documento");
   }
 }
 
-function getStringBetweenFirstAndSecondSlash(path: string) {
-  const parts = path.split('/');
-  if (parts.length >= 3) {
-    return parts[1];
-  } else {
-    return null;
-  }
-}
-
-
-const updateItemAcervo = async (formData: ItemAcervo, fullPath: string) => {
+const updateItemAcervo = async (formData: ItemAcervo, fullPath: string, colecao: Colecao) => {
   try {
-    const itemSelecionado = await getItemAcervo(fullPath);
-    const docRef = doc(db, COLLECTION_REF, fullPath);
-    const id = docRef.id;
-    if (fullPath) {
-      const docRef = doc(db, COLLECTION_REF, fullPath);
-      //Cópia para evitar salvar o atributo coleção que vem do formulário
-      const file = {
-        nome: formData.nome,
-        descricao: formData.descricao,
-        curiosidades: formData.curiosidades,
-        privado: Boolean(formData.privado),
-        dataDoacao: formData?.dataDoacao ? Timestamp.fromDate(formData.dataDoacao.toDate()) : null,
-      };
-      await updateDoc(docRef, file).catch(() => {
-        throw new FirebaseError("not-found", "Erro ao atualizar documento");
-      });
-      if(itemSelecionado.privado != formData.privado || getStringBetweenFirstAndSecondSlash(fullPath) != formData.colecao) {
-        moveItemToCollection(formData, fullPath, formData.privado ? `privado/${formData.colecao}/${id}`: `publico/${formData.colecao}/${id}`);
-      }
+    const docRef = doc(db, fullPath);
+    const itemSelecionado = (await getDoc(docRef)).data() as ItemAcervo;
+
+    if(colecao.privado && !formData.privado) {
+      throw new Error("Não é possível adicionar um item público a uma coleção privada");
     }
+
+    // Verificar as imagens novas que não estão presentes no itemSelecionado
+    const imagensNovas = formData.imagens.filter((novaImagem) => !itemSelecionado.imagens.includes(novaImagem));
+
+    const itemPrivacidade = formData.privado ? "privado" : "publico";
+    const relativePath = colecao.privado ? "/itens" :  "/" + itemPrivacidade;
+    const newPath = colecao.id + relativePath + "/" + docRef.id;
+
+    const file = {
+      nome: formData.nome,
+      descricao: formData.descricao,
+      curiosidades: formData.curiosidades,
+      imagens: formData.imagens,
+      privado: formData.privado,
+      colecao: formData.colecao,
+      dataDoacao: formData?.dataDoacao ? Timestamp.fromDate(formData.dataDoacao.toDate()) : null,
+    }
+
+    //Mesmo apontando erro no vsCode o método updateDoc funciona, por algum motivo o vsCode não reconhece
+    await updateDoc(docRef, file).catch((error) => {
+      console.log(error)
+      throw new FirebaseError("not-found", "Erro ao atualizar documento");
+    });
+
+   if(imagensNovas.length > 0) {
+      //Adicionar as imagens novas ao storage
+      adicionarImagens(imagensNovas).catch((error) => {
+        throw new Error(error);
+      });
+    }
+
+    if(itemSelecionado.privado != formData.privado || colecao.nome != formData.colecao) {
+      moveItemToCollection(formData, fullPath, newPath);
+    }
+
   } catch (error) {
+    console.log(error);
     throw new Error("Erro ao atualizar documento");
   }
 }
 
-const removerImagens = async (imagens: Imagem[], idItemAcervo: string) => {
+const removerImagens = async (imagens: string[]) => {
   imagens.forEach(async (imagem) => {
-    const storageRef = ref(storage, "images/" + imagem.title);
-    await deleteObject(storageRef);
-
-    const itemRef: DocumentReference<DocumentData> = doc(
-      collection(db, COLLECTION_REF),
-      idItemAcervo
-    );
-    updateDoc(itemRef, { itemImages: [] }).catch(() => {
-      throw new Error("Erro ao remover imagens de item inválido");
-    });
+    const storageRef = ref(storage, imagem);
+    await deleteObject(storageRef).catch(() => {
+      throw new FirebaseError("not-found", "Erro ao deletar imagem");
+    })
   });
 };
 
 const deleteItemAcervo = async (fullPath: string) => {
   try {
-    const docRef = doc(db, COLLECTION_REF, fullPath);
+    const docRef = doc(db, fullPath);
 
     // Verificar se o documento existe
     const docSnap = await getDoc(docRef);
@@ -212,7 +215,7 @@ const deleteItemAcervo = async (fullPath: string) => {
       // Deleta as imagens associadas ao documento
       const data = docSnap.data();
       if (data && Array.isArray(data.imagens)) {
-        removerImagens(data.imagens, docSnap.id);
+        removerImagens(data.imagens);
       }
       // Deletar o documento
       await deleteDoc(docRef);
