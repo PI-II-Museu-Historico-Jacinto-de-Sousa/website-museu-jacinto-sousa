@@ -6,7 +6,6 @@ jobs:
   #build dos emuladores
   cypress-run:
     runs-on: ubuntu-22.04
-    environment: staging
     steps:
       - uses: actions/checkout@v4
       - name: Cache emuladores firebase
