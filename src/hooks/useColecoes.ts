@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { getNomesColecoes } from "../Utils/colecaoFirebase";
+import { getColecoes } from "../Utils/colecaoFirebase";
+import { Colecao } from "../interfaces/Colecao";
 
 /** Hook que retorna uma lista com nome de coleções */
-const useNomeColecoes = () => {
-  const [nomesColecoes, setNomescolecoes] = useState<string[]>([]);
+const useColecoes = () => {
+  const [nomesColecoes, setNomescolecoes] = useState<Colecao[]>([]);
   useEffect(() => {
-    getNomesColecoes()
+    getColecoes()
       .then((nomes) => {
         setNomescolecoes(nomes);
       })
@@ -13,8 +14,8 @@ const useNomeColecoes = () => {
         console.error(error);
         setNomescolecoes([]);
       });
-  });
+  }, []);
   return nomesColecoes;
 };
 
-export default useNomeColecoes;
+export default useColecoes;
