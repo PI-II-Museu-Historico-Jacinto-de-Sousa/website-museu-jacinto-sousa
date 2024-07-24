@@ -8,8 +8,6 @@ jobs:
     env:
       # token de acesso a cli do firebase
       FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-      SERVICE_ACCOUNT_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY }}
-
       # token usado para diferenciar uma nova run de uma repetida
       GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
       # variaveis com prefixo cypress são usadas pela sdk de administrador
@@ -54,7 +52,8 @@ jobs:
         name: Criar json
         with:
           name: serviceAccountKey.json
-          json: SERVICE_ACCOUNT_KEY
+          json: ${{ secrets.SERVICE_ACCOUNT_KEY }}
+
       - name: Cypress run
         uses: cypress-io/github-action@v6.5.0
         with:
