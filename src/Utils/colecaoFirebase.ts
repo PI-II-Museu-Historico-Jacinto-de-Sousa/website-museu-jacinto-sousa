@@ -2,7 +2,6 @@ import {
   DocumentData,
   QuerySnapshot,
   collection,
-  doc,
   getDocs,
 } from "firebase/firestore";
 import { auth, db } from "../../firebase/firebase";
