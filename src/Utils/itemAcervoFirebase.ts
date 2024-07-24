@@ -2,7 +2,6 @@
 
 import {
   DocumentReference,
-  Timestamp,
   addDoc,
   collection,
   deleteDoc,
@@ -162,19 +161,8 @@ const updateItemAcervo = async (formData: ItemAcervo, fullPath: string, colecao:
     const relativePath = colecao.privado ? "/itens" :  "/" + itemPrivacidade;
     const newPath = colecao.id + relativePath + "/" + docRef.id;
 
-    const file = {
-      nome: formData.nome,
-      descricao: formData.descricao,
-      curiosidades: formData.curiosidades,
-      imagens: formData.imagens,
-      privado: formData.privado,
-      colecao: formData.colecao,
-      dataDoacao: formData?.dataDoacao ? Timestamp.fromDate(formData.dataDoacao.toDate()) : null,
-    }
-
     //Mesmo apontando erro no vsCode o método updateDoc funciona, por algum motivo o vsCode não reconhece
-    await updateDoc(docRef, file).catch((error) => {
-      console.log(error)
+    await updateDoc(docRef, formData).catch(() => {
       throw new FirebaseError("not-found", "Erro ao atualizar documento");
     });
 
@@ -190,7 +178,6 @@ const updateItemAcervo = async (formData: ItemAcervo, fullPath: string, colecao:
     }
 
   } catch (error) {
-    console.log(error);
     throw new Error("Erro ao atualizar documento");
   }
 }
