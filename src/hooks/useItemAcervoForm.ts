@@ -10,10 +10,18 @@ const useFormItemAcervo = (itemAcervo?: ItemAcervo) => {
     colecao: "",
     telefoneDoador: "",
   };
-  const { register, watch, setError, control, handleSubmit, formState, reset } =
-    useForm<ItemAcervo>({
-      defaultValues: { ...defaultValues },
-    });
+  const {
+    register,
+    watch,
+    setError,
+    control,
+    handleSubmit,
+    formState,
+    reset,
+    setValue,
+  } = useForm<ItemAcervo>({
+    defaultValues: { ...defaultValues },
+  });
   return {
     register,
     watch,
@@ -22,6 +30,7 @@ const useFormItemAcervo = (itemAcervo?: ItemAcervo) => {
     handleSubmit,
     formState,
     reset,
+    setValue,
   };
 };
 
