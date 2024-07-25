@@ -98,7 +98,7 @@ const adicionarImagens = async (imagens: Imagem[]) => {
   try {
     const resultRefs = Promise.all(
       imagens.map(async (imagem) => {
-        if (imagem.src) {
+        if (typeof imagem.src === "string") {
           throw new Error("Imagem adicionada deve ser um arquivo");
         }
         const storageRef = ref(storage, "images/" + imagem.title);
@@ -156,6 +156,8 @@ const updateItemAcervo = async (formData: ItemAcervo, fullPath: string, colecao:
 
     // Verificar as imagens novas que não estão presentes no itemSelecionado
     const imagensNovas = formData.imagens.filter((novaImagem) => !itemSelecionado.imagens.includes(novaImagem));
+    // Verificar as imagens que foram removidas do itemSelecionado
+    const imagensRemovidas = itemSelecionado.imagens.filter((imagem) => !formData.imagens.includes(imagem));
 
     const itemPrivacidade = formData.privado ? "privado" : "publico";
     const relativePath = colecao.privado ? "/itens" :  "/" + itemPrivacidade;
@@ -166,9 +168,20 @@ const updateItemAcervo = async (formData: ItemAcervo, fullPath: string, colecao:
       throw new FirebaseError("not-found", "Erro ao atualizar documento");
     });
 
+    const nomeImagensRemovidas = imagensRemovidas.map((imagem) => {
+      return imagem.title
+    })
+
    if(imagensNovas.length > 0) {
       //Adicionar as imagens novas ao storage
       adicionarImagens(imagensNovas).catch((error) => {
+        throw new Error(error);
+      });
+    }
+
+    if(imagensRemovidas.length > 0) {
+      //Remover as imagens removidas do storage
+      removerImagens(nomeImagensRemovidas).catch((error) => {
         throw new Error(error);
       });
     }
@@ -226,4 +239,4 @@ const methodsItemAcervo = {
   moveItemToCollection,
 };
 
-export { methodsItemAcervo, adicionarImagens, removerImagens, moveItemToCollection ,deleteItemAcervo, getItemAcervo, updateItemAcervo, getImagemItemAcervo };
+export { methodsItemAcervo, deleteItemAcervo, getItemAcervo, updateItemAcervo, getImagemItemAcervo };
