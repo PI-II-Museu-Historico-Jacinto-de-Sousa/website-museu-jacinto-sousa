@@ -1,10 +1,5 @@
 rules_version = '2';
 
-function isPublic(){
-  // se um documento tiver o atributo privado e este for verdadeiro o documento nao eh publico
-  return !("privado" in resource.data && resource.data.privado == true)
-}
-
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -27,6 +22,10 @@ service cloud.firestore {
     }
     match /colecoes/privado/{document=**} {
       allow read, write: if request.auth != null;
+    }
+    //permite listar colecoes publicas a todos os usuarios, mas nao autoriza as subcolecoes
+    match /colecoes/publico/{document=**} {
+      allow list: if request.query.kind == 'lista'
     }
     match /colecoes/publico/lista/{colecaoMuseu}/publico/{document=**} {
       allow read: if true;

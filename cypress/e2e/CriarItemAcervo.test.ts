@@ -10,8 +10,9 @@ describe("Renderizar página de criar item do acervo não logado", () => {
 describe("Renderizar página de criar item do acervo logado", () => {
   before(() => {
     cy.login(); //login persiste nas próximas seções
-    cy.callFirestore("add", "colecoes/publico/itens", {
+    cy.callFirestore("add", "colecoes/publico/lista", {
       nome: "Coleção de teste",
+      privado: false,
     });
   });
   beforeEach(() => {

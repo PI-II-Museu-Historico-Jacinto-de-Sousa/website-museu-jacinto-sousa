@@ -62,7 +62,7 @@ const CriarItemAcervo = () => {
     try {
       data.dataDoacao = isDayjs(data.dataDoacao) ? data.dataDoacao.toDate() : data.dataDoacao
       data.imagens = images
-      await adicionarItemAcervo(data)
+      await adicionarItemAcervo(data, collectionList.filter(collection => collection.nome === data.colecao)[0])
       setDialogMessage("Item criado com sucesso")
     } catch (error) {
       setError('root', {
