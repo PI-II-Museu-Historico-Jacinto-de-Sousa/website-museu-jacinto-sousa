@@ -7,6 +7,7 @@ import Erro from "../pages/Erro";
 
 const Home = React.lazy(() => import("../pages/Home"));
 const CriarItemAcervo = React.lazy(() => import("../pages/CriarItemAcervo"));
+const ItemAcervo = React.lazy(() => import("../pages/ItemAcervo"));
 
 const centeredLoading = (
   <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
@@ -70,6 +71,13 @@ const router = createBrowserRouter([
               <CriarItemAcervo />
           },
         ]
+      },
+      {
+        path: "/acervo/:id",
+        element:
+          <Suspense fallback={centeredLoading}>
+            <ItemAcervo />
+          </Suspense>,
       },
     ]
   }]);
