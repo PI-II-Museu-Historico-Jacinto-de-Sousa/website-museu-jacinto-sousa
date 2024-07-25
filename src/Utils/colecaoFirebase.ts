@@ -25,7 +25,9 @@ export const getColecoes = async (): Promise<Colecao[]> => {
       ? publicCollections.docs.concat(privateCollections.docs)
       : publicCollections.docs;
 
-    return collections.map((doc) => doc.data() as Colecao);
+    return collections.map((doc) => {
+      return { id: doc.ref.path, ...doc.data() } as Colecao;
+    });
   } catch (error) {
     throw new Error("Erro ao buscar as coleções de itens");
   }
