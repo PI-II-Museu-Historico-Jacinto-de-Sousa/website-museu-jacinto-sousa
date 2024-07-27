@@ -186,7 +186,7 @@ const updateItemAcervo = async (formData: ItemAcervo, fullPath: string, colecao:
     const itemPrivacidade = formData.privado ? "privado" : "publico";
     const colecaoPrivacidade = colecao.privado ? "privado" : "publico";
     const relativePath = "colecoes/" + colecaoPrivacidade +  "/lista/" + colecao.nome;
-    const newPath = relativePath + (colecao.privado ? "/itens/" : "/" + itemPrivacidade);
+    const newPath = relativePath + (colecao.privado ? "/itens" : "/" + itemPrivacidade);
 
     const file = {
       nome: formData.nome,
