@@ -129,11 +129,7 @@ const moveItemToCollection = async (formData: ItemAcervo, oldPath: string, newPa
     // Ensure oldPath and newPath are strings
     if (oldPath && newPath) {
       const oldDocRef = doc(db, oldPath);
-      console.log("oldPath", oldPath)
-      console.log("newPath", newPath)
       const newDocRef = doc(db, newPath + "/" + oldDocRef.id);
-      console.log("newDocRef", newDocRef)
-      console.log("formData", formData)
 
       const imagensDoc = formData.imagens.map((imagem) => {
         return "images/" + imagem.title
@@ -150,19 +146,16 @@ const moveItemToCollection = async (formData: ItemAcervo, oldPath: string, newPa
       }
 
       // Add the item to the new collection
-      await setDoc(newDocRef, file).catch((error) => {
-        console.log(error);
+      await setDoc(newDocRef, file).catch(() => {
         throw new FirebaseError("not-found", "Erro ao mover documento");
       });
 
       // Remove the item from the old collection
-      await deleteDoc(oldDocRef).catch((error) => {
-        console.log(error);
+      await deleteDoc(oldDocRef).catch(() => {
         throw new FirebaseError("not-found", "Erro ao mover documento");
       });
     }
   } catch (error) {
-    console.log(error);
     throw new Error("Erro ao mover documento");
   }
 }
@@ -171,14 +164,11 @@ const updateItemAcervo = async (formData: ItemAcervo, fullPath: string, colecao:
   try {
     const docRef = doc(db, fullPath);
     const itemSelecionado = (await getDoc(docRef)).data() as ItemAcervo;
-    console.log("item:", itemSelecionado);
 
     // Verificar as imagens novas que não estão presentes no itemSelecionado
     const imagensNovas = formData.imagens.filter((novaImagem) => !itemSelecionado.imagens.includes(novaImagem));
     // Verificar as imagens que foram removidas do itemSelecionado
-    console.log(formData.imagens);
     const imagensRemovidas = itemSelecionado.imagens.filter((imagem) => !formData.imagens.includes(imagem));
-    console.log("imagens removidas",imagensRemovidas);
     const formDataImagens = formData.imagens.map((imagem) => {
       return "images/" + imagem.title
     })
@@ -197,19 +187,11 @@ const updateItemAcervo = async (formData: ItemAcervo, fullPath: string, colecao:
       curiosidades: formData.curiosidades,
       dataDoacao: formData.dataDoacao,
     }
-    console.log(file);
-
 
     //Mesmo apontando erro no vsCode o método updateDoc funciona, por algum motivo o vsCode não reconhece
-    await updateDoc(docRef, file).catch((error) => {
-      console.log(error);
+    await updateDoc(docRef, file).catch(() => {
       throw new FirebaseError("not-found", "Erro ao atualizar documento");
     });
-
-    const nomeImagensRemovidas = imagensRemovidas.map((imagem) => {
-      return imagem.src as string
-    });
-    console.log("IMAGENS REMOVIDAS", nomeImagensRemovidas);
 
    if(imagensNovas.length > 0) {
       //Adicionar as imagens novas ao storage
@@ -230,13 +212,11 @@ const updateItemAcervo = async (formData: ItemAcervo, fullPath: string, colecao:
     }
 
   } catch (error) {
-    console.log(error);
     throw new Error("Erro ao atualizar documento");
   }
 }
 
 const removerImagens = async (imagens: string[]) => {
-  console.log("remover imagens",imagens);
   imagens.forEach(async (imagem) => {
     const storageRef = ref(storage, imagem);
     await deleteObject(storageRef).catch(() => {
