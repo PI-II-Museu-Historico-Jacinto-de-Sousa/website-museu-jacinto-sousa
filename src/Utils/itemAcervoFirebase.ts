@@ -131,11 +131,26 @@ const moveItemToCollection = async (formData: ItemAcervo, oldPath: string, newPa
       const oldDocRef = doc(db, oldPath);
       console.log("oldPath", oldPath)
       console.log("newPath", newPath)
-      const newDocId = oldDocRef.id;
-      const newDocRef = doc(db, newPath);
+      const newDocRef = doc(db, newPath + "/" + oldDocRef.id);
+      console.log("newDocRef", newDocRef)
+      console.log("formData", formData)
+
+      const imagensDoc = formData.imagens.map((imagem) => {
+        return "images/" + imagem.title
+      }) as string[];
+
+      const file = {
+        nome: formData.nome,
+        descricao: formData.descricao,
+        colecao: formData.colecao,
+        privado: formData.privado,
+        imagens: imagensDoc,
+        curiosidades: formData.curiosidades,
+        dataDoacao: formData.dataDoacao,
+      }
 
       // Add the item to the new collection
-      await setDoc(newDocRef, formData).catch((error) => {
+      await setDoc(newDocRef, file).catch((error) => {
         console.log(error);
         throw new FirebaseError("not-found", "Erro ao mover documento");
       });
@@ -154,9 +169,6 @@ const moveItemToCollection = async (formData: ItemAcervo, oldPath: string, newPa
 
 const updateItemAcervo = async (formData: ItemAcervo, fullPath: string, colecao: Colecao) => {
   try {
-    console.log(formData);
-    console.log(fullPath);
-    console.log(colecao);
     const docRef = doc(db, fullPath);
     const itemSelecionado = (await getDoc(docRef)).data() as ItemAcervo;
     console.log("item:", itemSelecionado);
