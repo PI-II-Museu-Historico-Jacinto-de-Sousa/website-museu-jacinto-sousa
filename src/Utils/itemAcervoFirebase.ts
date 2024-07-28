@@ -10,7 +10,14 @@ import {
   setDoc,
   updateDoc,
 } from "firebase/firestore";
-import { StorageReference, deleteObject, getDownloadURL, getMetadata, ref, uploadBytes } from "firebase/storage";
+import {
+  StorageReference,
+  deleteObject,
+  getDownloadURL,
+  getMetadata,
+  ref,
+  uploadBytes,
+} from "firebase/storage";
 import { db, storage } from "../../firebase/firebase";
 import { ItemAcervo } from "../interfaces/ItemAcervo";
 import { FirebaseError } from "firebase/app";
@@ -61,7 +68,7 @@ const getItemAcervo = async (fullPath: string) => {
   } catch (error) {
     throw new FirebaseError("permission-denied", "Acesso negado");
   }
-}
+};
 
 /** Método para adicionar um item à coleção acervo no firestore, as imagens de um item são as referências para o arquivo no storage */
 export const adicionarItemAcervo = async (
@@ -69,16 +76,17 @@ export const adicionarItemAcervo = async (
   colecao: Colecao
 ): Promise<boolean> => {
   //subcoleção do acervo onde o item será incluido
-  if(colecao.privado && !itemAcervo.privado) {
-    throw new Error("Não é possível adicionar um item público a uma coleção privada");
+  if (colecao.privado && !itemAcervo.privado) {
+    throw new Error(
+      "Não é possível adicionar um item público a uma coleção privada"
+    );
   }
-  if(colecao.id === undefined) {
+  if (colecao.id === undefined) {
     throw new Error("Coleção inválida");
   }
   const itemPrivacidade = itemAcervo.privado ? "privado" : "publico";
-  const colecaoPrivacidade = colecao.privado ? "privado" : "publico";
-  const relativePath = "colecoes/" + colecaoPrivacidade +  "/lista/" + colecao.nome;
-  const path = relativePath + (colecao.privado ? "/itens/" : "/" + itemPrivacidade);
+  const path =
+    colecao.id + (colecao.privado ? "/itens/" : "/" + itemPrivacidade);
 
   try {
     let imagesRef: string[] = [];
@@ -114,7 +122,7 @@ const adicionarImagens = async (imagens: Imagem[]) => {
         }
         let storageRef;
 
-        if(!imagem.title.includes("images/")) {
+        if (!imagem.title.includes("images/")) {
           storageRef = ref(storage, "images/" + imagem.title);
         } else {
           storageRef = ref(storage, imagem.title);
@@ -141,129 +149,121 @@ const adicionarImagens = async (imagens: Imagem[]) => {
   }
 };
 
-const moveItemToCollection = async (formData: ItemAcervo, oldPath: string, newPath: string) => {
+const moveItemToCollection = async (
+  itemData: Omit<ItemAcervo, "imagens"> & { imagens: string[] },
+  oldPath: string,
+  newPath: string
+) => {
   try {
-    // Ensure oldPath and newPath are strings
-    if (oldPath && newPath) {
-      const oldDocRef = doc(db, oldPath);
-      const newDocRef = doc(db, newPath + "/" + oldDocRef.id);
+    const oldDocRef = doc(db, oldPath);
+    const newDocRef = doc(db, newPath + "/" + oldDocRef.id);
 
-      const imagensDoc = formData.imagens.map((imagem) => {
-        if(imagem.title.includes("images/")) {
-          return imagem.title;
-        } else {
-          return "images/" + imagem.title;
-        }
-      }) as string[];
+    // Add the item to the new collection
+    await setDoc(newDocRef, itemData).catch(() => {
+      throw new FirebaseError("not-found", "Erro ao mover documento");
+    });
 
-      const file = {
-        nome: formData.nome,
-        descricao: formData.descricao,
-        colecao: formData.colecao,
-        privado: formData.privado,
-        imagens: imagensDoc,
-        curiosidades: formData.curiosidades,
-        dataDoacao: formData.dataDoacao,
-      }
-
-      // Add the item to the new collection
-      await setDoc(newDocRef, file).catch(() => {
-        throw new FirebaseError("not-found", "Erro ao mover documento");
-      });
-
-      // Remove the item from the old collection
-      await deleteDoc(oldDocRef).catch(() => {
-        throw new FirebaseError("not-found", "Erro ao mover documento");
-      });
-    }
+    // Remove the item from the old collection
+    await deleteDoc(oldDocRef).catch(() => {
+      throw new FirebaseError("not-found", "Erro ao mover documento");
+    });
+    return newDocRef.path;
   } catch (error) {
     throw new Error("Erro ao mover documento");
   }
-}
+};
 
-const updateItemAcervo = async (formData: ItemAcervo, colecao: Colecao) => {
+const updateItemAcervo = async (itemAcervo: ItemAcervo, colecao: Colecao) => {
   try {
-    if(formData.id === undefined) {
+    if (itemAcervo.id === undefined) {
       throw new Error("ID nulo");
     }
-    const docRef = doc(db, formData.id);
+    const docRef = doc(db, itemAcervo.id);
     const itemSelecionado = (await getDoc(docRef)).data();
-
-    // Verificar as imagens novas que não estão presentes no itemSelecionado
-    const imagensNovas = formData.imagens.filter((novaImagem) =>
-      {
-        if(novaImagem.src instanceof File) {
-          return !itemSelecionado?.imagens.includes(novaImagem)
+    if (itemSelecionado === undefined) {
+      throw new FirebaseError("not-found", "Documento não encontrado");
+    }
+    // Imagens novas sao imagens com src do tipo File que nao tem a referencia (title)
+    // salva no item selecionado
+    const imagensNovas: Imagem[] = [];
+    for (const imagem of itemAcervo.imagens) {
+      if (imagem.src instanceof File) {
+        if (
+          itemSelecionado?.imagens.some(
+            (imgName: string) => imgName === "images/" + imagem.title
+          )
+        ) {
+          throw new Error("Imagem já adicionada ao item");
         }
+
+        imagensNovas.push(imagem);
       }
-    );
+    }
 
-    const imagensRemovidas: Imagem[] = []
+    // Imagens removidas sao imagens que contem a referencia no item selecionado
+    // e nao estao no formData
+    const imagensRemovidas: string[] = [];
 
-    formData.imagens.forEach((imagem) => {
-      if(typeof imagem.src === "string") {
-        if(!itemSelecionado?.imagens.includes(imagem.title)) {
-          imagensRemovidas.push(imagem);
-        }
+    // vetor com o caminho das imagens adicionadas e mantidas em formato de string
+    // imagens mantidas são imagens que ja estavam no item selecionado e continuam
+    // no formData
+    const imagesPath: string[] = [];
+
+    for (const pathImagem of itemSelecionado.imagens) {
+      // imagem permanece no item atualizado e no firestore atual
+      if (itemAcervo.imagens.some((img) => img.title === pathImagem)) {
+        imagesPath.push(pathImagem);
       }
-    })
-
-    const formDataImagens = formData.imagens.map((imagem) => {
-      return imagem.title
-    })
-
-    const itemPrivacidade = formData.privado ? "privado" : "publico";
-    const colecaoPrivacidade = colecao.privado ? "privado" : "publico";
-    const relativePath = "colecoes/" + colecaoPrivacidade +  "/lista/" + colecao.nome;
-    const newPath = relativePath + (colecao.privado ? "/itens" : "/" + itemPrivacidade);
-
-    const file = {
-      nome: formData.nome,
-      descricao: formData.descricao,
-      colecao: formData.colecao,
-      privado: formData.privado,
-      imagens: formDataImagens,
-      curiosidades: formData.curiosidades,
-      dataDoacao: formData.dataDoacao,
+      // imagem foi removida do item atualizado
+      else {
+        imagensRemovidas.push(pathImagem);
+      }
     }
 
-   if(imagensNovas.length > 0) {
-      //Adicionar as imagens novas ao storage
-      adicionarImagens(imagensNovas).catch((error) => {
-        throw new Error(error);
-      });
-    }
+    const itemPrivacidade = itemAcervo.privado ? "privado" : "publico";
+    const newPath =
+      colecao.id + (colecao.privado ? "/itens" : "/" + itemPrivacidade);
 
-    if(imagensRemovidas.length > 0) {
-      //Remover as imagens removidas do storage
-      removerImagens(imagensRemovidas).catch((error) => {
-        throw new Error(error);
-      });
-    }
+    //Adicionar as imagens novas ao storage e guardar a referencia em forma de string no vetor imagesPath
+    const newRefs = await adicionarImagens(imagensNovas).catch((error) => {
+      throw new Error(error);
+    });
+    imagesPath.push(...newRefs);
 
-    if(itemSelecionado?.privado != formData.privado || colecao.nome != formData.colecao) {
-      moveItemToCollection(formData, formData.id, newPath);
+    //Remover as imagens que nao estao no documento novo do storage
+    await removerImagens(imagensRemovidas).catch((error) => {
+      throw new Error(error);
+    });
+
+    const uploadDoc = { ...itemAcervo, imagens: imagesPath };
+    delete uploadDoc.id;
+    if (
+      itemSelecionado?.privado != itemAcervo.privado ||
+      colecao.nome != itemAcervo.colecao
+    ) {
+      itemAcervo.id = await moveItemToCollection(
+        uploadDoc,
+        itemAcervo.id,
+        newPath
+      );
     } else {
       //Mesmo apontando erro no vsCode o método updateDoc funciona, por algum motivo o vsCode não reconhece
-      await updateDoc(docRef, file).catch(() => {
+      await updateDoc(docRef, uploadDoc).catch(() => {
         throw new FirebaseError("not-found", "Erro ao atualizar documento");
       });
     }
-
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw new Error("Erro ao atualizar documento");
   }
-}
+};
 
-const removerImagens = async (imagens: Imagem[]) => {
-  console.log("imagens removidas, ", imagens);
+const removerImagens = async (imagens: string[]) => {
   imagens.forEach(async (imagem) => {
-    const storageRef = ref(storage, imagem.title);
-    console.log("storageRef", storageRef);
+    const storageRef = ref(storage, imagem);
     await deleteObject(storageRef).catch(() => {
       throw new FirebaseError("not-found", "Erro ao deletar imagem");
-    })
+    });
   });
 };
 
@@ -282,14 +282,13 @@ const deleteItemAcervo = async (fullPath: string) => {
       }
       // Deletar o documento
       await deleteDoc(docRef);
-  } else {
+    } else {
       throw new FirebaseError("not-found", "Documento não encontrado");
-  }
-
+    }
   } catch (error) {
     throw new FirebaseError("not-found", "Erro ao deletar documento");
   }
-}
+};
 
 const methodsItemAcervo = {
   adicionarItemAcervo,
@@ -302,4 +301,10 @@ const methodsItemAcervo = {
   moveItemToCollection,
 };
 
-export { methodsItemAcervo, deleteItemAcervo, getItemAcervo, updateItemAcervo, getImagemItemAcervo };
+export {
+  methodsItemAcervo,
+  deleteItemAcervo,
+  getItemAcervo,
+  updateItemAcervo,
+  getImagemItemAcervo,
+};
