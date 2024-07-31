@@ -9,9 +9,10 @@ import { auth } from "../../firebase/firebase";
 import { adicionarItemAcervo } from "../Utils/itemAcervoFirebase";
 import ImageCard from "../components/ImageCard/ImageCard";
 import useFormItemAcervo from "../hooks/useItemAcervoForm";
-import useNomeColecoes from "../hooks/useNomeColecoes";
+import useColecoes from "../hooks/useColecoes";
 import { ItemAcervo } from "../interfaces/ItemAcervo";
 import { useNavigate } from "react-router-dom";
+import { Colecao } from "../interfaces/Colecao";
 
 //altura de cada item no select
 const SELECT_MENU_ITEM_HEIGHT = 48;
@@ -33,7 +34,7 @@ const CriarItemAcervo = () => {
   //query que verifica se a resolução for menor que 600px
   const mobile = useMediaQuery(theme.breakpoints.down('sm'))
 
-  const { register, setError, watch, control, handleSubmit, formState, reset } = useFormItemAcervo()
+  const { register, setError, watch, control, handleSubmit, formState, reset, setValue } = useFormItemAcervo()
 
   const { errors, isSubmitting, isSubmitSuccessful } = formState
   //valor desses campos é observado para alterar a renderização da página
@@ -61,7 +62,7 @@ const CriarItemAcervo = () => {
     try {
       data.dataDoacao = isDayjs(data.dataDoacao) ? data.dataDoacao.toDate() : data.dataDoacao
       data.imagens = images
-      await adicionarItemAcervo(data)
+      await adicionarItemAcervo(data, collectionList.filter(collection => collection.nome === data.colecao)[0])
       setDialogMessage("Item criado com sucesso")
     } catch (error) {
       setError('root', {
@@ -106,8 +107,8 @@ const CriarItemAcervo = () => {
     }
   }, [currentFiles])
 
-  const collectionList = useNomeColecoes()
-
+  const collectionList: Colecao[] = useColecoes()
+  const [privateCollection, setPrivateCollection] = useState<boolean>(false);
 
   return (
     <Content>
@@ -185,6 +186,14 @@ const CriarItemAcervo = () => {
                     labelId="collection-select-label"
                     native={mobile}
                     {...field}
+                    onChange={(e) => {
+                      const selectedCollection = collectionList.find(collection => collection.nome === e.target.value);
+                      setPrivateCollection(selectedCollection?.privado ?? false);
+                      if (selectedCollection && selectedCollection.privado) {
+                        setValue('privado', true);
+                      }
+                      field.onChange(e.target.value)
+                    }}
                     error={errors.colecao?.message !== undefined}
                     style={{
                       height: SELECT_MENU_ITEM_HEIGHT,
@@ -195,12 +204,12 @@ const CriarItemAcervo = () => {
                       mobile ?
                         collectionList.length !== 0 ?
                           collectionList.map((collection, idx) => (
-                            <option value={collection} key={idx} data-cy='select-collection-item'>{collection}</option>))
+                            <option value={collection.nome} key={idx} data-cy='select-collection-item'>{collection.nome}</option>))
                           : <option value="" disabled data-cy='select-collection-item-fail'>Falha ao carregar as coleções</option>
                         :
                         collectionList.length !== 0 ?
                           collectionList.map((collection, idx) => (
-                            <MenuItem value={collection} key={idx} data-cy='select-collection-item'>{collection}</MenuItem>))
+                            <MenuItem value={collection.nome} key={idx} data-cy='select-collection-item'>{collection.nome}</MenuItem>))
                           : <MenuItem value="" disabled data-cy='select-collection-item-fail'>Falha ao carregar as coleções</MenuItem>
                     }
                   </Select>
@@ -208,6 +217,24 @@ const CriarItemAcervo = () => {
                 )} />
               <FormHelperText>{errors.colecao?.message}</FormHelperText>
             </FormControl>
+            <Tooltip title='Itens privados não são mostrados aos visitantes do site'>
+              <FormControlLabel id='checkbox-privacy'
+                style={{ pointerEvents: privateCollection ? 'none' : 'auto' }}
+                control={
+                  <Controller
+                    name="privado"
+                    control={control}
+                    render={({ field: props }) => (
+                      <Checkbox
+                        {...props}
+                        checked={props.value}
+                        onChange={(e) => props.onChange(e.target.checked)}
+                      />
+                    )}
+                  />}
+
+                label="Item Privado" labelPlacement='start' />
+            </Tooltip>
 
             <Donation>
               <FormControlLabel id='checkbox-donation'
@@ -332,23 +359,6 @@ const CriarItemAcervo = () => {
                 : ""
               }
             </Donation>
-            <Tooltip title='Itens privados não são mostrados aos visitantes do site'>
-              <FormControlLabel id='checkbox-privacy'
-                control={
-                  <Controller
-                    name="privado"
-                    control={control}
-                    render={({ field: props }) => (
-                      <Checkbox
-                        {...props}
-                        checked={props.value}
-                        onChange={(e) => props.onChange(e.target.checked)}
-                      />
-                    )}
-                  />}
-
-                label="Item Privado" labelPlacement='start' />
-            </Tooltip>
           </Fields>
           <Images>
             <Stack id='section-title' style={{ alignSelf: "stretch", alignItems: "flex-start" }}>
