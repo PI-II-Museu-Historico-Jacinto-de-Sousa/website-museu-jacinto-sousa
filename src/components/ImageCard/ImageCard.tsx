@@ -40,7 +40,7 @@ const ImageCard = ({ image, onClose }: ImageCardProps) => {
         setEditable(true)
       }
     })
-  })
+  }, [])
 
   return (
     <Card
