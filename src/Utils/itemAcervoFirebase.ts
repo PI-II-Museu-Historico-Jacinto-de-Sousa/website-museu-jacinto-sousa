@@ -66,6 +66,7 @@ const getItemAcervo = async (fullPath: string) => {
       return dataMuseu as ItemAcervo;
     }
   } catch (error) {
+    console.log(error)
     throw new FirebaseError("permission-denied", "Acesso negado");
   }
 };

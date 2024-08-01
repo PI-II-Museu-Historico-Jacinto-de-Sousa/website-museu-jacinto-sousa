@@ -31,11 +31,20 @@ import useItemAcervo from "../hooks/useItemAcervo";
 import { updateItemAcervo } from "../Utils/itemAcervoFirebase";
 import useFormItemAcervo from "../hooks/useItemAcervoForm";
 import { useNavigate } from "react-router-dom";
-import { getNomesColecoes } from "../Utils/colecaoFirebase";
+import { getColecoes } from "../Utils/colecaoFirebase";
 import ErrorPage from "./Erro";
 
 const ItemAcervoComponent = () => {
   const { id } = useParams<{ id: string }>();
+  const url = window.location.pathname; // Obtém a URL atual
+  const parts = url.split('/'); // Divide a URL em partes
+
+  // Encontra o índice de "colecoes"
+  const index = parts.findIndex(part => part === "colecoes");
+
+  // Pega tudo após "colecoes", excluindo o próprio "colecoes"
+  const pathAfterColecoes = index !== -1 ? parts.slice(index + 1).join('/') : '';
+
   const [logged, setLogged] = useState(false);
   const [editing, setEditing] = useState(false);
   const [dataFetched, setDataFetched] = useState(false);
@@ -44,7 +53,7 @@ const ItemAcervoComponent = () => {
   const [open, setOpenDialog] = useState(false)
   const [openDialogSave, setOpenDialogSave] = useState(false);
   const [documentoExiste, setDocumentoExiste] = useState(false);
-  const ItemAcervo = useItemAcervo(id ?? '');
+  const ItemAcervo = useItemAcervo(pathAfterColecoes ?? '');
   const { register, control, handleSubmit, formState, setValue, watch, reset } = useFormItemAcervo(ItemAcervo.itemAcervo===null?undefined:ItemAcervo.itemAcervo)
 
   const watchName = watch('nome');
@@ -81,7 +90,7 @@ const ItemAcervoComponent = () => {
 
   //função que é chamada ao submeter o formulário
   const onSubmit: SubmitHandler<ItemAcervo> = async (formData: ItemAcervo) => {
-    updateItemAcervo(formData, id ?? '')
+    updateItemAcervo(formData,  formData.colecao);
   }
 
   //query que verifica se a resolução for menor que 600px
@@ -94,8 +103,8 @@ const ItemAcervoComponent = () => {
    console.log(ItemAcervo.status)
 
   useEffect(() => {
-    getNomesColecoes().then((collections) => {
-      setCollectionList(collections)
+    getColecoes().then((collections) => {
+      setCollectionList(collections.map((collection) => collection.nome));
     })
   }, []);
 

@@ -73,12 +73,26 @@ const router = createBrowserRouter([
         ]
       },
       {
-        path: "/acervo/:id",
+        path: "/acervo/colecoes/privado/lista/:idColecao/itens/:id",
         element:
           <Suspense fallback={centeredLoading}>
             <ItemAcervo />
           </Suspense>,
       },
+      {
+        path: "acervo/colecoes/publico/lista/:idColecao/publico/:id",
+        element:
+          <Suspense fallback={centeredLoading}>
+            <ItemAcervo />
+          </Suspense>,
+      },
+      {
+        path: "acervo/colecoes/publico/lista/:idColecao/privado/:id",
+        element:
+          <Suspense fallback={centeredLoading}>
+            <ItemAcervo />
+          </Suspense>,
+      }
     ]
   }]);
 
