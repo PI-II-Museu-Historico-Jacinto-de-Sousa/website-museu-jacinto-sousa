@@ -2,48 +2,41 @@ import EmailIcon from '@mui/icons-material/Email'
 import PhoneIcon from '@mui/icons-material/Phone'
 import PlaceIcon from '@mui/icons-material/Place'
 import WhatsAppIcon from '@mui/icons-material/WhatsApp'
-import { Theme, Typography, styled } from '@mui/material'
+import InstagramIcon from '@mui/icons-material/Instagram';
+import { TextField, Theme, Typography, styled} from '@mui/material'
+import useMediaQuery from '@mui/material/useMediaQuery';
+import useTheme from '@mui/material/styles/useTheme';
 import { getAuth } from 'firebase/auth'
-import { doc, getDoc, getFirestore, setDoc } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
 import { app } from '../../../firebase/firebase'
-
-const COLLECTION_REF = 'informacoes-museu'
-
-interface IFooterData {
-  address: string,
-  email: string,
-  telephone: string,
-  whatsapp: string
-}
+import useFooter from '../../hooks/useFooter'
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
-
   //states of component
 
   const [edit, setEdit] = useState(false)
 
   const [logged, setLogged] = useState(false)
 
-  const [dataLess, setDataLess] = useState(false)
+  const theme = useTheme()
 
-  const [footerData, setFooterData] = useState<IFooterData>({
-    address: '',
-    email: '',
-    telephone: '',
-    whatsapp: ''
-  })
+  const mobile = useMediaQuery(theme.breakpoints.down('sm'))
 
-  const [newTelephone, setNewTelephone] = useState(footerData.telephone)
-  const [newWhatsapp, setNewWhatsapp] = useState(footerData.whatsapp)
-  const [newEmail, setNewEmail] = useState(footerData.email)
-  const [newAddress, setNewAddress] = useState(footerData.address)
+  const footerElements = useFooter()
+
+  const [newInstagram, setNewInstagram] = useState(footerElements.footerDatas.instagram)
+  const [newTelephone, setNewTelephone] = useState(footerElements.footerDatas.telephone)
+  const [newWhatsapp, setNewWhatsapp] = useState(footerElements.footerDatas.whatsapp)
+  const [newEmail, setNewEmail] = useState(footerElements.footerDatas.email)
+  const [newAddress, setNewAddress] = useState(footerElements.footerDatas.address)
 
   const startEdit = () => {
-    setNewTelephone(footerData.telephone)
-    setNewWhatsapp(footerData.whatsapp)
-    setNewEmail(footerData.email)
-    setNewAddress(footerData.address)
+    setNewInstagram(footerElements.footerDatas.instagram)
+    setNewTelephone(footerElements.footerDatas.telephone)
+    setNewWhatsapp(footerElements.footerDatas.whatsapp)
+    setNewEmail(footerElements.footerDatas.email)
+    setNewAddress(footerElements.footerDatas.address)
 
     setEdit(true)
   }
@@ -56,53 +49,12 @@ const Footer = () => {
     const newFooterData = {
       address: newAddress,
       email: newEmail,
+      instagram: newInstagram,
       telephone: newTelephone,
       whatsapp: newWhatsapp
     }
-
-    try {
-      submitToFirestore(newFooterData)
-      setEdit(false)
-    }
-    catch (error) {
-      console.log(error)
-    }
-  }
-
-  //comunicate with firestore
-
-  const getFooterData = async () => {
-    try {
-      const db = getFirestore()
-      const footerRef = doc(db, COLLECTION_REF, "footer")
-
-      await getDoc(footerRef).then((footerDoc) => {
-        if (!footerDoc.exists()) {
-          setDataLess(true)
-          return
-        }
-        const data = footerDoc.data()
-        setFooterData(data as IFooterData)
-      })
-        .catch(() => {
-          setDataLess(true)
-        })
-    }
-    catch (error) {
-      console.log(error)
-    }
-  }
-
-  const submitToFirestore = async (newFooterData: IFooterData) => {
-    try {
-      const db = getFirestore()
-      await setDoc(doc(db, COLLECTION_REF, "footer"), newFooterData)
-
-      setFooterData(newFooterData)
-    }
-    catch (error) {
-      console.log(error)
-    }
+    footerElements.submitFooterData(newFooterData)
+    cancelEdit()
   }
 
   //render time
@@ -110,16 +62,17 @@ const Footer = () => {
   useEffect(() => {
     const auth = getAuth(app)
 
-    auth.onAuthStateChanged((user) => {
+    auth.onAuthStateChanged((user) =>{
       setLogged(user ? true : false)
+      console.log(user)
     })
 
-    getFooterData()
+    footerElements.getFooterData()
   }, [])
 
-  if (dataLess === true) {
+  if (footerElements.dataLess === true) {
     return (
-      <FooterContainer data-cy="footer-container" sx={{ height: '6vh' }}>
+      <FooterContainer data-cy='footer-container' sx={{ height: '6vh' }}>
         <Typography sx={{ fontSize: '3vh' }}>
           Erro ao carregar informações do rodapé
         </Typography>
@@ -134,32 +87,62 @@ const Footer = () => {
           // component apply to edition
 
           <>
-            <FooterContent>
-              <FooterItem>
-                <PhoneIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
-                <TextField data-cy='footer-text-field' type='text' value={newTelephone} onChange={(e) => setNewTelephone(e.target.value)} />
-              </FooterItem>
+          <FooterContent style={{flexDirection: mobile ? "column" : "row"}}>
+              <SocialContent>
+                <Typography style={{fontSize: '2.3vh', textAlign: "center"}} color={theme.palette.onPrimary.main}><strong>Museu Histórico Jacinto de Sousa</strong></Typography>
+                <FooterItem>
+                  <InputFiled data-cy='footer-text-field' label='Link' id='outlined-size-small' multiline maxRows={2} size='small' value={newInstagram} onChange={(e) => setNewInstagram(e.target.value)}/>
+                </FooterItem>
+              </SocialContent>
 
-              <FooterItem>
-                <WhatsAppIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
-                <TextField data-cy='footer-text-field' type='text' value={newWhatsapp} onChange={(e) => setNewWhatsapp(e.target.value)} />
-              </FooterItem>
+              <ContactContent>
+                <Typography style={{fontSize: '2.3vh'}} color={theme.palette.onPrimary.main}><strong>Fale conosco</strong></Typography>
+                <FooterItem>
+                  <InputFiled data-cy='footer-text-field' label='Telefone' id='outlined-size-small' multiline maxRows={1} size='small' value={newTelephone} onChange={(e) => setNewTelephone(e.target.value)}/>
+                </FooterItem>
 
-              <FooterItem>
-                <EmailIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
-                <TextField data-cy='footer-text-field' type='text' value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
-              </FooterItem>
+                <FooterItem>
+                  <InputFiled data-cy='footer-text-field' label='Whatsapp' id='outlined-size-small' multiline maxRows={1} size='small' value={newWhatsapp} onChange={(e) => setNewWhatsapp(e.target.value)}/>
+                </FooterItem>
 
-              <FooterItem>
-                <PlaceIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
-                <TextField data-cy='footer-text-field' type='text' value={newAddress} onChange={(e) => setNewAddress(e.target.value)} />
-              </FooterItem>
+                <FooterItem>
+                  <InputFiled data-cy='footer-text-field' label='Email' id='outlined-size-small' multiline maxRows={1} size='small' value={newEmail} onChange={(e) => setNewEmail(e.target.value)}/>
+                </FooterItem>
+              </ContactContent>
+
+              {/* //Need to define routes */}
+              <AboutContent style={{marginTop: mobile ? "15vh" : ""}}>
+                <Typography style={{fontSize: '2.3vh'}} color={theme.palette.onPrimary.main}><strong>Conheça o museu</strong></Typography>
+                {
+                  mobile ?
+                  ""
+                  :
+                  <>
+                    <Link to='/' style={{textDecoration: 'none', color: `${theme.palette.onPrimary.main}`, marginTop: '1vh'}}>
+                      <Typography style={{fontSize: '1.5vh', textDecoration: 'underline'}}>Últimas exposições</Typography>
+                    </Link>
+                    <Link to='/' style={{textDecoration: 'none', color: `${theme.palette.onPrimary.main}`, marginTop: '1vh'}}>
+                      <Typography style={{fontSize: '1.5vh', textDecoration: 'underline'}}>Acervo</Typography>
+                    </Link>
+                    <Link to='/' style={{textDecoration: 'none', color: `${theme.palette.onPrimary.main}`, marginTop: '1vh'}}>
+                      <Typography style={{fontSize: '1.5vh', textDecoration: 'underline'}}>Editais e normas</Typography>
+                    </Link>
+                  </>
+                }
+                <FooterItem>
+                  <InputFiled data-cy='footer-text-field' label='Endereço' id='outlined-size-small' multiline maxRows={2} size='small' value={newAddress} onChange={(e) => setNewAddress(e.target.value)}/>
+                </FooterItem>
+              </AboutContent>
             </FooterContent>
 
             <FooterEditable>
-              <EditableButton onClick={() => applyEdit()}><strong>(Salvar)</strong></EditableButton>
+              <EditableButton onClick={() => applyEdit()}>
+                <Typography>Editar</Typography>
+              </EditableButton>
 
-              <EditableButton onClick={() => cancelEdit()}><strong>(Cancelar)</strong></EditableButton>
+              <EditableButton onClick={() => cancelEdit()}>
+                <Typography>Cancelar</Typography>
+              </EditableButton>
             </FooterEditable>
           </>
 
@@ -168,82 +151,160 @@ const Footer = () => {
           // component out of edition
 
           <>
-            <FooterContent>
-              <FooterItem>
-                <PhoneIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
-                {footerData.telephone}
-              </FooterItem>
+            <FooterContent style={{flexDirection: mobile ? "column" : "row"}}>
+              <SocialContent>
+                <Typography style={{fontSize: '2.3vh', textAlign: "center"}} color={theme.palette.onPrimary.main}><strong>Museu Histórico Jacinto de Sousa</strong></Typography>
+                <FooterItem>
+                  <AddressLink href={newInstagram} target='blank' style={{marginTop: mobile ? "3.5vh" : ""}}>
+                    <InstagramIcon sx={{position: 'relative', fontSize: '2.5vh', color: `${theme.palette.onPrimary.main}`}}/>
+                  </AddressLink>
+                </FooterItem>
+              </SocialContent>
 
-              <FooterItem>
-                <WhatsAppIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
-                {footerData.whatsapp}
-              </FooterItem>
+              <ContactContent>
+                <Typography style={{fontSize: '2.3vh'}} color={theme.palette.onPrimary.main}><strong>Fale conosco</strong></Typography>
+                <FooterItem sx={{marginTop: "3vh"}}>
+                  <PhoneIcon sx={{fontSize: '2.5vh', marginRight: '0.5vw' }} />
+                  <Typography style={{fontSize: '1.5vh'}}>{footerElements.footerDatas.telephone}</Typography>
+                </FooterItem>
 
-              <FooterItem>
-                <EmailIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
-                {footerData.email}
-              </FooterItem>
+                <FooterItem sx={{marginTop: "3vh"}}>
+                  <WhatsAppIcon sx={{ fontSize: '2.5vh', marginRight: '0.5vw' }} />
+                  <Typography style={{fontSize: '1.5vh'}}>{footerElements.footerDatas.whatsapp}</Typography>
+                </FooterItem>
 
-              <FooterItem>
-                <PlaceIcon sx={{ fontSize: '3vh', marginRight: '1vw' }} />
-                {footerData.address}
-              </FooterItem>
+                <FooterItem sx={{marginTop: "3vh"}}>
+                  <EmailIcon sx={{ fontSize: '2.5vh', marginRight: '0.5vw' }} />
+                  <Typography style={{fontSize: '1.5vh'}}>{footerElements.footerDatas.email}</Typography>
+                </FooterItem>
+              </ContactContent>
+
+              {/* //Need to define routes */}
+              <AboutContent>
+                <Typography style={{fontSize: '2.3vh'}} color={theme.palette.onPrimary.main}><strong>Conheça o museu</strong></Typography>
+                <Link to='/' style={{textDecoration: 'none', color: `${theme.palette.onPrimary.main}`, marginTop: '2vh'}}>
+                  <Typography style={{fontSize: '1.5vh', textDecoration: 'underline'}}>Últimas exposições</Typography>
+                </Link>
+                <Link to='/' style={{textDecoration: 'none', color: `${theme.palette.onPrimary.main}`, marginTop: '2vh'}}>
+                  <Typography style={{fontSize: '1.5vh', textDecoration: 'underline'}}>Acervo</Typography>
+                </Link>
+                <Link to='/' style={{textDecoration: 'none', color: `${theme.palette.onPrimary.main}`, marginTop: '2vh'}}>
+                  <Typography style={{fontSize: '1.5vh', textDecoration: 'underline'}}>Editais e normas</Typography>
+                </Link>
+                <FooterItem>
+                  <PlaceIcon sx={{ fontSize: '2.5vh', marginRight: '0.5vw' }} />
+                  <Typography style={{fontSize: '1.5vh'}}>{footerElements.footerDatas.address}</Typography>
+                </FooterItem>
+              </AboutContent>
             </FooterContent>
-
             {
               logged ?
 
                 <FooterEditable>
-                  <EditableButton onClick={() => startEdit()} data-cy='footer-edit-button'><strong>(Editar)</strong></EditableButton>
+                  <EditableButton onClick={() => startEdit()} data-cy='footer-edit-button'>
+                    <Typography>Editar informações</Typography>
+                  </EditableButton>
                 </FooterEditable>
                 :
                 ''
             }
-
           </>
         }
+        <hr style={{position: 'relative', width: '100%', margin: 'auto', color: `${theme.palette.onPrimary.main}`}}/>
+        <CopyRightSection>
+          <Typography style={{position: 'relative', color: theme.palette.onPrimary.main}}>Copyright © 2024</Typography>
+        </CopyRightSection>
       </ FooterContainer>
     )
   }
 }
 
 const FooterContainer = styled('footer')(({ theme }: { theme: Theme }) => ({
-  left: '0',
   bottom: '0',
   height: 'fit-content',
   width: '100%',
-  display: 'flex',
   flexDirection: 'column',
+  flexWrap: 'wrap',
+  
+  display: 'flex',
   justifyContent: 'center',
   alignContent: 'center',
-  flexWrap: 'wrap',
-  backgroundColor: theme.palette.outline.main,
+
+  background: theme.palette.primary.main,
+  padding: `${theme.spacing(2)}`,
 }))
 
-const FooterContent = styled('div')(() => ({
+const FooterContent = styled('address')(() => ({
   position: 'relative',
   top: '0',
   display: 'flex',
   width: '100%',
-  height: '9%',
-  justifyContent: 'space-around',
+  justifyContent: 'space-between',
   alignItems: 'center',
   flexShrink: '0',
-
-  '@media screen and (max-width: 600px)': {
-    flexDirection: 'column',
-    height: 'auto'
-  }
 }))
 
+
+const AddressLink = styled('a')(({theme} : {theme:Theme}) =>({
+  position: 'relative',
+  border: `1px solid ${theme.palette.onPrimary.main}`,
+  borderRadius: '50%',
+  height: 'fit-content',
+  aspectRatio: '1/1',
+  textDecoration: 'none',
+  color: 'inherit',
+
+  display: 'flex',
+  alignContent: 'center',
+  justifyContent: 'center',
+
+  padding: `${theme.spacing(1)}`,
+}))
+
+const SocialContent = styled('section')(() =>({
+  position: 'relative',
+  height: '25vh',
+  width: '30vw',
+
+  display: 'flex',
+  alignItems: 'center',
+  flexDirection: 'column'
+}))
+
+
+const ContactContent = styled('address')(() =>({
+  position: 'relative',
+  height: '25vh',
+  width: '30vw',
+
+  display: 'flex',
+  alignItems: 'center',
+  flexDirection: 'column'
+}))
+
+const AboutContent = styled('section')(() =>({
+  position: 'relative',
+  height: '25vh',
+  width: '30vw',
+
+  display: 'flex',
+  alignItems: 'center',
+  flexDirection: 'column'
+}))
+
+
 const FooterItem = styled('li')(({ theme }: { theme: Theme }) => ({
+  position: 'relative',
   listStyleType: 'none',
-  fontSize: '2.5vh',
+  height: 'fit-content',
+  
   display: 'flex',
   justifyContent: 'start',
   alignItems: 'center',
-  padding: '1.5vh',
-  color: theme.palette.onSurface.main
+
+  color: theme.palette.onPrimary.main,
+
+  marginTop: '1.5vh'
 }))
 
 const FooterEditable = styled('div')(({ theme }: { theme: Theme }) => ({
@@ -259,28 +320,52 @@ const FooterEditable = styled('div')(({ theme }: { theme: Theme }) => ({
 
 const EditableButton = styled('button')(({ theme }: { theme: Theme }) => ({
   cursor: 'pointer',
-  background: 'none',
-  border: 'none',
   fontSize: '2.5vh',
-  color: theme.palette.onSurface.main
+  
+  border: 'none',
+  borderRadius: '40px',
+
+  padding: `${theme.spacing(1)} ${theme.spacing(3)}`,
+  margin: '1.5vh',
+  
+  background: 'none',
+  backgroundColor: theme.palette.tertiary.main,
+  color: theme.palette.onPrimary.main,
 }))
 
-const TextField = styled('input')(() => ({
-  backgroundColor: 'white',
-  color: 'black',
-  borderStyle: 'hidden',
-  outline: 'none',
-  padding: '1vh',
-  fontSize: '2vh',
-
-  '@media screen and (min-width: 600px)': {
-    width: '15vw'
+const InputFiled = styled(TextField)(({theme}: {theme: Theme}) =>({
+  '& label.Mui-focused':{
+    color: theme.palette.onPrimary.main
   },
+  '& label':{
+    color: theme.palette.onPrimary.main,
+  },
+  '& .MuiInputBase-input':{
+    color: theme.palette.onPrimary.main,
+    fontSize: '2vh'
+  },
+  '& .MuiOutlinedInput-root': {
+    '& fieldset': {
+      borderColor: theme.palette.onPrimary.main,
+    },
+    '&:hover fieldset': {
+      borderColor: theme.palette.onPrimary.main,
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: theme.palette.onPrimary.main,
+    },
+  },
+}))
 
-  '@media screen and (max-width: 600px)': {
-    with: '50vw',
-    height: 'auto'
-  }
+const CopyRightSection = styled('section')(({theme}: {theme: Theme}) =>({
+  height: "fit-content",
+  width: "100%",
+
+  justifyContent: "center",
+  alignItems: "center",
+  display: "flex",
+
+  padding: `${theme.spacing(1)}`,
 }))
 
 export default Footer
