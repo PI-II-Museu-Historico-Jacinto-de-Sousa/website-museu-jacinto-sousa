@@ -157,6 +157,9 @@ async function atualizarImagemInfoMuseu(
       throw new Error("Nova imagem deve ser um arquivo");
     }
   } else {
+    if (!novaImagem.src.type.includes("image")) {
+      throw new FirebaseError("storage-error", "Arquivo deve ser uma imagem");
+    }
     const novaImagemRef = ref(storage, `images/${novaImagem.src.name}`);
     try {
       const metadata = { customMetadata: { alt: novaImagem.alt } };
@@ -232,7 +235,7 @@ async function adicionarInfoMuseu(info: InfoMuseu): Promise<string> {
 
 async function adicionarImagemInfoMuseu(imagem: Imagem): Promise<string> {
   try {
-    if (imagem.src instanceof File) {
+    if (imagem.src instanceof File && imagem.src.type.includes("image")) {
       const storageRef = ref(storage, `images/${imagem.src.name}`);
       await uploadBytesResumable(storageRef, imagem.src).catch(() => {
         throw new FirebaseError("storage-error", "Erro salvando conteúdo");
@@ -302,16 +305,25 @@ const getInfoUsingImageCount = async (nomeImagem: string): Promise<number> => {
  */
 const adicionarImagemHome = async (imagem: Imagem): Promise<void> => {
   try {
-    if (!(imagem.src instanceof File)) {
-      throw Error("Conteúdo da imagem deve ser um arquivo");
+    if (!(imagem.src instanceof File && imagem.src.type.includes("image"))) {
+      throw Error("Conteúdo da imagem deve ser um arquivo válido");
     }
     const homeDoc = doc(db, HOME_REF, "home");
+    const homeExists = (
+      await getDoc(homeDoc).catch(() => {
+        throw new FirebaseError("firestore-error", "Erro ao buscar documento");
+      })
+    ).exists();
     const novaImagemRef = ref(storage, `images/${imagem.src.name}`);
     await uploadBytes(novaImagemRef, imagem.src).catch(() => {
       throw new FirebaseError("storage-error", "Erro salvando nova imagem");
     });
-    // caminho da nova imagem é adicionado ao array imagens
-    await updateDoc(homeDoc, { imagens: arrayUnion(novaImagemRef.name) });
+    if (homeExists) {
+      // caminho da nova imagem é adicionado ao array imagens
+      await updateDoc(homeDoc, { imagens: arrayUnion(novaImagemRef.fullPath) });
+    } else {
+      await setDoc(homeDoc, { imagens: [novaImagemRef.fullPath] });
+    }
   } catch (error) {
     if ((error as FirebaseError).code == "permission-denied") {
       (error as Error).message =
@@ -324,17 +336,17 @@ const adicionarImagemHome = async (imagem: Imagem): Promise<void> => {
 /**
  * Remove uma imagem da lista da home page
  */
-const removerImagemHome = async (nome_imagem: string): Promise<void> => {
+const removerImagemHome = async (nomeImagem: string): Promise<void> => {
   try {
     const homeDoc = doc(db, HOME_REF, "home");
-    const imagemRef = ref(storage, `images/${nome_imagem}`);
+    const imagemRef = ref(storage, nomeImagem);
     await deleteObject(imagemRef).catch(() => {
       throw new FirebaseError(
         "storage-error",
-        `Erro removendo imagem ${nome_imagem}`
+        `Erro removendo imagem ${nomeImagem}`
       );
     });
-    await updateDoc(homeDoc, { imagens: arrayRemove(nome_imagem) });
+    await updateDoc(homeDoc, { imagens: arrayRemove(nomeImagem) });
   } catch (error) {
     if ((error as FirebaseError).code == "permission-denied") {
       (error as Error).message =
@@ -345,10 +357,10 @@ const removerImagemHome = async (nome_imagem: string): Promise<void> => {
 };
 
 export {
+  adicionarImagemHome,
   adicionarInfoMuseu,
   atualizarInfoMuseu,
   deletarInfoMuseu,
   getInfoMuseu,
-  adicionarImagemHome,
   removerImagemHome,
 };
