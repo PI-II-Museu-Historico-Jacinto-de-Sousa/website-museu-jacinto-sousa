@@ -2,17 +2,9 @@ import Footer from "../Footer"
 import { ThemeProvider } from "@emotion/react"
 import { auth } from "../../../../firebase/firebase"
 import { BrowserRouter } from "react-router-dom"
+import getDesignTokens from "../../../theme/theme"
 
-const theme = {
-  palette: {
-    outline: {
-      main: "#85736C",
-    },
-    onSurface: {
-      main: "#221A16"
-    }
-  }
-}
+const theme = getDesignTokens('light')
 
 const mountFooter = () => {
   return cy.mount(
@@ -43,6 +35,7 @@ describe("Testando componente Footer", () => {
     mountFooter()
 
     cy.get("[data-cy='footer-container']").should("exist")
+
     //verifica se o footer renderiza abaixo dos elementos anteriores
     cy.get('main').then((main) => main.position().top).then(mainTop => {
       cy.get("[data-cy='footer-container']").then((footer) => {
