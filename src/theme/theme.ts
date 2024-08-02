@@ -310,6 +310,7 @@ const getDesignTokens = (mode: PaletteMode) => {
   return {
     ...theme,
     typography: {
+      pxToRem: (size: number) => `${size / 16}rem`, // Definir função pxToRem
       fontFamily: ['Roboto', 'Robot Serif'].join(','),
       displayLarge: {
         fontFamily: "Roboto Serif",
