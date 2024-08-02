@@ -2,6 +2,7 @@ import { ItemAcervo } from "../interfaces/ItemAcervo";
 import { useEffect, useState } from "react";
 import { updateItemAcervo } from "../Utils/itemAcervoFirebase";
 import { getItemAcervo } from "../Utils/itemAcervoFirebase";
+import { Colecao } from "../interfaces/Colecao";
 
 /** Hook contendo o formulario para as informacoes de um item do acervo,
  * podendo ser usado tanto para criar como atualizar. No caso de um item ser
@@ -28,6 +29,7 @@ const useItemAcervo = (
       .then((itemAcervo) => {
         setData(itemAcervo);
         setStatus("success");
+        console.log("itemAcervo", itemAcervo);
       })
       .catch((error) => {
         console.error(error);
@@ -46,7 +48,7 @@ const useItemAcervo = (
   }, [fullPath]); // Dependência: o effect será chamado novamente se fullPath mudar
 
   // função de update fixada no id passado
-  const update = (itemAcervo: ItemAcervo) => updateItemAcervo(itemAcervo, id); // Swap the arguments
+  const update = (itemAcervo: ItemAcervo) => updateItemAcervo(itemAcervo, {} as Colecao); // Swap the arguments
 
   return { status, itemAcervo: data, atualizarItemAcervo: update };
 }

@@ -33,6 +33,8 @@ import useFormItemAcervo from "../hooks/useItemAcervoForm";
 import { useNavigate } from "react-router-dom";
 import { getColecoes } from "../Utils/colecaoFirebase";
 import ErrorPage from "./Erro";
+import useColecoes from "../hooks/useColecoes";
+import { Colecao } from "../interfaces/Colecao";
 
 const ItemAcervoComponent = () => {
   const { id } = useParams<{ id: string }>();
@@ -76,6 +78,14 @@ const ItemAcervoComponent = () => {
     if (!dataFetched && ItemAcervo.status === 'success' && ItemAcervo.itemAcervo) {
       setDataFetched(true);
       setDocumentoExiste(true);
+      reset({
+        nome: ItemAcervo.itemAcervo.nome ?? '',
+        descricao: ItemAcervo.itemAcervo.descricao ?? '',
+        curiosidades: ItemAcervo.itemAcervo.curiosidades ?? '',
+        colecao: ItemAcervo.itemAcervo.colecao ?? '',
+        dataDoacao: ItemAcervo.itemAcervo.dataDoacao ? dayjs(ItemAcervo.itemAcervo.dataDoacao.toDate()) : null,
+        privado: ItemAcervo.itemAcervo.privado ?? false,
+      });
     } else if (ItemAcervo.status === 'error.permission-denied' || ItemAcervo.itemAcervo !== null) {
       setDocumentoExiste(true);
     } else if (ItemAcervo.status === 'error.not-found') {
@@ -83,7 +93,7 @@ const ItemAcervoComponent = () => {
     } else if(ItemAcervo.itemAcervo === null) {
       setDocumentoExiste(false);
     }
-  }, [ItemAcervo, dataFetched, setValue, editing]);
+  }, [ItemAcervo, dataFetched, setValue, editing, reset]);
 
   //valor desses campos é observado para alterar a renderização da página
   const { errors } = formState
@@ -99,12 +109,13 @@ const ItemAcervoComponent = () => {
   //Funções relativas ao select de coleções
    //funções relativas ao select
 
-   const [collectionList, setCollectionList] = useState<string[]>([]);
-   console.log(ItemAcervo.status)
+  const collectionList: Colecao[] = useColecoes()
+  console.log(collectionList)
+  const [privateCollection, setPrivateCollection] = useState<boolean>(false);
 
   useEffect(() => {
     getColecoes().then((collections) => {
-      setCollectionList(collections.map((collection) => collection.nome));
+      setPrivateCollection(collections.some((collection) => collection.privado));
     })
   }, []);
 
@@ -344,6 +355,7 @@ const ItemAcervoComponent = () => {
                                     {...field}
                                     value={field.value}
                                     {...register('colecao')}
+                                    defaultValue={ItemAcervo.itemAcervo?.colecao}
                                     label="Seleção de Coleção"
                                     variant="filled"
                                     data-cy="select-collection"
