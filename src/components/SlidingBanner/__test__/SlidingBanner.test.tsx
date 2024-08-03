@@ -1,8 +1,15 @@
-import { SlidingBannerProps } from "../../../interfaces/SlidingBannerProps";
 import SlidingBanner from "../SlidingBanner";
 import getDesignTokens from "../../../theme/theme"
 import { ThemeProvider } from "@emotion/react"
 import { auth } from "../../../../firebase/firebase";
+
+
+interface SlidingBannerProps {
+  images: Imagem[];
+  addImage: () => void;
+  editAlt: (key: number) => void;
+  removeImage: (key: number) => void;
+}
 
 const theme = getDesignTokens('light')
 

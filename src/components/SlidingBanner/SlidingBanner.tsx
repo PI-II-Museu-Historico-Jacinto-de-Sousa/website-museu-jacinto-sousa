@@ -10,10 +10,15 @@ import IconButton from "@mui/material/IconButton";
 import { Controller, useForm } from "react-hook-form";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import TextField from "@mui/material/TextField";
-import { SlidingBannerProps } from "../../interfaces/SlidingBannerProps"; // Certifique-se de que a interface está definida corretamente
 import Fade from "@mui/material/Fade";
 import FormControlLabel from "@mui/material/FormControlLabel";
 
+interface SlidingBannerProps {
+  images: Imagem[];
+  addImage: () => void;
+  editAlt: (key: number) => void;
+  removeImage: (key: number) => void;
+}
 const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
   const [slide, setSlide] = useState(0);
   const [editing, setEditing] = useState(false);
@@ -109,25 +114,20 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
               )
             }
           {
-            imagensSlidingBanner.map((image, index) => (
-              <Fade key={index} in={index === slide} timeout={600}>
-                <div style={{ display: index === slide ? "block" : "none" }}>
-                  <Imagens src={image.src.toString()} alt={image.alt} />
-                </div>
-              </Fade>
-            ))
+            imagensSlidingBanner.map((image, index) => {
+              // Verifica se image.src é do tipo File
+              const src = image.src instanceof File ? URL.createObjectURL(image.src) : image.src;
+
+              return (
+                <Fade key={index} in={index === slide} timeout={600}>
+                  <div style={{ display: index === slide ? "block" : "none" }}>
+                    <Imagens src={src} alt={image.alt} />
+                  </div>
+                </Fade>
+              );
+            })
           }
-          <Pagination>
-          {
-            imagensSlidingBanner.map((_, index) => (
-              <PageIndicator
-                key={index}
-                active={index === slide}
-                onClick={() => handleIndicatorClick(index)}
-              />
-            ))
-          }
-          </Pagination>
+        
           {
           imagensSlidingBanner.map((image, index) => (
             <div key={index} style={{ display: index === slide ? "block" : "none" }}>
@@ -151,9 +151,23 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
                   <Typography variant="labelLarge">{image.alt}</Typography>
                 )
               }
+              {
+                  <Pagination>
+                  {
+                    imagensSlidingBanner.map((_, index) => (
+                      <PageIndicator
+                        key={index}
+                        active={index === slide}
+                        onClick={() => handleIndicatorClick(index)}
+                      />
+                    ))
+                  }
+                  </Pagination>
+              }
             </div>
           ))
         }
+        
           {
             logged && (
               <EditField>
@@ -186,8 +200,11 @@ const ContainerImagem = styled(Container)(({ theme }: { theme: Theme }) => ({
   flexDirection: 'column',
   justifyContent: 'center',
   alignItems: 'center',
-  gap: theme.spacing(2),
   alignSelf: 'stretch',
+  position: 'relative', // Para posicionar os botões de navegação
+  padding: theme.spacing(3),
+  gap: theme.spacing(2),
+  width: '40%',
 }));
 
 const Image = styled('div')(({ theme }: { theme: Theme }) => ({
