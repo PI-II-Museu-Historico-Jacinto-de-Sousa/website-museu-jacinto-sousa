@@ -339,6 +339,9 @@ const adicionarImagemHome = async (imagem: Imagem): Promise<void> => {
 const removerImagemHome = async (nomeImagem: string): Promise<void> => {
   try {
     const homeDoc = doc(db, HOME_REF, "home");
+    if (!nomeImagem.includes("images/")) {
+      nomeImagem = `images/${nomeImagem}`;
+    }
     const imagemRef = ref(storage, nomeImagem);
     await deleteObject(imagemRef).catch(() => {
       throw new FirebaseError(
