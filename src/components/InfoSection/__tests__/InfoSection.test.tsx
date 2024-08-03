@@ -153,6 +153,32 @@ describe("Testando componente InfoSection", () => {
         })
       })
     })
+
+    it("Deve permitir a criação de um novo item", () => {
+      cy.mount(
+        <ThemeProvider theme={theme}>
+          <InfoSection id={null} />
+        </ThemeProvider>
+      )
+      cy.get("[data-cy='info-title']").should("exist")
+      cy.get("[data-cy='info-text']").should("exist")
+      cy.get("[data-cy='info-image']").should("not.exist")
+
+      cy.get("[data-cy='info-edit-button']").click().then(() => {
+        cy.get("[data-cy='info-edit-text-field']").should("exist").click().find('textarea').first().clear().then(() => {
+          cy.get("[data-cy='info-edit-text-field']").type("Teste de edição")
+        })
+        cy.get("[data-cy='info-edit-title-field']").should("exist").find('input').clear().then(() => {
+          cy.get("[data-cy='info-edit-title-field']").type("Teste de edição")
+        })
+
+        cy.get("[data-cy='info-submit-button']").click().then(() => {
+          cy.get("[data-cy='info-title']").should("exist").contains("Teste de edição")
+          cy.get("[data-cy='info-text']").should("exist").contains("Teste de edição")
+        })
+      })
+    })
+
     it("Deve permitir edição do título", () => {
       cy.mount(
         <ThemeProvider theme={theme}>
