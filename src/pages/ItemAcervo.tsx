@@ -83,6 +83,7 @@ const ItemAcervoComponent = () => {
         descricao: ItemAcervo.itemAcervo.descricao ?? '',
         curiosidades: ItemAcervo.itemAcervo.curiosidades ?? '',
         colecao: ItemAcervo.itemAcervo.colecao ?? '',
+        imagens: ItemAcervo.itemAcervo.imagens,
         dataDoacao: ItemAcervo.itemAcervo.dataDoacao ? dayjs(ItemAcervo.itemAcervo.dataDoacao.toDate()) : null,
         privado: ItemAcervo.itemAcervo.privado ?? false,
       });
@@ -100,7 +101,10 @@ const ItemAcervoComponent = () => {
 
   //função que é chamada ao submeter o formulário
   const onSubmit: SubmitHandler<ItemAcervo> = async (formData: ItemAcervo) => {
-    updateItemAcervo(formData,  formData.colecao);
+    console.log(formData)
+    formData.id = ItemAcervo.itemAcervo?.id;
+    const novaColecao = collectionList.filter(collection => collection.nome === formData.colecao)[0]
+    updateItemAcervo(formData,  novaColecao);
   }
 
   //query que verifica se a resolução for menor que 600px
@@ -125,7 +129,7 @@ const ItemAcervoComponent = () => {
   }
 
   const redirecionarExclusao = () => {
-    deleteItemAcervo(id ?? '')
+    deleteItemAcervo(ItemAcervo.itemAcervo?.id || "" );
     navigate('/')
   }
 
@@ -137,6 +141,7 @@ const ItemAcervoComponent = () => {
         descricao: ItemAcervo.itemAcervo.descricao ?? '',
         curiosidades: ItemAcervo.itemAcervo.curiosidades ?? '',
         colecao: ItemAcervo.itemAcervo.colecao ?? '',
+        imagens: ItemAcervo.itemAcervo.imagens || [],
         dataDoacao: ItemAcervo.itemAcervo.dataDoacao ? dayjs(ItemAcervo.itemAcervo.dataDoacao.toDate()) : dayjs(''),
         privado: ItemAcervo.itemAcervo.privado ?? false,
       });
@@ -355,21 +360,15 @@ const ItemAcervoComponent = () => {
                                     {...field}
                                     value={field.value}
                                     {...register('colecao')}
-                                    defaultValue={ItemAcervo.itemAcervo?.colecao}
                                     label="Seleção de Coleção"
                                     variant="filled"
                                     data-cy="select-collection"
                                   >
                                     {
-                                      collectionList.map((collection) => (
-                                        <MenuItem
-                                          key={collection}
-                                          value={collection}
-                                          data-cy="select-collection-item"
-                                        >
-                                          {collection}
-                                        </MenuItem>
-                                      ))
+                                      collectionList.length !== 0 ?
+                                      collectionList.map((collection, idx) => (
+                                        <MenuItem value={collection.nome} key={idx} data-cy='select-collection-item'>{collection.nome}</MenuItem>))
+                                      : <MenuItem value="" disabled data-cy='select-collection-item-fail'>Falha ao carregar as coleções</MenuItem>
                                     }
                                   </Select>
                                 )}
