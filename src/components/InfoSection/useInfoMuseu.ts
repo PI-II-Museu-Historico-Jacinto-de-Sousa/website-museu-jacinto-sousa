@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  adicionarInfoMuseu,
   atualizarInfoMuseu,
   getInfoMuseu,
 } from "../../Utils/infoMuseuFirebase";
@@ -10,7 +11,7 @@ type Status = "loading" | "success" | "error";
 type useInfoSectionReturnType = {
   status: Status;
   infoMuseu: InfoMuseu | null;
-  atualizarInfoMuseu: (info: InfoMuseu) => Promise<void>;
+  atualizarInfoMuseu: (info: InfoMuseu) => Promise<string | boolean>;
 };
 
 /**
@@ -18,7 +19,7 @@ type useInfoSectionReturnType = {
  * @param id
  * @returns infoMuseu com o id respectivo e a função atualizar fixada para o id passado
  */
-const useInfoMuseu = (id: string): useInfoSectionReturnType => {
+const useInfoMuseu = (id: string | null): useInfoSectionReturnType => {
   const [data, setData] = useState<InfoMuseu | null>(null);
   const [status, setStatus] = useState<Status>("loading");
 
@@ -32,14 +33,27 @@ const useInfoMuseu = (id: string): useInfoSectionReturnType => {
         setStatus("error");
       }
     };
-    fetchInfoMuseu();
+    if (id) {
+      fetchInfoMuseu();
+    } else {
+      setData({
+        nome: "",
+        texto: "",
+      });
+      setStatus("success");
+    }
   }, [id]);
 
   //função de update fixada no id passado
-  const update = async (infoMuseu: InfoMuseu) => {
-    await atualizarInfoMuseu(id, infoMuseu);
-    if (data || data!.imagem != infoMuseu?.imagem) {
-      setData(infoMuseu);
+  const update = async (infoMuseu: InfoMuseu): Promise<string | boolean> => {
+    if (!id) {
+      return await adicionarInfoMuseu(infoMuseu);
+    } else {
+      await atualizarInfoMuseu(id, infoMuseu);
+      if (data || data!.imagem != infoMuseu?.imagem) {
+        setData(infoMuseu);
+      }
+      return true;
     }
   };
 

@@ -21,18 +21,23 @@ import useInfoMuseuForm from "../../hooks/useInfoMuseuForm";
 import { InfoMuseu } from "../../interfaces/InfoMuseu";
 import useInfoMuseu from './useInfoMuseu';
 interface InfoSectionProps {
-  id: string
+  id: string | null
 }
 
-
+/**
+ * Componente para uma secao de informacao do museu,
+ * caso o id seja fornecido, o componente ira corresponder a uma secao existente,
+ * caso contrario o componente sera usado como formulario para adicionar uma nova secao
+ * @param id
+ */
 const InfoSection = ({ id }: InfoSectionProps) => {
   const theme = useTheme()
   const mobile = useMediaQuery(theme.breakpoints.down('sm'))
-
+  const [infoId, setInfoId] = useState<string | null>(id)
   const [editable, setEditable] = useState<boolean>(false)
   const [editing, setEditing] = useState<boolean>(false)
 
-  const { status, infoMuseu, atualizarInfoMuseu } = useInfoMuseu(id)
+  const { status, infoMuseu, atualizarInfoMuseu } = useInfoMuseu(infoId)
 
   const [showDialog, setShowDialog] = useState<boolean>(false)
   const [dialogMessage, setDialogMessage] = useState<string>('')
@@ -66,7 +71,10 @@ const InfoSection = ({ id }: InfoSectionProps) => {
       // atualiza apenas o texto e o nome se nenhuma imagem for selecionada
       delete data.imagem
     }
-    await atualizarInfoMuseu(data).then(() => {
+    await atualizarInfoMuseu(data).then((returnValue) => {
+      if (typeof returnValue === 'string') {
+        setInfoId(returnValue)
+      }
       setDialogMessage('Informação atualizada com sucesso')
       setEditing(false)
     }).catch((error) => {
@@ -123,7 +131,7 @@ const InfoSection = ({ id }: InfoSectionProps) => {
         <>
           <InfoSectionText>
             <InfoSectionHeader>
-              <Typography variant='displayMedium' data-cy='info-title'>{infoMuseu?.nome}</Typography>
+              <Typography variant='displayMedium' data-cy='info-title'>{infoMuseu?.nome || "Nova informação do Museu"}</Typography>
               {editable && <InfoSectionEditButton
                 component='label'
                 variant='contained'
@@ -132,9 +140,9 @@ const InfoSection = ({ id }: InfoSectionProps) => {
                 <EditIcon />
               </InfoSectionEditButton>}
             </InfoSectionHeader>
-            <Typography variant='bodyLarge' data-cy='info-text'>{infoMuseu?.texto}</Typography>
+            <Typography variant='bodyLarge' data-cy='info-text'>{infoMuseu?.texto || "Adicione uma descrição"}</Typography>
           </InfoSectionText>
-          <InfoImageContainer>
+          {currentImage && <InfoImageContainer>
             <figure>
               <img
                 src={loadSrc(infoMuseu?.imagem?.src)}
@@ -143,6 +151,7 @@ const InfoSection = ({ id }: InfoSectionProps) => {
               <figcaption style={{ textAlign: 'center' }} data-cy='info-alt-text'>{infoMuseu?.imagem?.alt}</figcaption>
             </figure>
           </InfoImageContainer>
+          }
         </>
         :
         // estado de edicao do componente
