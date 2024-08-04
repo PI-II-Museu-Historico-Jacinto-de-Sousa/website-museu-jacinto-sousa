@@ -300,6 +300,42 @@ const getInfoUsingImageCount = async (nomeImagem: string): Promise<number> => {
 };
 
 /**
+ * Retorna todas as imagens da home page
+ */
+const getImagensHome = async (): Promise<Imagem[]> => {
+  try {
+    const homeDoc = doc(db, HOME_REF, "home");
+    const homeData = await getDoc(homeDoc).catch(() => {
+      throw new FirebaseError("firestore-error", "Erro ao buscar documento");
+    });
+    if (!homeData.exists()) {
+      throw new Error("Documento não encontrado");
+    }
+    const imagens: string[] = homeData.data().imagens;
+    const imagensData: Imagem[] = [];
+    for (const imagem of imagens) {
+      const imagemRef = ref(storage, imagem);
+      const url = await getDownloadURL(imagemRef).catch(() => {
+        throw new FirebaseError("not-found", "Imagem não encontrada");
+      });
+      const metadata = await getMetadata(imagemRef).catch(() => {
+        throw new FirebaseError("not-found", "Metadados não encontrados");
+      });
+      imagensData.push({
+        src: url,
+        title: metadata?.name,
+        alt:
+          metadata?.customMetadata?.alt === undefined
+            ? ""
+            : metadata.customMetadata.alt,
+      });
+    }
+    return imagensData;
+  } catch (error) {
+    throw new Error(`${(error as Error).message}`);
+  }
+};
+/**
  * Adiciona uma nova imagem para a lista da home page
  * @param imagem
  */
@@ -334,6 +370,27 @@ const adicionarImagemHome = async (imagem: Imagem): Promise<void> => {
 };
 
 /**
+ * Atualiza o texto alternativo da imagem
+ * @param imagem
+ */
+const atualizarAltImagemHome = async (imagem: Imagem): Promise<void> => {
+  try {
+    let nomeImagem = imagem.title;
+    if (!nomeImagem.includes("images/")) {
+      nomeImagem = `images/${nomeImagem}`;
+    }
+    const imagemRef = ref(storage, nomeImagem);
+    await updateMetadata(imagemRef, {
+      customMetadata: { alt: imagem.alt },
+    }).catch(() => {
+      throw new FirebaseError("storage-error", "Erro atualizando metadados");
+    });
+  } catch (error) {
+    throw new Error(`${(error as Error).message}`);
+  }
+};
+
+/**
  * Remove uma imagem da lista da home page
  */
 const removerImagemHome = async (nomeImagem: string): Promise<void> => {
@@ -361,6 +418,8 @@ const removerImagemHome = async (nomeImagem: string): Promise<void> => {
 
 export {
   adicionarImagemHome,
+  getImagensHome,
+  atualizarAltImagemHome,
   adicionarInfoMuseu,
   atualizarInfoMuseu,
   deletarInfoMuseu,
