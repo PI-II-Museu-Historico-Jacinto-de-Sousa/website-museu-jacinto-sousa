@@ -3,6 +3,8 @@ import getDesignTokens from "../../../theme/theme"
 import { ThemeProvider } from "@emotion/react"
 import { auth } from "../../../../firebase/firebase";
 
+const theme = getDesignTokens('light')
+
 
 interface SlidingBannerProps {
   images: Imagem[];
@@ -10,8 +12,6 @@ interface SlidingBannerProps {
   editAlt: (key: number) => void;
   removeImage: (key: number) => void;
 }
-
-const theme = getDesignTokens('light')
 
 const images: Imagem[] = [
   {
