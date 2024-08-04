@@ -21,9 +21,21 @@ const EmailLoginForm = () => {
     const [buttonClicked, setButtonClicked] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [erroLogin, setErroLogin] = useState(false);
+    const [loginError, setLoginError] = useState<string | null>(null);
+    const [resetPasswordError, setResetPasswordError] = useState<string | null>(null);
     const navigate = useNavigate(); // Hook para navegação
-    const { register, watch, handleSubmit, reset } = useLoginForm();
-    const [ error, setError ] = useState<string | null>(null);
+    const {
+        register: registerLogin,
+        watch: watchLogin,
+        handleSubmit: handleSubmitLogin,
+    } = useLoginForm();
+
+    const {
+        register: registerPasswordReset,
+        watch: watchPasswordReset,
+        handleSubmit: handleSubmitPasswordReset,
+        reset: resetPasswordReset
+    } = useLoginForm();
 
     const handleClickShowPassword = () => setShowPassword((show) => !show);
 
@@ -35,126 +47,113 @@ const EmailLoginForm = () => {
 
     const closeDialog = () => setDialogOpen(false);
 
-    const watchEmail = watch('email');
-    const watchSenha = watch('senha');
-    const watchEmailRedefinicaoSenha = watch('emailRedefinicaoSenha');
+    const watchEmail = watchLogin('email');
+    const watchSenha = watchLogin('senha');
+    const watchEmailRedefinicaoSenha = watchPasswordReset('emailRedefinicaoSenha');
 
     useEffect(() => {
         if (!dialogOpen) {
-            reset({ emailRedefinicaoSenha: '' });
+            resetPasswordReset({ emailRedefinicaoSenha: '' });
         }
-    }, [dialogOpen, reset]);
+    }, [dialogOpen, resetPasswordReset]);
 
     const submitForm: SubmitHandler<FieldValues> = async (data) => {
         try {
-          await signInWithEmailAndPassword(auth, data.email!, data.senha!).catch(
-            () => {
-              setErroLogin(true);
-              setError('Erro ao fazer login');
-              throw new Error('Erro ao fazer login');
-            }
-          );
-          navigate('/home');
+            await signInWithEmailAndPassword(auth, data.email!, data.senha!);
+            navigate('/home');
         } catch (error) {
             setErroLogin(true);
-            setError('Erro ao fazer login');
-            throw new Error('Erro ao fazer login');
+            setLoginError('Email ou senha incorretos');
         }
     };
 
-
     const handlePasswordReset: SubmitHandler<FieldValues> = async (data) => {
         try {
-            await sendPasswordResetEmail(auth, data.emailRedefinicaoSenha)
-            .then(() => {
-              closeDialog();
-            })
-            .catch(() => {
-              setError('Erro ao enviar email de redefinição de senha');
-              throw new Error('Erro ao enviar email de redefinição de senha');
-            });
+            await sendPasswordResetEmail(auth, data.emailRedefinicaoSenha);
+            closeDialog();
         } catch (error) {
-            setError('Erro ao enviar email de redefinição de senha');
-            throw new Error('Erro ao enviar email de redefinição de senha');
+            setResetPasswordError('Erro ao enviar email de redefinição de senha');
         }
     };
 
     return (
         <>
             <Content>
-              <Formulario onSubmit={handleSubmit(submitForm)}>
-                  <Typography variant='headlineLarge'>Login Administrativo</Typography>
-                  <Dados
-                      {...register('email', { required: "Email é obrigatório" })}
-                      id='email'
-                      type='email'
-                      name='email'
-                      placeholder='Email'
-                      error={buttonClicked && !watchEmail}
-                      helperText={buttonClicked && !watchEmail && "Email é obrigatório"}
-                      data-cy='email'
-                  />
-                  <Dados
-                      {...register('senha', { required: "Senha é obrigatória" })}
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="Senha"
-                      id='senha'
-                      name='senha'
-                      error={buttonClicked && !watchSenha}
-                      helperText={buttonClicked && !watchSenha && "Senha é obrigatória"}
-                      data-cy='password'
-                      InputProps={{
-                          endAdornment: (
-                              <InputAdornment position='end'>
-                                  <IconButton
-                                      onClick={handleClickShowPassword}
-                                      onMouseDown={handleMouseDownPassword}
-                                  >
-                                      {showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
-                                  </IconButton>
-                              </InputAdornment>
-                          ),
-                      }}
-                  />
-                  <AbrirDialog variant='bodyMedium' onClick={openDialog}>Esqueceu sua senha?</AbrirDialog>
-                  <Tooltip
-                      title="Preencha ambos os campos"
-                      disableHoverListener={!!watchEmail && !!watchSenha}
-                      data-cy='tooltipCamposVazios'
-                  >
-                      {
-                        // Se ambos os campos estiverem preenchidos, o botão é habilitado
-                        !!watchEmail && !!watchSenha ? (
-                            <BotaoEntrar
-                              type='submit'
-                              data-cy='botaoEntrar'
-                            >
-                              Entrar
-                            </BotaoEntrar>
-                        ) : (
-                          <span
-                            onClick={() => setButtonClicked(true)}
-                          >
-                              <BotaoEntrar
-                                  type="submit"
-                                  disabled={!watchEmail || !watchSenha}
-                                  data-cy='botaoEntrar'
-                              >
-                                  Entrar
-                              </BotaoEntrar>
-                          </span>
-                        )
-                      }
-                  </Tooltip>
-              </Formulario>
+                <Formulario onSubmit={handleSubmitLogin(submitForm)}>
+                    <Typography variant='headlineLarge'>Login Administrativo</Typography>
+                    <Dados
+                        {...registerLogin('email', { required: "Email é obrigatório" })}
+                        id='email'
+                        type='email'
+                        name='email'
+                        placeholder='Email'
+                        error={buttonClicked && !watchEmail}
+                        helperText={buttonClicked && !watchEmail ? "Email é obrigatório" : loginError || ''}
+                        data-cy='email'
+                    />
+                    <Dados
+                        {...registerLogin('senha', { required: "Senha é obrigatória" })}
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Senha"
+                        id='senha'
+                        name='senha'
+                        error={buttonClicked && !watchSenha}
+                        helperText={buttonClicked && !watchSenha ? "Senha é obrigatória" : loginError || ''}
+                        data-cy='password'
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position='end'>
+                                    <IconButton
+                                        onClick={handleClickShowPassword}
+                                        onMouseDown={handleMouseDownPassword}
+                                    >
+                                        {showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
+                                    </IconButton>
+                                </InputAdornment>
+                            ),
+                        }}
+                    />
+                    <AbrirDialog variant='bodyMedium' onClick={openDialog}>Esqueceu sua senha?</AbrirDialog>
+                    <Tooltip
+                        title="Preencha ambos os campos"
+                        disableHoverListener={!!watchEmail && !!watchSenha}
+                        data-cy='tooltipCamposVazios'
+                    >
+                        {
+                            // Se ambos os campos estiverem preenchidos, o botão é habilitado
+                            !!watchEmail && !!watchSenha ? (
+                                <BotaoEntrar
+                                    type='submit'
+                                    data-cy='botaoEntrar'
+                                >
+                                    Entrar
+                                </BotaoEntrar>
+                            ) : (
+                                <span
+                                    onClick={() => setButtonClicked(true)}
+                                >
+                                    <BotaoEntrar
+                                        type="submit"
+                                        disabled={!watchEmail || !watchSenha}
+                                        data-cy='botaoEntrar'
+                                    >
+                                        Entrar
+                                    </BotaoEntrar>
+                                </span>
+                            )
+                        }
+                    </Tooltip>
+                </Formulario>
             </Content>
 
             <Dialog open={dialogOpen} onClose={closeDialog}>
-                <Formulario onSubmit={handleSubmit(handlePasswordReset)}>
+                <Formulario onSubmit={handleSubmitPasswordReset(handlePasswordReset)}>
                     <Dados
-                        {...register('emailRedefinicaoSenha', { required: "Email é obrigatório" })}
+                        {...registerPasswordReset('emailRedefinicaoSenha', { required: "Email é obrigatório" })}
                         type='email'
                         placeholder='Email'
+                        error={!!resetPasswordError}
+                        helperText={resetPasswordError || ''}
                         data-cy='emailRedefinicaoSenha'
                     />
                     <SecaoBotao>
@@ -172,7 +171,7 @@ const EmailLoginForm = () => {
 
             <Dialog open={erroLogin} onClose={() => setErroLogin(false)}>
                 <Typography variant='bodyMedium'>
-                    {error}
+                    {loginError}
                 </Typography>
                 <SecaoBotao>
                     <BotaoCancelar onClick={() => setErroLogin(false)}>Ok</BotaoCancelar>
@@ -183,109 +182,109 @@ const EmailLoginForm = () => {
 }
 
 const Content = styled(Container)(({ theme }: { theme: Theme }) => ({
-  display: 'flex',
-  [theme.breakpoints.down('sm')]: { // Para telas pequenas
-    minWidth: '100%',
-    minHeight: 'auto',
-    maxWidth: '100%',
-    maxHeight: 'auto',
-  },
-  [theme.breakpoints.up('md')]: { // Para telas médias
-    minWidth: '270px',
-    minHeight: '200px',
-    maxWidth: '350px',
-    maxHeight: '300px',
-  },
-  [theme.breakpoints.up('lg')]: { // Para telas grandes
-    minWidth: '270px',
-    minHeight: '200px',
-    maxWidth: '577px',
-    maxHeight: '350px',
-  },
-  //padding: var(--Content-vpad, 24px) var(--Content-hpad, 32px);
-  padding: `${theme.spacing(3)} ${theme.spacing(4)}`,
-  flexDirection: 'column',
-  justifycontent: 'center',
-  alignItems: 'center',
-  //gap: var(--Content-gap, 40px),
-  gap: theme.spacing(5),
-  backgroundColor: theme.palette.surfaceContainerLow.main,
+    display: 'flex',
+    [theme.breakpoints.down('sm')]: { // Para telas pequenas
+        minWidth: '100%',
+        minHeight: 'auto',
+        maxWidth: '100%',
+        maxHeight: 'auto',
+    },
+    [theme.breakpoints.up('md')]: { // Para telas médias
+        minWidth: '270px',
+        minHeight: '200px',
+        maxWidth: '350px',
+        maxHeight: '300px',
+    },
+    [theme.breakpoints.up('lg')]: { // Para telas grandes
+        minWidth: '270px',
+        minHeight: '200px',
+        maxWidth: '577px',
+        maxHeight: '350px',
+    },
+    //padding: var(--Content-vpad, 24px) var(--Content-hpad, 32px);
+    padding: `${theme.spacing(3)} ${theme.spacing(4)}`,
+    flexDirection: 'column',
+    justifycontent: 'center',
+    alignItems: 'center',
+    //gap: var(--Content-gap, 40px),
+    gap: theme.spacing(5),
+    backgroundColor: theme.palette.surfaceContainerLow.main,
 }));
 
 // Estilização dos componentes
 const Formulario = styled('form')(({ theme }: { theme: Theme }) => ({
-  display: 'flex',
-  padding: 'var(--Content-vpad, 24px) var(--Content-hpad, 32px)',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  alignItems: 'center',
-  gap: theme.spacing(4),
-  [theme.breakpoints.down('sm')]: { // Para telas pequenas
-    minWidth: '100%',
-    minHeight: 'auto',
-    maxWidth: '100%',
-    maxHeight: '200px',
-  },
-  [theme.breakpoints.up('md')]: { // Para telas médias
-    minWidth: '270px',
-    minHeight: '200px',
-    maxWidth: '800px',
-    maxHeight: '300px',
-  },
-  [theme.breakpoints.up('lg')]: { // Para telas grandes
-    minWidth: '270px',
-    minHeight: '200px',
-    maxWidth: '1100px',
-    maxHeight: '360px',
-  }
+    display: 'flex',
+    padding: 'var(--Content-vpad, 24px) var(--Content-hpad, 32px)',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: theme.spacing(4),
+    [theme.breakpoints.down('sm')]: { // Para telas pequenas
+        minWidth: '100%',
+        minHeight: 'auto',
+        maxWidth: '100%',
+        maxHeight: '200px',
+    },
+    [theme.breakpoints.up('md')]: { // Para telas médias
+        minWidth: '270px',
+        minHeight: '200px',
+        maxWidth: '800px',
+        maxHeight: '300px',
+    },
+    [theme.breakpoints.up('lg')]: { // Para telas grandes
+        minWidth: '270px',
+        minHeight: '200px',
+        maxWidth: '1100px',
+        maxHeight: '360px',
+    }
 }));
 
 const SecaoBotao = styled('section')(({ theme }: { theme: Theme }) => ({
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'flex-start',
-  gap: theme.spacing(5),
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    gap: theme.spacing(5),
 }));
 
 const Dados = styled(TextField)(({ theme }: { theme: Theme }) => ({
-  display: 'flex',
-  width: '300px',
-  height: '56px',
-  flexDirection: 'column',
-  backgroundColor: theme.palette.surfaceContainerHighest.main,
-  borderRadius: '4px 4px 0px 0px',
+    display: 'flex',
+    width: '300px',
+    height: '56px',
+    flexDirection: 'column',
+    backgroundColor: theme.palette.surfaceContainerHighest.main,
+    borderRadius: '4px 4px 0px 0px',
 }));
 
 const BotaoEntrar = styled(Button)(({ theme }: { theme: Theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  alignItems: 'center',
-  gap: theme.spacing(2),
-  borderRadius: '100px',
-  backgroundColor: theme.palette.primary.main,
-  color: theme.palette.onPrimary.main,
-  textTransform: 'initial'
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: theme.spacing(2),
+    borderRadius: '100px',
+    backgroundColor: theme.palette.primary.main,
+    color: theme.palette.onPrimary.main,
+    textTransform: 'initial'
 }));
 
 const BotaoCancelar = styled(Button)(({ theme }: { theme: Theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  alignItems: 'center',
-  gap: theme.spacing(1.25),
-  backgroundColor: theme.palette.secondary.main,
-  borderRadius: '150px',
-  color: theme.palette.onSecondary.main,
-  textTransform: 'initial',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: theme.spacing(1.25),
+    backgroundColor: theme.palette.secondary.main,
+    borderRadius: '150px',
+    color: theme.palette.onSecondary.main,
+    textTransform: 'initial',
 }));
 
 // Estilização do link para redefinir senha
 const AbrirDialog = styled(Typography)(({ theme }: { theme: Theme }) => ({
-  color: theme.palette.shadow.main,
-  cursor: 'pointer',
-  textDecoration: 'none',
-  textDecorationLine: 'underline',
+    color: theme.palette.shadow.main,
+    cursor: 'pointer',
+    textDecoration: 'none',
+    textDecorationLine: 'underline',
 }));
 
 export default EmailLoginForm;
