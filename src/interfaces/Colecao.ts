@@ -7,3 +7,9 @@ export interface Colecao {
   privado: boolean;
   itens: ItemAcervo[];
 }
+
+export type ColecaoCreate = {
+  nome: string;
+  descricao: string;
+  privado: boolean;
+};
