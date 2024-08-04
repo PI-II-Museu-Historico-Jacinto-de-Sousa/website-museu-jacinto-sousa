@@ -222,11 +222,30 @@ const AltText = styled(TextField)(({ theme }: { theme: Theme }) => ({
   backgroundColor: theme.palette.surfaceVariant.main,
 }));
 
-const Imagens = styled('img')(() => ({
-  minWidth: '330px',
+const Imagens = styled('img')(({ theme }) => ({
+  minWidth: '270px',
   minHeight: '200px',
   maxWidth: '1100px',
   maxHeight: '300px',
+
+  [theme.breakpoints.down('sm')]: { // Para telas pequenas
+    minWidth: '100%',
+    minHeight: 'auto',
+    maxWidth: '100%',
+    maxHeight: '200px',
+  },
+  [theme.breakpoints.up('md')]: { // Para telas médias
+    minWidth: '270px',
+    minHeight: '200px',
+    maxWidth: '800px',
+    maxHeight: '300px',
+  },
+  [theme.breakpoints.up('lg')]: { // Para telas grandes
+    minWidth: '270px',
+    minHeight: '200px',
+    maxWidth: '1100px',
+    maxHeight: '300px',
+  }
 }));
 
 const EditField = styled('div')(({ theme }: { theme: Theme }) => ({
@@ -235,6 +254,8 @@ const EditField = styled('div')(({ theme }: { theme: Theme }) => ({
   alignItems: 'flex-start',
   gap: theme.spacing(5),
 }));
+
+
 
 const BotaoCancelar = styled(Button)(({ theme }: { theme: Theme }) => ({
   borderRadius: '150px',
