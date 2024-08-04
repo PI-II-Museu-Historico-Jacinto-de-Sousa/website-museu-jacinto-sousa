@@ -21,8 +21,13 @@ const EmailLoginForm = () => {
     const [buttonClicked, setButtonClicked] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [erroLogin, setErroLogin] = useState(false);
+
+    const [erroEmail, setErroEmail] = useState('');
+    const [erroSenha, setErroSenha] = useState('');
+
     const [loginError, setLoginError] = useState<string | null>(null);
     const [resetPasswordError, setResetPasswordError] = useState<string | null>(null);
+
     const navigate = useNavigate(); // Hook para navegação
     const {
         register: registerLogin,
@@ -59,8 +64,23 @@ const EmailLoginForm = () => {
 
     const submitForm: SubmitHandler<FieldValues> = async (data) => {
         try {
-            await signInWithEmailAndPassword(auth, data.email!, data.senha!);
-            navigate('/home');
+            await signInWithEmailAndPassword(auth, data.email!, data.senha!).then(() => {
+              navigate('/home');
+              setErroEmail('');
+              setErroSenha('');
+              setLoginError('');
+            }).catch((error) => {
+                if(error.code === 'auth/wrong-password') {
+                  setErroEmail('email válido e senha incorreta')
+                  setErroSenha('email válido e senha incorreta')
+                } else if(error.code === 'auth/user-not-found') {
+                  setErroEmail('nenhum usuário com o email passado')
+                } else if(error.code === 'auth/invalid-email') {
+                  setErroEmail('email inválido')
+                } else {
+                    setLoginError('Erro ao fazer login');
+                }
+            })
         } catch (error) {
             setErroLogin(true);
             setLoginError('Email ou senha incorretos');
@@ -72,6 +92,8 @@ const EmailLoginForm = () => {
             await sendPasswordResetEmail(auth, data.emailRedefinicaoSenha);
             closeDialog();
         } catch (error) {
+            setErroLogin(true);
+            setLoginError('Erro ao enviar email de redefinição de senha');
             setResetPasswordError('Erro ao enviar email de redefinição de senha');
         }
     };
@@ -88,7 +110,7 @@ const EmailLoginForm = () => {
                         name='email'
                         placeholder='Email'
                         error={buttonClicked && !watchEmail}
-                        helperText={buttonClicked && !watchEmail ? "Email é obrigatório" : loginError || ''}
+                        helperText={buttonClicked && !watchEmail ? "Email é obrigatório" : erroEmail}
                         data-cy='email'
                     />
                     <Dados
@@ -98,7 +120,7 @@ const EmailLoginForm = () => {
                         id='senha'
                         name='senha'
                         error={buttonClicked && !watchSenha}
-                        helperText={buttonClicked && !watchSenha ? "Senha é obrigatória" : loginError || ''}
+                        helperText={buttonClicked && !watchSenha ? "Senha é obrigatória" : erroSenha}
                         data-cy='password'
                         InputProps={{
                             endAdornment: (
