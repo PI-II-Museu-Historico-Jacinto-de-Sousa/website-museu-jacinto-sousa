@@ -1,6 +1,6 @@
 import CircularProgress from "@mui/material/CircularProgress";
 import React, { Suspense } from "react";
-import { Await, Outlet, createBrowserRouter, defer, useLoaderData } from "react-router-dom";
+import { Await, Outlet, createBrowserRouter, defer, redirect, useLoaderData } from "react-router-dom";
 import { auth } from "../../firebase/firebase";
 import Root from "../Root";
 import Erro from "../pages/Erro";
@@ -28,7 +28,9 @@ const privateLoader = async () => {
     currentUser: currentUserPromise(),
   })
 }
-
+const homeRedirectLoader = () => {
+  return redirect("/home")
+}
 /**
 *  Componente wrapper para todas as rotas que precisam de autenticação
 */
@@ -54,6 +56,9 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
+        loader: homeRedirectLoader,
+      },
+      {
         path: "/home",
         element:
           <Suspense fallback={centeredLoading}>

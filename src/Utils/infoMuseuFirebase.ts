@@ -1,15 +1,16 @@
 import { FirebaseError } from "firebase/app";
-import { Unsubscribe } from "firebase/auth";
 import {
   addDoc,
+  arrayRemove,
+  arrayUnion,
   collection,
   deleteDoc,
   doc,
   getDoc,
   getDocs,
-  onSnapshot,
   query,
   setDoc,
+  updateDoc,
   where,
 } from "firebase/firestore";
 import {
@@ -25,56 +26,8 @@ import {
 import { db, storage } from "../../firebase/firebase";
 import { InfoMuseu } from "../interfaces/InfoMuseu";
 
-const COLLECTION_REF = "informacoes-museu";
-
-type Status = "loading" | "success" | "error";
-
-/**
- * vincula a informação com o id passado a uma função de callback
- * que é chamada sempre que a informação é atualizada
- * @returns a função de unsubscribe para parar de ouvir mudanças
- */
-function subscribeInfoMuseu(
-  id: string,
-  currentInfo: InfoMuseu | null,
-  callback: React.Dispatch<React.SetStateAction<InfoMuseu | null>>,
-  statusUpdate: React.Dispatch<React.SetStateAction<Status>>
-): Unsubscribe {
-  try {
-    const docRef = doc(db, COLLECTION_REF, id);
-    const unsubscribe = onSnapshot(
-      docRef,
-      async (snapshot) => {
-        const infoMuseu = snapshot.data();
-        if (!infoMuseu) {
-          statusUpdate("error");
-          return;
-        } else {
-          //atualizar imagem somente se houver mudança
-          if (infoMuseu?.imagem != currentInfo?.imagem) {
-            infoMuseu.imagem = await getImagemInfoMuseu(
-              ref(storage, `images/${infoMuseu.imagem}`)
-            ).catch(() => {
-              statusUpdate("error");
-              return;
-            });
-          }
-          callback(infoMuseu as InfoMuseu);
-          statusUpdate((previousState) =>
-            previousState === "error" ? "error" : "success"
-          );
-        }
-      },
-      (error) => {
-        console.error(error);
-        statusUpdate("error");
-      }
-    );
-    return unsubscribe;
-  } catch (error) {
-    throw new Error(`${(error as Error).message}`);
-  }
-}
+const COLLECTION_REF = "informacoes-museu/home/itens";
+const HOME_REF = "informacoes-museu";
 
 async function getInfoMuseu(id: string): Promise<InfoMuseu> {
   try {
@@ -204,6 +157,9 @@ async function atualizarImagemInfoMuseu(
       throw new Error("Nova imagem deve ser um arquivo");
     }
   } else {
+    if (!novaImagem.src.type.includes("image")) {
+      throw new FirebaseError("storage-error", "Arquivo deve ser uma imagem");
+    }
     const novaImagemRef = ref(storage, `images/${novaImagem.src.name}`);
     try {
       const metadata = { customMetadata: { alt: novaImagem.alt } };
@@ -279,7 +235,7 @@ async function adicionarInfoMuseu(info: InfoMuseu): Promise<string> {
 
 async function adicionarImagemInfoMuseu(imagem: Imagem): Promise<string> {
   try {
-    if (imagem.src instanceof File) {
+    if (imagem.src instanceof File && imagem.src.type.includes("image")) {
       const storageRef = ref(storage, `images/${imagem.src.name}`);
       await uploadBytesResumable(storageRef, imagem.src).catch(() => {
         throw new FirebaseError("storage-error", "Erro salvando conteúdo");
@@ -343,19 +299,71 @@ const getInfoUsingImageCount = async (nomeImagem: string): Promise<number> => {
   return querySnapshot.docs.length;
 };
 
-const infoMuseuMethods = {
-  getInfoMuseu,
-  subscribeInfoMuseu,
-  atualizarInfoMuseu,
-  adicionarInfoMuseu,
-  deletarInfoMuseu,
+/**
+ * Adiciona uma nova imagem para a lista da home page
+ * @param imagem
+ */
+const adicionarImagemHome = async (imagem: Imagem): Promise<void> => {
+  try {
+    if (!(imagem.src instanceof File && imagem.src.type.includes("image"))) {
+      throw Error("Conteúdo da imagem deve ser um arquivo válido");
+    }
+    const homeDoc = doc(db, HOME_REF, "home");
+    const homeExists = (
+      await getDoc(homeDoc).catch(() => {
+        throw new FirebaseError("firestore-error", "Erro ao buscar documento");
+      })
+    ).exists();
+    const novaImagemRef = ref(storage, `images/${imagem.src.name}`);
+    await uploadBytes(novaImagemRef, imagem.src).catch(() => {
+      throw new FirebaseError("storage-error", "Erro salvando nova imagem");
+    });
+    if (homeExists) {
+      // caminho da nova imagem é adicionado ao array imagens
+      await updateDoc(homeDoc, { imagens: arrayUnion(novaImagemRef.fullPath) });
+    } else {
+      await setDoc(homeDoc, { imagens: [novaImagemRef.fullPath] });
+    }
+  } catch (error) {
+    if ((error as FirebaseError).code == "permission-denied") {
+      (error as Error).message =
+        "Você não tem permissão para adicionar imagens";
+    }
+    throw new Error(`${(error as Error).message}`);
+  }
+};
+
+/**
+ * Remove uma imagem da lista da home page
+ */
+const removerImagemHome = async (nomeImagem: string): Promise<void> => {
+  try {
+    const homeDoc = doc(db, HOME_REF, "home");
+    if (!nomeImagem.includes("images/")) {
+      nomeImagem = `images/${nomeImagem}`;
+    }
+    const imagemRef = ref(storage, nomeImagem);
+    await deleteObject(imagemRef).catch(() => {
+      throw new FirebaseError(
+        "storage-error",
+        `Erro removendo imagem ${nomeImagem}`
+      );
+    });
+    await updateDoc(homeDoc, { imagens: arrayRemove(nomeImagem) });
+  } catch (error) {
+    if ((error as FirebaseError).code == "permission-denied") {
+      (error as Error).message =
+        "Você não tem permissão para deletar informações";
+    }
+    throw new Error(`${(error as Error).message}`);
+  }
 };
 
 export {
+  adicionarImagemHome,
   adicionarInfoMuseu,
   atualizarInfoMuseu,
   deletarInfoMuseu,
   getInfoMuseu,
-  infoMuseuMethods,
-  subscribeInfoMuseu,
+  removerImagemHome,
 };

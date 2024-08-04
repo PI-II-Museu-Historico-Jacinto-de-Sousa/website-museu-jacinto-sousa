@@ -1,18 +1,18 @@
 import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
+import Button from "@mui/material/Button";
+import { ButtonBaseProps } from "@mui/material/ButtonBase";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import Skeleton from "@mui/material/Skeleton";
+import { Theme } from "@mui/material/styles/createTheme";
 import styled from "@mui/material/styles/styled";
 import useTheme from "@mui/material/styles/useTheme";
-import { Theme } from "@mui/material/styles/createTheme";
-import useMediaQuery from "@mui/material/useMediaQuery";
-import Button from "@mui/material/Button"
-import { ButtonBaseProps } from "@mui/material/ButtonBase";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import Dialog from "@mui/material/Dialog"
-import DialogActions from "@mui/material/DialogActions"
-import DialogContent from "@mui/material/DialogContent"
-import DialogContentText from "@mui/material/DialogContentText"
-import Skeleton from "@mui/material/Skeleton";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 import { useEffect, useState } from "react";
 import { SubmitHandler } from "react-hook-form";
@@ -20,20 +20,24 @@ import { auth } from "../../../firebase/firebase";
 import useInfoMuseuForm from "../../hooks/useInfoMuseuForm";
 import { InfoMuseu } from "../../interfaces/InfoMuseu";
 import useInfoMuseu from './useInfoMuseu';
-
 interface InfoSectionProps {
-  id: string
+  id: string | null
 }
 
-
+/**
+ * Componente para uma secao de informacao do museu,
+ * caso o id seja fornecido, o componente ira corresponder a uma secao existente,
+ * caso contrario o componente sera usado como formulario para adicionar uma nova secao
+ * @param id
+ */
 const InfoSection = ({ id }: InfoSectionProps) => {
   const theme = useTheme()
   const mobile = useMediaQuery(theme.breakpoints.down('sm'))
-
+  const [infoId, setInfoId] = useState<string | null>(id)
   const [editable, setEditable] = useState<boolean>(false)
   const [editing, setEditing] = useState<boolean>(false)
 
-  const { status, infoMuseu, atualizarInfoMuseu } = useInfoMuseu(id)
+  const { status, infoMuseu, atualizarInfoMuseu } = useInfoMuseu(infoId)
 
   const [showDialog, setShowDialog] = useState<boolean>(false)
   const [dialogMessage, setDialogMessage] = useState<string>('')
@@ -67,27 +71,18 @@ const InfoSection = ({ id }: InfoSectionProps) => {
       // atualiza apenas o texto e o nome se nenhuma imagem for selecionada
       delete data.imagem
     }
-    await atualizarInfoMuseu(data).then(() => {
+    await atualizarInfoMuseu(data).then((returnValue) => {
+      if (typeof returnValue === 'string') {
+        setInfoId(returnValue)
+      }
       setDialogMessage('Informação atualizada com sucesso')
       setEditing(false)
-      // todos os outros campos são atualizados com o listener onSnapshot,
-      // mas o firebase storage não suporta listeners. Por isso, quando os metadados são alterados
-      // é preciso atualizá-los manualmente
-      if (dirtyAltText()) {
-        const updatedAlt = data?.imagem?.alt ?? ''
-        if (infoMuseu && infoMuseu.imagem) {
-          infoMuseu.imagem.alt = updatedAlt
-        }
-      }
     }).catch((error) => {
       setDialogMessage(`Erro ao atualizar informação \n ${error.message}`)
     }).finally(() => {
       setShowDialog(true)
     }
     )
-  }
-  const dirtyAltText = (): boolean => {
-    return infoMuseu?.imagem?.alt !== currentImage?.alt
   }
 
   if (status === 'error') {
@@ -136,7 +131,7 @@ const InfoSection = ({ id }: InfoSectionProps) => {
         <>
           <InfoSectionText>
             <InfoSectionHeader>
-              <Typography variant='displayMedium' data-cy='info-title'>{infoMuseu?.nome}</Typography>
+              <Typography variant='displayMedium' data-cy='info-title'>{infoMuseu?.nome || "Nova informação do Museu"}</Typography>
               {editable && <InfoSectionEditButton
                 component='label'
                 variant='contained'
@@ -145,9 +140,9 @@ const InfoSection = ({ id }: InfoSectionProps) => {
                 <EditIcon />
               </InfoSectionEditButton>}
             </InfoSectionHeader>
-            <Typography variant='bodyLarge' data-cy='info-text'>{infoMuseu?.texto}</Typography>
+            <Typography variant='bodyLarge' data-cy='info-text'>{infoMuseu?.texto || "Adicione uma descrição"}</Typography>
           </InfoSectionText>
-          <InfoImageContainer>
+          {currentImage && <InfoImageContainer>
             <figure>
               <img
                 src={loadSrc(infoMuseu?.imagem?.src)}
@@ -156,6 +151,7 @@ const InfoSection = ({ id }: InfoSectionProps) => {
               <figcaption style={{ textAlign: 'center' }} data-cy='info-alt-text'>{infoMuseu?.imagem?.alt}</figcaption>
             </figure>
           </InfoImageContainer>
+          }
         </>
         :
         // estado de edicao do componente
