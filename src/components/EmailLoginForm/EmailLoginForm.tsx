@@ -71,12 +71,11 @@ const EmailLoginForm = () => {
               setLoginError('');
             }).catch((error) => {
                 if(error.code === 'auth/wrong-password') {
-                  setErroEmail('email válido e senha incorreta')
-                  setErroSenha('email válido e senha incorreta')
+                  setErroSenha('Senha incorreta')
                 } else if(error.code === 'auth/user-not-found') {
-                  setErroEmail('nenhum usuário com o email passado')
+                  setErroEmail('Nenhum usuário com o email passado')
                 } else if(error.code === 'auth/invalid-email') {
-                  setErroEmail('email inválido')
+                  setErroEmail('Email inválido')
                 } else {
                     setLoginError('Erro ao fazer login');
                 }
@@ -109,7 +108,7 @@ const EmailLoginForm = () => {
                         type='email'
                         name='email'
                         placeholder='Email'
-                        error={buttonClicked && !watchEmail}
+                        error={erroEmail !== '' && erroEmail !== undefined}
                         helperText={buttonClicked && !watchEmail ? "Email é obrigatório" : erroEmail}
                         data-cy='email'
                     />
@@ -119,7 +118,7 @@ const EmailLoginForm = () => {
                         placeholder="Senha"
                         id='senha'
                         name='senha'
-                        error={buttonClicked && !watchSenha}
+                        error={erroSenha !== '' && erroSenha !== undefined}
                         helperText={buttonClicked && !watchSenha ? "Senha é obrigatória" : erroSenha}
                         data-cy='password'
                         InputProps={{
