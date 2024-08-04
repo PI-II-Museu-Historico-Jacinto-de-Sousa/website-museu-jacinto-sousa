@@ -19,6 +19,7 @@ interface SlidingBannerProps {
   editAlt: (key: number) => void;
   removeImage: (key: number) => void;
 }
+
 const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
   const [slide, setSlide] = useState(0);
   const [editing, setEditing] = useState(false);
@@ -70,7 +71,8 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
 
   const renderFields = () => {
     return (
-      <ContainerImagem className="sliding-banner">
+      <ContainerImagem className="sliding-banner"
+      >
         <FormControlLabel
           control={
             <ArrowButton
@@ -127,47 +129,43 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
               );
             })
           }
-        
           {
-          imagensSlidingBanner.map((image, index) => (
-            <div key={index} style={{ display: index === slide ? "block" : "none" }}>
-              {
-                editing ?
-                (
-                  <Controller
-                    name={`alt-${index}`}
-                    control={control}
-                    defaultValue={image.alt}
-                    render={({ field }) => (
-                      <AltText
-                        {...field}
-                        variant="outlined"
-                        fullWidth
-                      />
-                    )}
-                  />
-                ) :
-                (
-                  <Typography variant="labelLarge">{image.alt}</Typography>
-                )
+            imagensSlidingBanner.map((image, index) => (
+              <div key={index} style={{ display: index === slide ? "block" : "none" }}>
+                {
+                  editing ?
+                  (
+                    <Controller
+                      name={`alt-${index}`}
+                      control={control}
+                      defaultValue={image.alt}
+                      render={({ field }) => (
+                        <AltText
+                          {...field}
+                          variant="outlined"
+                          fullWidth
+                        />
+                      )}
+                    />
+                  ) :
+                  (
+                    <Typography variant="labelLarge">{image.alt}</Typography>
+                  )
               }
-              {
-                  <Pagination>
-                  {
-                    imagensSlidingBanner.map((_, index) => (
-                      <PageIndicator
-                        key={index}
-                        active={index === slide}
-                        onClick={() => handleIndicatorClick(index)}
-                      />
-                    ))
-                  }
-                  </Pagination>
-              }
+              <Pagination>
+                {
+                  imagensSlidingBanner.map((_, index) => (
+                    <PageIndicator
+                      key={index}
+                      active={index === slide}
+                      onClick={() => handleIndicatorClick(index)}
+                    />
+                  ))
+                }
+              </Pagination>
             </div>
           ))
         }
-        
           {
             logged && (
               <EditField>
@@ -176,17 +174,17 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
             )
           }
         </Image>
-        <FormControlLabel
-          control={
-            <ArrowButton
-              position="right"
-              onClick={handleChangeNext}
-              data-cy="botaoProximo"
-            >
-              <ArrowForwardIosIcon />
-            </ArrowButton>
-          }
-          label={undefined}
+          <FormControlLabel
+            control={
+              <ArrowButton
+                position="right"
+                onClick={handleChangeNext}
+                data-cy="botaoProximo"
+              >
+                <ArrowForwardIosIcon />
+              </ArrowButton>
+            }
+            label={undefined}
         />
       </ContainerImagem>
     );
@@ -194,6 +192,8 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
 
   return renderFields();
 };
+
+//Containers
 
 const ContainerImagem = styled(Container)(({ theme }: { theme: Theme }) => ({
   display: 'flex',
@@ -211,7 +211,7 @@ const Image = styled('div')(({ theme }: { theme: Theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  gap: theme.spacing(2),
+  gap: `${theme.spacing(2)} ${theme.spacing(1)}`,
 }));
 
 const AltText = styled(TextField)(({ theme }: { theme: Theme }) => ({
@@ -227,9 +227,10 @@ const Imagens = styled('img')(({ theme }) => ({
   minHeight: '200px',
   maxWidth: '1100px',
   maxHeight: '300px',
+  objectFit: 'cover', // Isso ajudará a manter a proporção da imagem
 
   [theme.breakpoints.down('sm')]: { // Para telas pequenas
-    minWidth: '100%',
+    minWidth: '270px',
     minHeight: 'auto',
     maxWidth: '100%',
     maxHeight: '200px',
@@ -255,7 +256,7 @@ const EditField = styled('div')(({ theme }: { theme: Theme }) => ({
   gap: theme.spacing(5),
 }));
 
-
+//Botões
 
 const BotaoCancelar = styled(Button)(({ theme }: { theme: Theme }) => ({
   borderRadius: '150px',
@@ -275,15 +276,7 @@ const ArrowButton = styled(IconButton)(({ position }: { position: string }) => (
   position: 'absolute',
   top: '50%',
   transform: 'translateY(-50%)',
-  [position]: '1rem',
-}));
-
-const Pagination = styled('div')(({ theme }: { theme: Theme }) => ({
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  gap: theme.spacing(1),
-  marginTop: theme.spacing(2),
+  [position]: '0.25rem', // Reduzindo a distância para aproximar das imagens
 }));
 
 const BotaoDeletarImagem = styled(Button)(({ theme }: { theme: Theme }) => ({
@@ -292,6 +285,16 @@ const BotaoDeletarImagem = styled(Button)(({ theme }: { theme: Theme }) => ({
   color: theme.palette.error.contrastText,
   textTransform: 'initial',
 }));
+
+//Paginação
+const Pagination = styled('div')(({ theme }: { theme: Theme }) => ({
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  gap: theme.spacing(1),
+  marginTop: theme.spacing(2),
+}));
+
 
 const PageIndicator = styled('div')<{ active: boolean }>(({ theme, active }) => ({
   width: 10,
