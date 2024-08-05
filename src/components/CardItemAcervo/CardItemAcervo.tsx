@@ -1,70 +1,42 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardMedia, CardHeader, Button, Typography } from '@mui/material';
-import { getDoc, doc, DocumentData } from 'firebase/firestore';
-import { getStorage, ref, getDownloadURL } from 'firebase/storage';
-import { getFirestore } from 'firebase/firestore';
+import { getDownloadURL, ref } from 'firebase/storage';
+import { getStorage } from 'firebase/storage';
 import { app } from '../../../firebase/firebase';
+import { ItemAcervo } from '../../interfaces/ItemAcervo';
 
-const db = getFirestore(app);
 const storage = getStorage(app);
 
-interface ItemData {
-  itemCollection?: string;
-  itemImages?: string[];
-  itemName?: string;
-  itemPrivate?: boolean;
-  itemDescription?: string;
-}
-
 interface CardItemAcervoProps {
-  id: string;
+  item: ItemAcervo;
 }
 
-const CardItemAcervo: React.FC<CardItemAcervoProps> = ({ id }) => {
-  const [data, setData] = useState<ItemData | null>(null);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+const CardItemAcervo: React.FC<CardItemAcervoProps> = ({ item }) => {
+  const [urlImagem, setUrlImagem] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchImageUrl = async () => {
       try {
-        const docRef = doc(db, 'acervo', id);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-          setData(docSnap.data() as ItemData);
-
-          // Verificar se o item possui imagens
-          if (docSnap.data().itemImages && docSnap.data().itemImages.length > 0) {
-            // Buscar a URL da primeira imagem no Storage do Firebase
-            const imageRef = ref(storage, docSnap.data().itemImages[0]);
-            const url = await getDownloadURL(imageRef);
-            setImageUrl(url);
+        if (item.imagens && item.imagens.length > 0) {
+          const imagemSrc = item.imagens[0].src;
+          if (typeof imagemSrc === 'string') {
+            const imagemRef = ref(storage, imagemSrc);
+            const url = await getDownloadURL(imagemRef);
+            setUrlImagem(url);
+          } else if (imagemSrc instanceof File) {
+            const url = URL.createObjectURL(imagemSrc);
+            setUrlImagem(url);
           }
-        } else {
-          setError('Item não encontrado.');
         }
       } catch (error) {
-        setError('Erro ao buscar dados do item.');
+        console.error('Erro ao buscar URL da imagem:', error);
       }
     };
 
-    fetchData();
-  }, [id]);
+    fetchImageUrl();
+  }, [item]);
 
-  if (error) {
-    return (
-      <Card sx={{ textAlign: 'left', width: '400px' }}>
-        <CardContent>
-          <Typography variant="body1" sx={{ color: 'error.main' }}>
-            {error}
-          </Typography>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!data) {
+  if (!item) {
     return (
       <Card sx={{ textAlign: 'left', width: '400px' }}>
         <CardContent>
@@ -77,42 +49,42 @@ const CardItemAcervo: React.FC<CardItemAcervoProps> = ({ id }) => {
   }
 
   const {
-    itemCollection = 'Coleção',
-    itemName = 'Nome do item',
-    itemPrivate = true,
-    itemDescription = 'Descrição do item',
-  } = data;
+    colecao = 'Coleção',
+    nome = 'Nome do item',
+    privado = true,
+    descricao = 'Descrição do item',
+  } = item;
 
   return (
     <Card sx={{ textAlign: 'left', width: '400px' }}>
       <CardHeader
-        title={itemCollection}
+        title={colecao}
         sx={{ backgroundColor: 'primary.main', color: 'onPrimary.main' }}
         titleTypographyProps={{
           variant: 'subtitle1', // M3/title/medium
           fontFamily: 'Roboto',
         }}
       />
-      {imageUrl && (
+      {urlImagem && (
         <CardMedia
           component="img"
           height="200"
-          image={imageUrl}
-          alt="Imagem do item"
+          image={urlImagem}
+          alt={item.imagens[0].alt}
         />
       )}
       <CardContent>
         <Typography variant="body1" sx={{ color: 'onSurface.main', fontSize: '20px' }}>
-          {itemName}
+          {nome}
         </Typography>
         <Typography variant="body2" sx={{ color: 'onSurfaceVariant.main', fontSize: '15px' }}>
-          {itemPrivate ? 'Fora de exposição' : 'Em exposição'}
+          {privado ? 'Fora de exposição' : 'Em exposição'}
         </Typography>
-        <Typography sx={{ marginTop: '15px', marginBottom: '15px', color: 'onSurfaceVariant.main' }}>
-          {itemDescription || 'Nenhuma descrição disponível.'}
+        <Typography sx={{ marginTop: '15px', marginBottom: '15px', color: 'onSurfaceVariant.main' }} data-cy='card-item-description'>
+          {descricao || 'Nenhuma descrição disponível.'}
         </Typography>
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Button variant="contained" color="primary" href={`acervo/item/${id}`}>
+          <Button variant="contained" color="primary" href={`acervo/item/${item.id}`}>
             Visualizar
           </Button>
         </div>
