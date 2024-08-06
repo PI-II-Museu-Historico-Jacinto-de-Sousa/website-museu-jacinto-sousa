@@ -1,5 +1,5 @@
 import { Theme, styled } from "@mui/material/styles";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { auth } from "../../../firebase/firebase";
 import Button from "@mui/material/Button";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
@@ -16,7 +16,7 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 interface SlidingBannerProps {
   images: Imagem[];
   addImage: () => void;
-  editAlt: (key: number) => void;
+  editAlt: (key: number, altTex: string) => void;
   removeImage: (key: number) => void;
 }
 
@@ -24,6 +24,7 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
   const [slide, setSlide] = useState(0);
   const [editing, setEditing] = useState(false);
   const [logged, setLogged] = useState(false);
+  const [altTex, setAltText] = useState('')
   const imagensSlidingBanner = slidingBanner?.images ?? [];
 
   const { control } = useForm();
@@ -46,6 +47,11 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
 
   const handleChangePrevious = () => {
     handlePrevious();
+  }
+
+  const handleAltTex = (e: React.ChangeEvent<HTMLInputElement>) =>{
+    imagensSlidingBanner[slide].alt = String(e.target.value)
+    setAltText(String(e.target.value))
   }
 
 
@@ -95,7 +101,7 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
                   {
                     editing === true ? (
                       <>
-                        <BotaoEditar data-cy="botaoSalvar" onClick={() => slidingBanner && slidingBanner.editAlt && slidingBanner.editAlt(slide) }>Salvar</BotaoEditar>
+                        <BotaoEditar data-cy="botaoSalvar" onClick={() => {slidingBanner && slidingBanner.editAlt && slidingBanner.editAlt(slide, altTex), setEditing(false)}}>Salvar</BotaoEditar>
                         <BotaoDeletarImagem onClick={() => slidingBanner && slidingBanner.removeImage && slidingBanner.removeImage(slide)}>Deletar imagem</BotaoDeletarImagem>
                         <BotaoCancelar onClick={() => setEditing(false)}>Cancelar</BotaoCancelar>
                       </  >
@@ -144,6 +150,8 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
                           {...field}
                           variant="outlined"
                           fullWidth
+                          value={imagensSlidingBanner[slide].alt}
+                          onChange={handleAltTex}
                         />
                       )}
                     />
