@@ -7,6 +7,9 @@ import InfoSection from "../InfoSection"
 const theme = createTheme(getDesignTokens('light'))
 const resizeObserverLoopErrRe = /^[^(ResizeObserver loop limit exceeded)]/
 
+const mocks = {
+  removeCallback: () => { }
+}
 Cypress.on('uncaught:exception', (err) => {
   if (resizeObserverLoopErrRe.test(err.message)) {
     return false
@@ -61,7 +64,7 @@ describe("Testando componente InfoSection", () => {
     it("Deve renderizar o componente normalmente com item válido e com imagem ", () => {
       cy.mount(
         <ThemeProvider theme={theme}>
-          <InfoSection id={idComImagem} />
+          <InfoSection id={idComImagem} removeCallback={mocks.removeCallback} />
         </ThemeProvider>
       )
       cy.get("[data-cy='info-title']").should("exist")
@@ -71,7 +74,7 @@ describe("Testando componente InfoSection", () => {
     it("Deve renderizar o componente normalmente com item válido e sem imagem", () => {
       cy.mount(
         <ThemeProvider theme={theme}>
-          <InfoSection id={idSemImagem} />
+          <InfoSection id={idSemImagem} removeCallback={mocks.removeCallback} />
         </ThemeProvider>
       )
       cy.get("[data-cy='info-title']").should("exist")
@@ -80,7 +83,7 @@ describe("Testando componente InfoSection", () => {
     it("Deve renderizar erro com id inválido", () => {
       cy.mount(
         <ThemeProvider theme={theme}>
-          <InfoSection id='-1' />
+          <InfoSection id='-1' removeCallback={mocks.removeCallback} />
         </ThemeProvider>)
       cy.get("[data-cy='info-error-title']").should("exist")
     })
@@ -91,7 +94,7 @@ describe("Testando componente InfoSection", () => {
       it("Deve renderizar conteúdo em uma coluna", () => {
         cy.mount(
           <ThemeProvider theme={theme}>
-            <InfoSection id={idComImagem} />
+            <InfoSection id={idComImagem} removeCallback={mocks.removeCallback} />
           </ThemeProvider>
         )
         cy.get("section").should("have.css", "flex-direction", "column-reverse")
@@ -106,7 +109,7 @@ describe("Testando componente InfoSection", () => {
       it("deve renderizar imagem ao lado do texto", () => {
         cy.mount(
           <ThemeProvider theme={theme}>
-            <InfoSection id={idComImagem} />
+            <InfoSection id={idComImagem} removeCallback={mocks.removeCallback} />
           </ThemeProvider>
         )
         cy.get("[data-cy='info-title']").should("exist")
@@ -134,11 +137,12 @@ describe("Testando componente InfoSection", () => {
     it("Não deve permitir edição", () => {
       cy.mount(
         <ThemeProvider theme={theme}>
-          <InfoSection id={idSemImagem} />
+          <InfoSection id={idSemImagem} removeCallback={mocks.removeCallback} />
         </ThemeProvider>
       )
       cy.get("[data-cy='info-title']").should("exist")
       cy.get("[data-cy='info-edit-button']").should("not.exist")
+      cy.get("[data-cy='info-remove-button']").should("not.exist")
     })
   })
 
@@ -157,7 +161,7 @@ describe("Testando componente InfoSection", () => {
     it("Deve permitir a criação de um novo item", () => {
       cy.mount(
         <ThemeProvider theme={theme}>
-          <InfoSection id={null} />
+          <InfoSection id={null} removeCallback={mocks.removeCallback} />
         </ThemeProvider>
       )
       cy.get("[data-cy='info-title']").should("exist")
@@ -182,7 +186,7 @@ describe("Testando componente InfoSection", () => {
     it("Deve permitir edição do título", () => {
       cy.mount(
         <ThemeProvider theme={theme}>
-          <InfoSection id={idSemImagem} />
+          <InfoSection id={idSemImagem} removeCallback={mocks.removeCallback} />
         </ThemeProvider>
       )
       cy.get("[data-cy='info-edit-button']").click().then(() => {
@@ -202,7 +206,7 @@ describe("Testando componente InfoSection", () => {
     it("Deve permitir edição do texto", () => {
       cy.mount(
         <ThemeProvider theme={theme}>
-          <InfoSection id={idSemImagem} />
+          <InfoSection id={idSemImagem} removeCallback={mocks.removeCallback} />
         </ThemeProvider>
       )
       cy.get("[data-cy='info-edit-button']").click().then(() => {
@@ -222,7 +226,7 @@ describe("Testando componente InfoSection", () => {
     it("Deve permitir alteração da imagem", () => {
       cy.mount(
         <ThemeProvider theme={theme}>
-          <InfoSection id={idComImagem} />
+          <InfoSection id={idComImagem} removeCallback={mocks.removeCallback} />
         </ThemeProvider>
       )
       cy.fixture("images/default_image_copy.png").as("defaultImageCopy");
@@ -242,7 +246,7 @@ describe("Testando componente InfoSection", () => {
     it("Deve permitir alteração do texto alternativo", () => {
       cy.mount(
         <ThemeProvider theme={theme}>
-          <InfoSection id={idComImagem} />
+          <InfoSection id={idComImagem} removeCallback={mocks.removeCallback} />
         </ThemeProvider>
       )
       cy.get("[data-cy='info-edit-button']").click().then(() => {
@@ -257,7 +261,7 @@ describe("Testando componente InfoSection", () => {
     it("Deve permitir remoção da imagem", () => {
       cy.mount(
         <ThemeProvider theme={theme}>
-          <InfoSection id={idComImagem} />
+          <InfoSection id={idComImagem} removeCallback={mocks.removeCallback} />
         </ThemeProvider>
       )
       cy.get("[data-cy='info-edit-button']").click().then(() => {
@@ -271,7 +275,7 @@ describe("Testando componente InfoSection", () => {
     it("Deve manter o mesmo conteúdo ao cancelar a edição", () => {
       cy.mount(
         <ThemeProvider theme={theme}>
-          <InfoSection id={idSemImagem} />
+          <InfoSection id={idSemImagem} removeCallback={mocks.removeCallback} />
         </ThemeProvider>
       )
       cy.get("[data-cy='info-text']").should("exist").then(($infoTextSpan) => {
@@ -285,6 +289,17 @@ describe("Testando componente InfoSection", () => {
             cy.get("[data-cy='info-text']").invoke("text").should("equal", previousText)
           })
         })
+      })
+    })
+    it("Deve executar callback de remover item", () => {
+      cy.spy(mocks, "removeCallback")
+      cy.mount(
+        <ThemeProvider theme={theme}>
+          <InfoSection id={idSemImagem} removeCallback={mocks.removeCallback} />
+        </ThemeProvider>
+      )
+      cy.get("[data-cy='info-remove-button']").click().then(() => {
+        expect(mocks.removeCallback).to.be.called
       })
     })
   })

@@ -7,6 +7,7 @@ import Erro from "../pages/Erro";
 
 const Home = React.lazy(() => import("../pages/Home"));
 const CriarItemAcervo = React.lazy(() => import("../pages/CriarItemAcervo"));
+const Login = React.lazy(() => import("../pages/Login"));
 
 const centeredLoading = (
   <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
@@ -29,6 +30,16 @@ const privateLoader = async () => {
 }
 const homeRedirectLoader = () => {
   return redirect("/home")
+}
+const loginRedirectLoader = async () => {
+  await auth.authStateReady()
+  if (auth.currentUser) {
+    window.alert("Você já está autenticado, redirecionando para a página inicial")
+    return redirect("/home")
+  }
+  else {
+    return new Response("OK")
+  }
 }
 /**
 *  Componente wrapper para todas as rotas que precisam de autenticação
@@ -62,6 +73,14 @@ const router = createBrowserRouter([
         element:
           <Suspense fallback={centeredLoading}>
             <Home />
+          </Suspense>,
+      },
+      {
+        path: "/login",
+        loader: loginRedirectLoader,
+        element:
+          <Suspense fallback={centeredLoading}>
+            <Login />
           </Suspense>,
       },
       {
