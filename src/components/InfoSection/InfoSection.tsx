@@ -22,6 +22,7 @@ import { InfoMuseu } from "../../interfaces/InfoMuseu";
 import useInfoMuseu from './useInfoMuseu';
 interface InfoSectionProps {
   id: string | null
+  removeCallback: (id?: string) => Promise<void> | void
 }
 
 /**
@@ -30,7 +31,7 @@ interface InfoSectionProps {
  * caso contrario o componente sera usado como formulario para adicionar uma nova secao
  * @param id
  */
-const InfoSection = ({ id }: InfoSectionProps) => {
+const InfoSection = ({ id, removeCallback }: InfoSectionProps) => {
   const theme = useTheme()
   const mobile = useMediaQuery(theme.breakpoints.down('sm'))
   const [infoId, setInfoId] = useState<string | null>(id)
@@ -126,151 +127,171 @@ const InfoSection = ({ id }: InfoSectionProps) => {
   }
 
   return (
-    <InfoSectionContainer>
-      {!editing ?
-        <>
-          <InfoSectionText>
-            <InfoSectionHeader>
-              <Typography variant='displayMedium' data-cy='info-title'>{infoMuseu?.nome || "Nova informação do Museu"}</Typography>
-              {editable && <InfoSectionEditButton
-                component='label'
-                variant='contained'
-                onClick={() => { setEditing(true); }}
-                data-cy='info-edit-button'>
-                <EditIcon />
-              </InfoSectionEditButton>}
-            </InfoSectionHeader>
-            <Typography variant='bodyLarge' data-cy='info-text'>{infoMuseu?.texto || "Adicione uma descrição"}</Typography>
-          </InfoSectionText>
-          {currentImage && <InfoImageContainer>
-            <figure>
-              <img
-                src={loadSrc(infoMuseu?.imagem?.src)}
-                alt={infoMuseu?.imagem?.alt}
-                data-cy='info-image' />
-              <figcaption style={{ textAlign: 'center' }} data-cy='info-alt-text'>{infoMuseu?.imagem?.alt}</figcaption>
-            </figure>
-          </InfoImageContainer>
-          }
-        </>
-        :
-        // estado de edicao do componente
-        <form onSubmit={handleSubmit(submitForm)} style={{
-          width: '100%',
-          display: 'flex',
-          alignContent: 'center',
-          justifyContent: 'center',
-          flexDirection: mobile ? 'column-reverse' : 'row',
-          gap: theme.spacing(2),
-        }}>
-          <InfoSectionText>
-            <InfoSectionHeader>
+    <>
+      <InfoSectionContainer>
+        {!editing ?
+          <>
+            <InfoSectionText>
+              <InfoSectionHeader>
+                <Typography variant='displayMedium' data-cy='info-title'>{infoMuseu?.nome || "Nova informação do Museu"}</Typography>
+                {editable && <InfoSectionEditButton
+                  component='label'
+                  variant='contained'
+                  onClick={() => { setEditing(true); }}
+                  data-cy='info-edit-button'>
+                  <EditIcon />
+                </InfoSectionEditButton>}
+              </InfoSectionHeader>
+              <Typography variant='bodyLarge' data-cy='info-text'>{infoMuseu?.texto || "Adicione uma descrição"}</Typography>
+              {editable &&
+                <Button variant='contained' sx={{
+                  maxWidth: 100,
+                  textTransform: 'initial',
+                  background: theme.palette.error.main,
+                  color: theme.palette.onError.main
+                }}
+                  onClick={async () => {
+                    removeCallback && await removeCallback(infoId || undefined)
+                  }
+                  }
+                  data-cy='info-remove-button'
+                >
+                  Remover
+                </Button>
+              }
+            </InfoSectionText>
+            {currentImage && <InfoImageContainer>
+              <figure>
+                <img
+                  src={loadSrc(infoMuseu?.imagem?.src)}
+                  alt={infoMuseu?.imagem?.alt}
+                  data-cy='info-image' />
+                <figcaption style={{ textAlign: 'center' }} data-cy='info-alt-text'>{infoMuseu?.imagem?.alt}</figcaption>
+              </figure>
+            </InfoImageContainer>
+            }
+          </>
+          :
+          // estado de edicao do componente
+          <form onSubmit={handleSubmit(submitForm)} style={{
+            width: '100%',
+            display: 'flex',
+            alignContent: 'center',
+            justifyContent: 'center',
+            flexDirection: mobile ? 'column-reverse' : 'row',
+            gap: theme.spacing(2),
+          }}>
+            <InfoSectionText>
+              <InfoSectionHeader>
+                <TextField
+                  sx={{
+                    maxWidth: 260
+                  }}
+
+                  {...register('nome', { required: "Título da seção é obrigatório" })}
+                  label='Título da seção'
+                  error={formState.errors.nome ? true : false}
+                  helperText={formState.errors.nome ? formState.errors.nome.message : ''}
+                  variant='filled'
+                  data-cy='info-edit-title-field'
+                />
+              </InfoSectionHeader>
               <TextField
                 sx={{
-                  maxWidth: 260
+                  maxWidth: 650
                 }}
-
-                {...register('nome', { required: "Título da seção é obrigatório" })}
-                label='Título da seção'
-                error={formState.errors.nome ? true : false}
-                helperText={formState.errors.nome ? formState.errors.nome.message : ''}
+                {...register('texto', { required: "Texto não pode ser vazio" })}
+                label='Descrição'
+                multiline
+                error={formState.errors.texto ? true : false}
+                helperText={formState.errors.texto ? formState.errors.texto.message : ''}
                 variant='filled'
-                data-cy='info-edit-title-field'
+                data-cy='info-edit-text-field'
               />
-            </InfoSectionHeader>
-            <TextField
-              sx={{
-                maxWidth: 650
-              }}
-              {...register('texto', { required: "Texto não pode ser vazio" })}
-              label='Descrição'
-              multiline
-              error={formState.errors.texto ? true : false}
-              helperText={formState.errors.texto ? formState.errors.texto.message : ''}
-              variant='filled'
-              data-cy='info-edit-text-field'
-            />
-            <InfoEditOptions>
-              <Button sx={{
-                textTransform: 'initial',
-                background: theme.palette.primary.main,
-                color: theme.palette.onPrimary.main
-              }}
-                type='submit'
-                variant='contained'
-                disabled={isSubmitting}
-                data-cy='info-submit-button'>
-                {
-                  isSubmitting ? 'Salvando' : 'Salvar'
-                }
-              </Button>
-              <Button sx={{
-                textTransform: 'initial',
-                background: theme.palette.secondary.main,
-                color: theme.palette.onSecondary.main
-              }}
-                type='reset'
-                variant='contained'
-                onClick={() => { setEditing(false); }}
-                data-cy='info-cancel-button'>
-                Cancelar
-              </Button>
-            </InfoEditOptions>
-          </InfoSectionText>
-          <InfoImageContainer>
-            {currentImage &&
-              <>
-                <figure style={{ margin: 'auto', position: 'relative' }}>
+              <InfoEditOptions>
+                <Button sx={{
+                  textTransform: 'initial',
+                  background: theme.palette.primary.main,
+                  color: theme.palette.onPrimary.main
+                }}
+                  type='submit'
+                  variant='contained'
+                  disabled={isSubmitting}
+                  data-cy='info-submit-button'>
+                  {
+                    isSubmitting ? 'Salvando' : 'Salvar'
+                  }
+                </Button>
+                <Button sx={{
+                  textTransform: 'initial',
+                  background: theme.palette.secondary.main,
+                  color: theme.palette.onSecondary.main
+                }}
+                  type='reset'
+                  variant='contained'
+                  onClick={() => { setEditing(false); }}
+                  data-cy='info-cancel-button'>
+                  Cancelar
+                </Button>
 
-                  <InfoImageRemoveButton
-                    component='span'
-                    onClick={() => {
-                      setValue('imagem', undefined)
-                    }}
-                    data-cy='info-image-remove-button'
-                  >
-                    <CloseIcon />
-                  </InfoImageRemoveButton>
-                  <img
-                    style={{ position: 'relative' }}
-                    // imagem renderizada durante a edicao é a imagem atual do conteúdo
-                    // ou a imagem selecionada no input
-                    src={loadSrc(currentImage.src)}
-                    alt={currentImage.alt}
-                    data-cy='info-image' />
-                  <figcaption style={{ textAlign: 'center' }} data-cy='info-image-alt-text'>{currentImage.alt}</figcaption>
-                </figure>
-                <TextField
-                  {...register('imagem.alt')}
-                  label='Texto alternativo da imagem'
-                  variant='filled'
-                  data-cy='info-image-alt-field'
-                />
-              </>
-            }
-            <Button
-              component='label'
-              id='image-upload-button'
-              variant='contained'
-              sx={{
-                textTransform: 'initial',
-                background: theme.palette.tertiary.main,
-                color: theme.palette.onTertiary.main
-              }}
-              data-cy='info-image-button'
-            >
-              {currentImage ? "Alterar imagem" : "Adicionar imagem"}
-              <input
-                type='file'
-                aria-labelledby='image-upload-button'
-                accept="image/*"
-                onChange={(e) => { if (e.target.files) setValue('imagem.src', e.target.files?.[0]) }}
-                id="image-upload-input"
-                hidden />
-            </Button>
-          </InfoImageContainer>
-        </form>
-      }
+              </InfoEditOptions>
+            </InfoSectionText>
+            <InfoImageContainer>
+              {currentImage &&
+                <>
+                  <figure style={{ margin: 'auto', position: 'relative' }}>
+
+                    <InfoImageRemoveButton
+                      component='span'
+                      onClick={() => {
+                        setValue('imagem', undefined)
+                      }}
+                      data-cy='info-image-remove-button'
+                    >
+                      <CloseIcon />
+                    </InfoImageRemoveButton>
+                    <img
+                      style={{ position: 'relative' }}
+                      // imagem renderizada durante a edicao é a imagem atual do conteúdo
+                      // ou a imagem selecionada no input
+                      src={loadSrc(currentImage.src)}
+                      alt={currentImage.alt}
+                      data-cy='info-image' />
+                    <figcaption style={{ textAlign: 'center' }} data-cy='info-image-alt-text'>{currentImage.alt}</figcaption>
+                  </figure>
+                  <TextField
+                    {...register('imagem.alt')}
+                    label='Texto alternativo da imagem'
+                    variant='filled'
+                    data-cy='info-image-alt-field'
+                  />
+                </>
+              }
+              <Button
+                component='label'
+                id='image-upload-button'
+                variant='contained'
+                sx={{
+                  textTransform: 'initial',
+                  background: theme.palette.tertiary.main,
+                  color: theme.palette.onTertiary.main
+                }}
+                data-cy='info-image-button'
+              >
+                {currentImage ? "Alterar imagem" : "Adicionar imagem"}
+                <input
+                  type='file'
+                  aria-labelledby='image-upload-button'
+                  accept="image/*"
+                  onChange={(e) => { if (e.target.files) setValue('imagem.src', e.target.files?.[0]) }}
+                  id="image-upload-input"
+                  hidden />
+              </Button>
+            </InfoImageContainer>
+          </form>
+        }
+      </InfoSectionContainer >
+
       <Dialog
         open={showDialog}
         onClose={() => setShowDialog(false)}
@@ -284,8 +305,7 @@ const InfoSection = ({ id }: InfoSectionProps) => {
           <Button onClick={() => setShowDialog(false)}>Fechar</Button>
         </DialogActions>
       </Dialog>
-    </InfoSectionContainer >
-
+    </>
   );
 }
 
