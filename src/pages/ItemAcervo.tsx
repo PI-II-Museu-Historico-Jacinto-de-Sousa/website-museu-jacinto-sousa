@@ -5,7 +5,6 @@ import Button from "@mui/material/Button";
 import { Theme } from "@mui/material/styles";
 import styled from "@mui/material/styles/styled";
 import Typography from "@mui/material/Typography";
-import IconButton from "@mui/material/IconButton";
 import Select from "@mui/material/Select";
 import Checkbox from "@mui/material/Checkbox";
 import MenuItem from "@mui/material/MenuItem";
@@ -23,9 +22,9 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
 import { ItemAcervo } from "../interfaces/ItemAcervo";
 import { SubmitHandler, Controller } from "react-hook-form"
-import EditIcon from '@mui/icons-material/Edit';
 import { auth } from "../../firebase/firebase";
 import dayjs from "dayjs";
+import SlidingBanner from "../components/SlidingBanner/SlidingBanner";
 import  { deleteItemAcervo }  from "../Utils/itemAcervoFirebase";
 import useItemAcervo from "../hooks/useItemAcervo";
 import { updateItemAcervo } from "../Utils/itemAcervoFirebase";
@@ -35,6 +34,14 @@ import { getColecoes } from "../Utils/colecaoFirebase";
 import ErrorPage from "./Erro";
 import useColecoes from "../hooks/useColecoes";
 import { Colecao } from "../interfaces/Colecao";
+import Imagem from "../interfaces/Imagem";
+
+interface SlidingBannerProps {
+  images: Imagem[];
+  addImage: () => void;
+  editAlt: (key: number) => void;
+  removeImage: (key: number) => void;
+}
 
 const ItemAcervoComponent = () => {
   const { id } = useParams<{ id: string }>();
@@ -55,6 +62,7 @@ const ItemAcervoComponent = () => {
   const [open, setOpenDialog] = useState(false)
   const [openDialogSave, setOpenDialogSave] = useState(false);
   const [documentoExiste, setDocumentoExiste] = useState(false);
+  const [ imagens, setImagens ] = useState<Imagem[]>([]);
   const ItemAcervo = useItemAcervo(pathAfterColecoes ?? '');
   const { register, control, handleSubmit, formState, setValue, watch, reset } = useFormItemAcervo(ItemAcervo.itemAcervo===null?undefined:ItemAcervo.itemAcervo)
 
@@ -87,22 +95,35 @@ const ItemAcervoComponent = () => {
         dataDoacao: ItemAcervo.itemAcervo.dataDoacao ? dayjs(ItemAcervo.itemAcervo.dataDoacao.toDate()) : null,
         privado: ItemAcervo.itemAcervo.privado ?? false,
       });
+      const listaImagens = ItemAcervo.itemAcervo.imagens
+        .filter((imagem) => imagem !== null && imagem !== undefined) // Filtra imagens nulas ou indefinidas
+        .map((imagem) => ({
+          title: imagem.title,
+          alt: imagem.alt,
+          src: imagem.src,
+      }));
+      setImagens(listaImagens); // Atualizando o estado
     } else if (ItemAcervo.status === 'error.permission-denied' || ItemAcervo.itemAcervo !== null) {
       setDocumentoExiste(true);
     } else if (ItemAcervo.status === 'error.not-found') {
       setDocumentoExiste(false);
-    } else if(ItemAcervo.itemAcervo === null) {
+    } else if (ItemAcervo.itemAcervo === null) {
       setDocumentoExiste(false);
     }
-  }, [ItemAcervo, dataFetched, setValue, editing, reset]);
+  }, [ItemAcervo, dataFetched, setValue, reset, editing]);
 
   //valor desses campos é observado para alterar a renderização da página
   const { errors } = formState
 
   //função que é chamada ao submeter o formulário
   const onSubmit: SubmitHandler<ItemAcervo> = async (formData: ItemAcervo) => {
-    console.log(formData)
     formData.id = ItemAcervo.itemAcervo?.id;
+    console.log(formData)
+    formData.imagens = imagens.map((imagem) => ({
+      title: imagem.title,
+      alt: imagem.alt,
+      src: imagem.src as File,
+    }));
     const novaColecao = collectionList.filter(collection => collection.nome === formData.colecao)[0]
     updateItemAcervo(formData,  novaColecao);
   }
@@ -110,11 +131,11 @@ const ItemAcervoComponent = () => {
   //query que verifica se a resolução for menor que 600px
   const mobile = useMediaQuery(theme.breakpoints.down('sm'))
 
+
   //Funções relativas ao select de coleções
    //funções relativas ao select
 
   const collectionList: Colecao[] = useColecoes()
-  console.log(collectionList)
   const [privateCollection, setPrivateCollection] = useState<boolean>(false);
 
   useEffect(() => {
@@ -126,6 +147,7 @@ const ItemAcervoComponent = () => {
   const fechaDialog = () => {
     setOpenDialogSave(false);
     setEditing(false);
+    window.location.reload();
   }
 
   const redirecionarExclusao = () => {
@@ -148,9 +170,43 @@ const ItemAcervoComponent = () => {
     }
   };
 
+  const handleAddImage = () => {
+    // Abre um diálogo ou input file para selecionar uma imagem
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (file) {
+        // Para simplificar, vamos supor que obtemos a URL de algum modo:
+        const fileUrl = file as File;
+
+        // Atualiza o estado com a nova imagem
+        setImagens((prevImagens) => [
+          ...prevImagens,
+          { title: file.name, alt: file.text.toString(), src: fileUrl },
+        ]);
+      }
+    };
+    input.click();
+  };
+
+  const handleEditAltText = (key: number) => {
+    imagens[key].alt = 
+  }
+
+
+  const slidingBannerProps: SlidingBannerProps = {
+    images: imagens,
+    addImage: () => handleAddImage(),
+    editAlt: (key) => handleEditAltText(key),
+    removeImage: (key) => {
+      setImagens((prevImagens) => prevImagens.filter((_, index) => index !== key));
+    },
+  } as SlidingBannerProps;
+
   const renderFields = () => {
     if(!documentoExiste) {
-      console.log(documentoExiste)
       const error = {
         status: 404,
         statusText: "Item não encontrado",
@@ -228,15 +284,8 @@ const ItemAcervoComponent = () => {
                             />
                         </CheckPrivacidade>
                       </Title>
-                      <Alt>
-                        <IconButton>
-                          <EditIcon/>
-                        </IconButton>
-                      </Alt>
                       <Imagens>
-                        <BotaoAlterarDados>
-                          Adicionar imagem
-                        </BotaoAlterarDados>
+                        <SlidingBanner {...slidingBannerProps} />
                       </Imagens>
                       <Info>
                         <TextoInfo>
@@ -450,8 +499,7 @@ const ItemAcervoComponent = () => {
                       }
                   </Title>
                   <Imagens>
-                    <Alt>
-                    </Alt>
+                    <SlidingBanner {...slidingBannerProps} />
                   </Imagens>
                   <Info>
                     <TextoInfo>
@@ -695,26 +743,6 @@ const Date = styled('section')(({ theme }: { theme: Theme }) => ({
   borderRadius: theme.spacing(1), //var(--space, 8px);
   backgroundColor: theme.palette.secondaryContainer.main, //var(--Schemes-Secondary-Container, #FFDBCC);
 }))
-
-const Alt = styled('section')(({ theme }: { theme: Theme }) => ({
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  gap: theme.spacing(1.25), //var(--space-1.25, 10px);
-}))
-
-
-//Será usado quando tiver o slide banner
-/*const AltText = styled(Typography)(({ theme }: { theme: Theme }) => ({
-  color: theme.palette.outline.main, //var(--Schemes-Outline, #85736C);
-  //material-theme/label/large
-  fontFamily: theme.typography.labelMedium.fontFamily,
-  fontSize: '14px',
-  fontStyle: 'normal',
-  fontWeight: 500,
-  lineHeight: '20px', //142.857%
-  letterSpacing: '0.1px',
-}))*/
 
 const Description = styled(Stack)(({ theme }: { theme: Theme }) => ({
   display: 'flex',

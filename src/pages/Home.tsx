@@ -39,7 +39,9 @@ const Home = () => {
           imagens: imagens
         } as ItemAcervo
 
-        await adicionarItemAcervo(ItemAcervo, colecao);
+        await adicionarItemAcervo(ItemAcervo, colecao).then((docRef) => {
+          console.log("docRef", docRef)
+        })
       }}>Adicionar</button>
       <button onClick={async () => {
         console.log(await getItemAcervo("colecoes/publico/lista/Teste/publico/E2skrEPGcGlPGKLIXqdK"))
