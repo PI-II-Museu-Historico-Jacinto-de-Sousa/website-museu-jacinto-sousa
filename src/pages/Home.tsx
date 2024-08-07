@@ -8,35 +8,35 @@ import SlidingBanner from "../components/SlidingBanner/SlidingBanner";
 import SnippetMaps from "../components/SnippetMaps/SnippetMaps";
 import InfoSection from "../components/InfoSection/InfoSection";
 import { collection, getDocs, getFirestore } from "firebase/firestore";
-import { adicionarImagemHome, atualizarAltImagemHome, getImagensHome, removerImagemHome } from "../Utils/infoMuseuFirebase";
+import { adicionarImagemHome, atualizarAltImagemHome, deletarInfoMuseu, getImagensHome, removerImagemHome } from "../Utils/infoMuseuFirebase";
 
 const Home = () => {
   const theme = useTheme()
 
   const [logged, setLogged] = useState<boolean>(false)
-  
-  const [editing, setEditing] = useState<boolean>(false)
+
 
   const [imagensSlidingBanner, setImagensSlidingBanner] = useState<Imagem[]>([])
 
   const [infoIds, setInfoIds] = useState<string[]>([])
 
+  const [createInfoSectionsCount, setCreateInfoSectionsCount] = useState<number>(0)
   const inputRef = useRef<HTMLInputElement>(null)
 
 
   // Functions for images in Sliding Banner
 
-  const addImage = () =>{
-    if(inputRef.current){
+  const addImage = () => {
+    if (inputRef.current) {
       inputRef.current.click()
     }
   }
 
-  const ediAlt = (key: number, altTex: string) =>{
+  const ediAlt = (key: number, altTex: string) => {
     const updateImages = [...imagensSlidingBanner]
     const newImage = [...imagensSlidingBanner].at(key)
 
-    if(newImage){
+    if (newImage) {
       newImage.alt = altTex
       updateImages[key] = newImage
       setImagensSlidingBanner(updateImages)
@@ -44,11 +44,11 @@ const Home = () => {
     }
   }
 
-  const removeImage = (key: number) =>{
+  const removeImage = (key: number) => {
     const updateImages = [...imagensSlidingBanner]
     const remove = [...imagensSlidingBanner].at(key)
 
-    if(remove){
+    if (remove) {
       updateImages.splice(key, 1)
       setImagensSlidingBanner(updateImages)
       removerImagemHome(remove.title)
@@ -57,10 +57,10 @@ const Home = () => {
 
   // Function for OnChange in Input
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>{
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
 
-    if(file){
+    if (file) {
       const newImage: Imagem = {
         src: file,
         title: file.name,
@@ -71,76 +71,54 @@ const Home = () => {
       adicionarImagemHome(newImage)
     }
   }
-  
-  // Logic for components in editing mode
-  const editSwitchComponents = () =>{
-    if(logged){
-      if(editing){
-        return(
-          <>
-            <EditInfoButton onClick={() => setEditing(false)}>
-              <Typography variant="labelLarge" color={theme.palette.onPrimary.main}>Encerrar edição</Typography>
-            </EditInfoButton>
-            <InfoSection id={null}/>
-          </>
-        )
-      }
-      return(
-        <EditInfoButton onClick={() => setEditing(true)}>
-          <Typography variant="labelLarge" color={theme.palette.onPrimary.main}>Adicionar campo informativo</Typography>
-        </EditInfoButton>
-      )
-    }
-  }
-  
   // get ids of InfoSections from firebase
-  const getInfoSectionsIds = async () =>{
+  const getInfoSectionsIds = async () => {
     try {
       const db = getFirestore()
       const itemRef = collection(db, "informacoes-museu/home", "itens")
 
       await getDocs(itemRef)
-      .then((itemSnapshot) => {
-        const itemIds = itemSnapshot.docs.map( doc => doc.id)
-        setInfoIds(itemIds)
-      })
-      .catch(error =>
-        console.log(error)
-      )
+        .then((itemSnapshot) => {
+          const itemIds = itemSnapshot.docs.map(doc => doc.id)
+          setInfoIds(itemIds)
+        })
+        .catch(error =>
+          console.log(error)
+        )
 
     } catch (error) {
       console.log(error)
     }
   }
-  
+
   // Get infoSections ids, images in home and set logged satate in the first render
-  useEffect(() =>{
-    auth.onAuthStateChanged((user) =>{
+  useEffect(() => {
+    auth.onAuthStateChanged((user) => {
       setLogged(user ? true : false)
     })
 
     getInfoSectionsIds()
-    
+
     getImagensHome()
-    .then((images) =>{
-      setImagensSlidingBanner(images)
-    })
-    .catch(error => console.log(error))
-  },[])
+      .then((images) => {
+        setImagensSlidingBanner(images)
+      })
+      .catch(error => console.log(error))
+  }, [])
 
   return (
     <Content>
       <Heading>
-        <Typography 
-          variant="displayLarge" 
-          color={theme.palette.onPrimaryContainer.main} 
+        <Typography
+          variant="displayLarge"
+          color={theme.palette.onPrimaryContainer.main}
           alignSelf={'center'}
-          sx={{textAlign: 'center'}}
+          sx={{ textAlign: 'center' }}
         >
           Museu Histórico Jacinto de Souza
         </Typography>
         <SlidingBanner
-          images={imagensSlidingBanner}
+          images={[...imagensSlidingBanner]}
           addImage={addImage}
           editAlt={ediAlt}
           removeImage={removeImage}
@@ -148,28 +126,49 @@ const Home = () => {
         <input
           type="file"
           ref={inputRef}
-          accept="images/*"
+          accept="image/*"
           onChange={handleChange}
           hidden
         />
       </Heading>
 
       <Info direction={'row'}>
-        <SnippetMaps URL=""/>
+        <SnippetMaps URL="" />
       </Info>
 
-      <Description 
-        direction={'column'} 
-        divider={<Divider variant="middle" sx={{width: '288px', background: `${theme.palette.outlineVariant.main}`, alignSelf: 'center'}}/>} 
+      <Description
+        direction={'column'}
+        divider={<Divider variant="middle" sx={{ width: '288px', background: `${theme.palette.outlineVariant.main}`, alignSelf: 'center' }} />}
         spacing={theme.spacing(2)}
       >
-        {
-          editSwitchComponents()
+        {logged &&
+          <Button
+            variant="contained"
+            sx={{ maxWidth: '200px', borderRadius: '50px' }}
+            color="primary"
+            onClick={() => setCreateInfoSectionsCount((previous) => previous + 1)}
+          >
+            Adicionar Informação
+          </Button>
         }
         {
-          infoIds.map(id =>{
-            return(
-              <InfoSection id={id}/>
+          [...Array(createInfoSectionsCount)].map((_) => {
+            return (
+              <InfoSection id={null} removeCallback={(id) => {
+                if (id) deletarInfoMuseu(id as string)
+                setCreateInfoSectionsCount((previous) => previous - 1)
+              }} />
+            )
+          })
+        }
+        {
+          infoIds.map(id => {
+            return (
+              <InfoSection id={id} removeCallback={(id) => {
+                deletarInfoMuseu(id as string); setInfoIds(
+                  infoIds.filter((value) => value !== id)
+                )
+              }} />
             )
           })
         }
@@ -178,13 +177,13 @@ const Home = () => {
   )
 };
 
-const Content = styled(Stack)(({ theme }: { theme: Theme}) =>({
+const Content = styled(Stack)(({ theme }: { theme: Theme }) => ({
   padding: `${theme.spacing(4)} ${theme.spacing(3)}`,
   gap: `${theme.spacing(5)}`,
   alignSelf: 'stretch',
 }))
 
-const Heading = styled(Stack)(({ theme }: { theme: Theme }) =>({
+const Heading = styled(Stack)(({ theme }: { theme: Theme }) => ({
   padding: `${theme.spacing(2)} ${theme.spacing(1)} ${theme.spacing(3)}`,
   gap: `${theme.spacing(3)}`,
   justifyContent: 'center',
@@ -192,7 +191,7 @@ const Heading = styled(Stack)(({ theme }: { theme: Theme }) =>({
   alignSelf: 'stretch'
 }))
 
-const Info = styled(Stack)(({ theme }: { theme: Theme }) =>({
+const Info = styled(Stack)(({ theme }: { theme: Theme }) => ({
   padding: `${theme.spacing(2)} ${theme.spacing(5)}`,
   display: 'flex',
   justifyContent: 'center',
@@ -200,11 +199,13 @@ const Info = styled(Stack)(({ theme }: { theme: Theme }) =>({
 }))
 
 const Description = styled(Stack)(({ theme }: { theme: Theme }) => ({
+  display: 'flex',
   padding: `${theme.spacing(2)} ${theme.spacing(1)}`,
-  background: `${theme.palette.surfaceContainer.main}`
+  background: `${theme.palette.surfaceContainer.main}`,
+  alignItems: 'center',
 }))
 
-const EditInfoButton = styled(Button)(({ theme }: { theme: Theme}) =>({  
+const EditInfoButton = styled(Button)(({ theme }: { theme: Theme }) => ({
   height: '40px',
   width: '230px',
 
