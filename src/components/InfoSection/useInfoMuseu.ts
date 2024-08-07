@@ -26,7 +26,7 @@ const useInfoMuseu = (id: string | null): useInfoSectionReturnType => {
   useEffect(() => {
     const fetchInfoMuseu = async () => {
       try {
-        const info = await getInfoMuseu(id);
+        const info = await getInfoMuseu(id as string);
         setData(info);
         setStatus("success");
       } catch (_) {
