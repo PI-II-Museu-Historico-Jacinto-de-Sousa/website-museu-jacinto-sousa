@@ -2,7 +2,6 @@
 
 import {
   DocumentReference,
-  Timestamp,
   addDoc,
   collection,
   deleteDoc,
@@ -67,7 +66,6 @@ const getItemAcervo = async (fullPath: string) => {
       return dataMuseu as ItemAcervo;
     }
   } catch (error) {
-    console.log(error)
     throw new FirebaseError("permission-denied", "Acesso negado");
   }
 };
@@ -171,14 +169,11 @@ const moveItemToCollection = async (
     });
     return newDocRef.path;
   } catch (error) {
-    console.error(error);
     throw new Error("Erro ao mover documento");
   }
 };
 
 const updateItemAcervo = async (itemAcervo: ItemAcervo, colecao: Colecao) => {
-  console.log(itemAcervo);
-  console.log(colecao);
   try {
     if (itemAcervo.id === undefined) {
       throw new Error("ID nulo");
@@ -188,34 +183,39 @@ const updateItemAcervo = async (itemAcervo: ItemAcervo, colecao: Colecao) => {
     if (itemSelecionado === undefined) {
       throw new FirebaseError("not-found", "Documento não encontrado");
     }
-
     // Imagens novas sao imagens com src do tipo File que nao tem a referencia (title)
     // salva no item selecionado
     const imagensNovas: Imagem[] = [];
     for (const imagem of itemAcervo.imagens) {
-      const url = imagem.src instanceof File ? URL.createObjectURL(imagem.src) : imagem.src;
-      console.log(typeof url);
       if (imagem.src instanceof File) {
-        // Garantindo que a comparação com itemSelecionado.imagens seja correta
         if (
-          !itemSelecionado.imagens.some(
+          itemSelecionado?.imagens.some(
             (imgName: string) => imgName === "images/" + imagem.title
           )
         ) {
-          imagensNovas.push(imagem);
+          throw new Error("Imagem já adicionada ao item");
         }
+
+        imagensNovas.push(imagem);
       }
     }
 
-    // Imagens removidas são aquelas que estavam em itemSelecionado e não estão em itemAcervo
+    // Imagens removidas sao imagens que contem a referencia no item selecionado
+    // e nao estao no formData
     const imagensRemovidas: string[] = [];
+
+    // vetor com o caminho das imagens adicionadas e mantidas em formato de string
+    // imagens mantidas são imagens que ja estavam no item selecionado e continuam
+    // no formData
     const imagesPath: string[] = [];
 
     for (const pathImagem of itemSelecionado.imagens) {
-      // Verifica se a imagem permanece no item atualizado
-      if (itemAcervo.imagens.some((img) => "images/" + img.title === pathImagem)) {
+      // imagem permanece no item atualizado e no firestore atual
+      if (itemAcervo.imagens.some((img) => img.title === pathImagem)) {
         imagesPath.push(pathImagem);
-      } else {
+      }
+      // imagem foi removida do item atualizado
+      else {
         imagensRemovidas.push(pathImagem);
       }
     }
@@ -224,18 +224,16 @@ const updateItemAcervo = async (itemAcervo: ItemAcervo, colecao: Colecao) => {
     const newPath =
       colecao.id + (colecao.privado ? "/itens" : "/" + itemPrivacidade);
 
-    // Adicionar as imagens novas ao storage e guardar a referencia em forma de string no vetor imagesPath
+    //Adicionar as imagens novas ao storage e guardar a referencia em forma de string no vetor imagesPath
     const newRefs = await adicionarImagens(imagensNovas).catch((error) => {
       throw new Error(error);
     });
     imagesPath.push(...newRefs);
 
-    // Remover as imagens que nao estao no documento novo do storage
+    //Remover as imagens que nao estao no documento novo do storage
     await removerImagens(imagensRemovidas).catch((error) => {
       throw new Error(error);
     });
-
-    itemAcervo.dataDoacao = itemAcervo.dataDoacao ? Timestamp.fromDate(itemAcervo.dataDoacao.toDate()) : null;
 
     const uploadDoc = { ...itemAcervo, imagens: imagesPath };
     delete uploadDoc.id;
@@ -249,6 +247,7 @@ const updateItemAcervo = async (itemAcervo: ItemAcervo, colecao: Colecao) => {
         newPath
       );
     } else {
+      //Mesmo apontando erro no vsCode o método updateDoc funciona, por algum motivo o vsCode não reconhece
       await updateDoc(docRef, uploadDoc).catch(() => {
         throw new FirebaseError("not-found", "Erro ao atualizar documento");
       });
@@ -258,7 +257,6 @@ const updateItemAcervo = async (itemAcervo: ItemAcervo, colecao: Colecao) => {
     throw new Error("Erro ao atualizar documento");
   }
 };
-
 
 const removerImagens = async (imagens: string[]) => {
   imagens.forEach(async (imagem) => {
