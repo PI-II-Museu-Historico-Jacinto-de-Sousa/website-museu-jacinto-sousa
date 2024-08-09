@@ -142,7 +142,7 @@ const ItemAcervoComponent = () => {
 
   const redirecionarExclusao = () => {
     deleteItemAcervo(ItemAcervo.itemAcervo?.id || "" );
-    navigate('/')
+    navigate('/home')
   }
 
   const cancelarEdicao = () => {
