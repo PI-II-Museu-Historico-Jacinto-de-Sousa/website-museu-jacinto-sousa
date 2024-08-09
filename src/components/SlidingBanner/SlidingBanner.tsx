@@ -25,7 +25,8 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
   const [slide, setSlide] = useState(0);
   const [editing, setEditing] = useState(false);
   const [logged, setLogged] = useState(false);
-  const imagensSlidingBanner = slidingBanner?.images ?? [];
+  //const imagensSlidingBanner = slidingBanner?.images ?? [];
+  const [imagensSlidingBanner, setImagensSlidingBanner] = useState<Imagem[]>(slidingBanner.images);
 
   const { control, reset } = useForm();
 
@@ -49,7 +50,6 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
     handlePrevious();
   }
 
-
   useEffect(() => {
     auth.onAuthStateChanged((user) => {
       if (user) {
@@ -58,7 +58,11 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
         setLogged(false);
       }
     })
-  }, []);
+  });
+
+  useEffect(() => {
+    setImagensSlidingBanner(slidingBanner.images);
+  }, [slidingBanner.images, editing]);
 
   const finalizarEdicao = (key: number) => {
     slidingBanner.editAlt(key);
@@ -79,6 +83,10 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
       }, 3000);
       return () => clearInterval(interval);
     }
+  }, [imagensSlidingBanner.length, editing]);
+
+  useEffect(() => {
+    setSlide(imagensSlidingBanner.length - 1);
   }, [imagensSlidingBanner.length, editing]);
 
   const renderFields = () => {
@@ -103,7 +111,6 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
                 <EditField
                   data-cy="menu-editar-sliding-banner"
                 >
-
                   {
                     editing === true ? (
                       <>
@@ -153,6 +160,7 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
                       defaultValue={image.alt}
                       render={({ field }) => (
                         <AltText
+                          id={`alt-${index}`}
                           {...field}
                           variant="outlined"
                           fullWidth

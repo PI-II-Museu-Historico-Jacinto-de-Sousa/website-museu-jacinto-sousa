@@ -2,6 +2,7 @@
 
 import {
   DocumentReference,
+  Timestamp,
   addDoc,
   collection,
   deleteDoc,
@@ -16,12 +17,45 @@ import {
   getDownloadURL,
   getMetadata,
   ref,
+  updateMetadata,
   uploadBytes,
 } from "firebase/storage";
 import { db, storage } from "../../firebase/firebase";
 import { ItemAcervo } from "../interfaces/ItemAcervo";
 import { FirebaseError } from "firebase/app";
 import { Colecao } from "../interfaces/Colecao";
+import Imagem from "../interfaces/Imagem";
+
+const getItemAcervo = async (fullPath: string) => {
+  try {
+    const docRef: DocumentReference = doc(db, fullPath);
+    const docSnap = await getDoc(docRef).catch(() => {
+      throw new FirebaseError("not-found", "Erro ao buscar documento");
+    });
+    if (!docSnap.exists()) {
+      throw new FirebaseError("not-found", "Documento não encontrado");
+    } else {
+      const dataMuseu = docSnap.data();
+      dataMuseu.id = docRef.path;
+      const imagesRef = dataMuseu.imagens as string[];
+      for (let i = 0; i < imagesRef.length; i++) {
+        const storageRef = ref(storage, imagesRef[i]);
+        dataMuseu.imagens[i] = await getImagemItemAcervo(storageRef).catch(
+          () => {
+            return null
+          }
+        );
+      }
+      return dataMuseu as ItemAcervo;
+    }
+  } catch (error) {
+    if((error as Error).message === "permission-denied") {
+      throw new FirebaseError("permission-denied", "Acesso negado");
+    } else {
+      throw new FirebaseError("not-found", "Erro ao buscar documento");
+    }
+  }
+};
 
 async function getImagemItemAcervo(
   storageRef: StorageReference
@@ -42,33 +76,6 @@ async function getImagemItemAcervo(
   };
   return imagem;
 }
-
-const getItemAcervo = async (fullPath: string) => {
-  try {
-    const docRef: DocumentReference = doc(db, fullPath);
-    const docSnap = await getDoc(docRef).catch(() => {
-      throw new FirebaseError("not-found", "Erro ao buscar documento");
-    });
-    if (!docSnap.exists()) {
-      throw new FirebaseError("not-found", "Documento não encontrado");
-    } else {
-      const dataMuseu = docSnap.data();
-      dataMuseu.id = docRef.path;
-      const imagesRef = dataMuseu.imagens as string[];
-      for (let i = 0; i < imagesRef.length; i++) {
-        const storageRef = ref(storage, imagesRef[i]);
-        dataMuseu.imagens[i] = await getImagemItemAcervo(storageRef).catch(
-          () => {
-            throw new FirebaseError("not-found", "Erro ao buscar imagem");
-          }
-        );
-      }
-      return dataMuseu as ItemAcervo;
-    }
-  } catch (error) {
-    throw new FirebaseError("permission-denied", "Acesso negado");
-  }
-};
 
 /** Método para adicionar um item à coleção acervo no firestore, as imagens de um item são as referências para o arquivo no storage */
 export const adicionarItemAcervo = async (
@@ -174,48 +181,68 @@ const moveItemToCollection = async (
 };
 
 const updateItemAcervo = async (itemAcervo: ItemAcervo, colecao: Colecao) => {
+  console.log(itemAcervo);
   try {
     if (itemAcervo.id === undefined) {
       throw new Error("ID nulo");
     }
+    console.log(itemAcervo);
     const docRef = doc(db, itemAcervo.id);
     const itemSelecionado = (await getDoc(docRef)).data();
     if (itemSelecionado === undefined) {
       throw new FirebaseError("not-found", "Documento não encontrado");
     }
+
+    // Verifica se o item existe e se existe atualiza seu conteúdo
+
     // Imagens novas sao imagens com src do tipo File que nao tem a referencia (title)
     // salva no item selecionado
     const imagensNovas: Imagem[] = [];
     for (const imagem of itemAcervo.imagens) {
       if (imagem.src instanceof File) {
+        // Garantindo que a comparação com itemSelecionado.imagens seja correta
         if (
-          itemSelecionado?.imagens.some(
+          !itemSelecionado.imagens.some(
             (imgName: string) => imgName === "images/" + imagem.title
           )
         ) {
-          throw new Error("Imagem já adicionada ao item");
+          imagensNovas.push(imagem);
         }
-
-        imagensNovas.push(imagem);
       }
     }
 
-    // Imagens removidas sao imagens que contem a referencia no item selecionado
-    // e nao estao no formData
-    const imagensRemovidas: string[] = [];
+    for (const imagem of itemAcervo.imagens) {
+      const storageRef = ref(storage, "images/" + imagem.title);
 
-    // vetor com o caminho das imagens adicionadas e mantidas em formato de string
-    // imagens mantidas são imagens que ja estavam no item selecionado e continuam
-    // no formData
+      if (imagem.src instanceof File) {
+        // Upload da imagem
+        await uploadBytes(storageRef, imagem.src as unknown as File).catch(() => {
+          throw new FirebaseError("not-found", "Erro ao atualizar imagem");
+        });
+      }
+
+      // Atualização dos metadados para todas as imagens
+      const metadata = {
+        customMetadata: {
+          alt: imagem.alt
+        }
+      };
+
+      await updateMetadata(storageRef, metadata).catch(() => {
+        throw new FirebaseError("not-found", "Erro ao atualizar metadados");
+      });
+    }
+
+
+    // Imagens removidas são aquelas que estavam em itemSelecionado e não estão em itemAcervo
+    const imagensRemovidas: string[] = [];
     const imagesPath: string[] = [];
 
     for (const pathImagem of itemSelecionado.imagens) {
-      // imagem permanece no item atualizado e no firestore atual
-      if (itemAcervo.imagens.some((img) => img.title === pathImagem)) {
+      // Verifica se a imagem permanece no item atualizado
+      if (itemAcervo.imagens.some((img) => "images/" + img.title === pathImagem)) {
         imagesPath.push(pathImagem);
-      }
-      // imagem foi removida do item atualizado
-      else {
+      } else {
         imagensRemovidas.push(pathImagem);
       }
     }
@@ -224,16 +251,18 @@ const updateItemAcervo = async (itemAcervo: ItemAcervo, colecao: Colecao) => {
     const newPath =
       colecao.id + (colecao.privado ? "/itens" : "/" + itemPrivacidade);
 
-    //Adicionar as imagens novas ao storage e guardar a referencia em forma de string no vetor imagesPath
+    // Adicionar as imagens novas ao storage e guardar a referencia em forma de string no vetor imagesPath
     const newRefs = await adicionarImagens(imagensNovas).catch((error) => {
       throw new Error(error);
     });
     imagesPath.push(...newRefs);
 
-    //Remover as imagens que nao estao no documento novo do storage
+    // Remover as imagens que nao estao no documento novo do storage
     await removerImagens(imagensRemovidas).catch((error) => {
       throw new Error(error);
     });
+
+    itemAcervo.dataDoacao = itemAcervo.dataDoacao ? Timestamp.fromDate(itemAcervo.dataDoacao.toDate()) : null;
 
     const uploadDoc = { ...itemAcervo, imagens: imagesPath };
     delete uploadDoc.id;
@@ -247,16 +276,16 @@ const updateItemAcervo = async (itemAcervo: ItemAcervo, colecao: Colecao) => {
         newPath
       );
     } else {
-      //Mesmo apontando erro no vsCode o método updateDoc funciona, por algum motivo o vsCode não reconhece
       await updateDoc(docRef, uploadDoc).catch(() => {
         throw new FirebaseError("not-found", "Erro ao atualizar documento");
       });
     }
   } catch (error) {
-    console.error(error);
+    console.log(error);
     throw new Error("Erro ao atualizar documento");
   }
 };
+
 
 const removerImagens = async (imagens: string[]) => {
   imagens.forEach(async (imagem) => {

@@ -30,7 +30,6 @@ import useItemAcervo from "../hooks/useItemAcervo";
 import { updateItemAcervo } from "../Utils/itemAcervoFirebase";
 import useFormItemAcervo from "../hooks/useItemAcervoForm";
 import { useNavigate } from "react-router-dom";
-import { getColecoes } from "../Utils/colecaoFirebase";
 import ErrorPage from "./Erro";
 import useColecoes from "../hooks/useColecoes";
 import { Colecao } from "../interfaces/Colecao";
@@ -118,11 +117,10 @@ const ItemAcervoComponent = () => {
   //função que é chamada ao submeter o formulário
   const onSubmit: SubmitHandler<ItemAcervo> = async (formData: ItemAcervo) => {
     formData.id = ItemAcervo.itemAcervo?.id;
-    console.log(formData)
     formData.imagens = imagens.map((imagem) => ({
       title: imagem.title,
       alt: imagem.alt,
-      src: imagem.src as File,
+      src: imagem.src,
     }));
     const novaColecao = collectionList.filter(collection => collection.nome === formData.colecao)[0]
     updateItemAcervo(formData,  novaColecao);
@@ -131,18 +129,10 @@ const ItemAcervoComponent = () => {
   //query que verifica se a resolução for menor que 600px
   const mobile = useMediaQuery(theme.breakpoints.down('sm'))
 
-
   //Funções relativas ao select de coleções
    //funções relativas ao select
 
   const collectionList: Colecao[] = useColecoes()
-  const [privateCollection, setPrivateCollection] = useState<boolean>(false);
-
-  useEffect(() => {
-    getColecoes().then((collections) => {
-      setPrivateCollection(collections.some((collection) => collection.privado));
-    })
-  }, []);
 
   const fechaDialog = () => {
     setOpenDialogSave(false);
@@ -178,23 +168,29 @@ const ItemAcervoComponent = () => {
     input.onchange = async (event) => {
       const file = (event.target as HTMLInputElement).files?.[0];
       if (file) {
-        // Para simplificar, vamos supor que obtemos a URL de algum modo:
         const fileUrl = file as File;
+        const inputElement = document.getElementById(`alt-${index}`) as HTMLInputElement;
+        const textoAlt = inputElement?.value || '';
 
-        // Atualiza o estado com a nova imagem
         setImagens((prevImagens) => [
           ...prevImagens,
-          { title: file.name, alt: file.text.toString(), src: fileUrl },
+          { title: file.name, alt: textoAlt, src: fileUrl },
         ]);
+
+        slidingBannerProps.images.push({ title: file.name, alt: textoAlt, src: fileUrl });
       }
     };
     input.click();
   };
 
   const handleEditAltText = (key: number) => {
-    imagens[key].alt = 
+    const inputElement = document.getElementById(`alt-${key}`) as HTMLInputElement
+    imagens.map((imagem, index) => {
+      if (index === key) {
+        imagem.alt = inputElement.value;
+      }
+    })
   }
-
 
   const slidingBannerProps: SlidingBannerProps = {
     images: imagens,
