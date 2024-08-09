@@ -169,26 +169,21 @@ const ItemAcervoComponent = () => {
       const file = (event.target as HTMLInputElement).files?.[0];
       if (file) {
         const fileUrl = file as File;
-        const inputElement = document.getElementById(`alt-${index}`) as HTMLInputElement;
-        const textoAlt = inputElement?.value || '';
 
         setImagens((prevImagens) => [
           ...prevImagens,
-          { title: file.name, alt: textoAlt, src: fileUrl },
+          { title: file.name, alt: '', src: fileUrl },
         ]);
 
-        slidingBannerProps.images.push({ title: file.name, alt: textoAlt, src: fileUrl });
+        slidingBannerProps.images.push({ title: file.name, alt: '', src: fileUrl });
       }
     };
     input.click();
   };
 
   const handleEditAltText = (key: number) => {
-    const inputElement = document.getElementById(`alt-${key}`) as HTMLInputElement
     imagens.map((imagem, index) => {
-      if (index === key) {
-        imagem.alt = inputElement.value;
-      }
+      imagem.alt = (document.getElementById(`alt-${index}`) as HTMLInputElement).value
     })
   }
 
