@@ -123,7 +123,11 @@ const ItemAcervoComponent = () => {
       src: imagem.src,
     }));
     const novaColecao = collectionList.filter(collection => collection.nome === formData.colecao)[0]
-    updateItemAcervo(formData,  novaColecao);
+    updateItemAcervo(formData,  novaColecao).then(() => {
+      setOpenDialogSave(watchName !=='');
+    }).catch(() => {
+      setOpenDialogSave(false);
+    });
   }
 
   //query que verifica se a resolução for menor que 600px
@@ -134,15 +138,8 @@ const ItemAcervoComponent = () => {
 
   const collectionList: Colecao[] = useColecoes()
 
-  const fechaDialog = () => {
-    setOpenDialogSave(false);
-    setEditing(false);
-    window.location.reload();
-  }
-
   const redirecionarExclusao = () => {
     deleteItemAcervo(ItemAcervo.itemAcervo?.id || "" );
-    navigate('/home')
   }
 
   const cancelarEdicao = () => {
@@ -190,7 +187,7 @@ const ItemAcervoComponent = () => {
   const slidingBannerProps: SlidingBannerProps = {
     images: imagens,
     addImage: () => handleAddImage(),
-    editAlt: (key) => handleEditAltText(key),
+    editAlt: (key: number) => handleEditAltText(key),
     removeImage: (key) => {
       setImagens((prevImagens) => prevImagens.filter((_, index) => index !== key));
     },
@@ -225,7 +222,6 @@ const ItemAcervoComponent = () => {
                           <BotaoAlterarDados
                             type="submit"
                             data-cy="save-button"
-                            onClick={() => setOpenDialogSave(watchName !=='')}
                           >
                             Salvar
                           </BotaoAlterarDados>
@@ -437,7 +433,7 @@ const ItemAcervoComponent = () => {
                     </CustomDialogContent>
                     <CustomDialogContent>
                       <BotaoOk
-                        onClick={() => fechaDialog()}
+                        onClick={() => navigate('/home')}
                         data-cy="button-ok-dialog-save"
                       >Ok</BotaoOk>
                     </CustomDialogContent>

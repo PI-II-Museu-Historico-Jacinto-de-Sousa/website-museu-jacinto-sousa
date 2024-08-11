@@ -29,12 +29,9 @@ const useItemAcervo = (
       .then((itemAcervo) => {
         setData(itemAcervo);
         setStatus("success");
-        console.log("itemAcervo", itemAcervo);
       })
       .catch((error) => {
-        console.error(error);
-        if (error.code === "permission-denied") {
-          console.log("permission-denied");
+        if (error.message === "permission-denied") {
           setStatus("error.permission-denied");
         } else {
           setStatus("error.not-found");
