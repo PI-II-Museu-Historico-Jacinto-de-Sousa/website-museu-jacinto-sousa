@@ -29,8 +29,13 @@ import Imagem from "../interfaces/Imagem";
 const getItemAcervo = async (fullPath: string) => {
   try {
     const docRef: DocumentReference = doc(db, fullPath);
-    const docSnap = await getDoc(docRef).catch(() => {
-      throw new FirebaseError("not-found", "Erro ao buscar documento");
+    const docSnap = await getDoc(docRef).catch((error) => {
+      console.log("erroTry:", error.code);
+      if(error.code === "permission-denied") {
+        throw new Error("permission-denied");
+      } else {
+        throw new Error("not-found");
+      }
     });
     if (!docSnap.exists()) {
       throw new FirebaseError("not-found", "Documento não encontrado");
@@ -49,10 +54,11 @@ const getItemAcervo = async (fullPath: string) => {
       return dataMuseu as ItemAcervo;
     }
   } catch (error) {
+    console.log("erroCatch:", error);
     if((error as Error).message === "permission-denied") {
-      throw new FirebaseError("permission-denied", "Acesso negado");
+      throw new Error("permission-denied");
     } else {
-      throw new FirebaseError("not-found", "Erro ao buscar documento");
+      throw new Error("not-found");
     }
   }
 };
@@ -263,6 +269,7 @@ const updateItemAcervo = async (itemAcervo: ItemAcervo, colecao: Colecao) => {
     });
 
     itemAcervo.dataDoacao = itemAcervo.dataDoacao ? Timestamp.fromDate(itemAcervo.dataDoacao.toDate()) : null;
+    itemAcervo.privado = Boolean(itemAcervo.privado);
 
     const uploadDoc = { ...itemAcervo, imagens: imagesPath };
     delete uploadDoc.id;
