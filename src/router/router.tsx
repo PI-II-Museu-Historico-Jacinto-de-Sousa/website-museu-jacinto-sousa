@@ -7,11 +7,8 @@ import Erro from "../pages/Erro";
 
 const Home = React.lazy(() => import("../pages/Home"));
 const CriarItemAcervo = React.lazy(() => import("../pages/CriarItemAcervo"));
-<<<<<<< HEAD
 const ItemAcervo = React.lazy(() => import("../pages/ItemAcervo"));
-=======
 const Login = React.lazy(() => import("../pages/Login"));
->>>>>>> 06be3ee971d4a1811c3d70fd053fccca6276f388
 
 const centeredLoading = (
   <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
