@@ -15,6 +15,7 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Imagem from "../../interfaces/Imagem";
 
 interface SlidingBannerProps {
+
   images: Imagem[];
   addImage: () => void;
   editAlt: (key: number) => void;
@@ -25,7 +26,6 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
   const [slide, setSlide] = useState(0);
   const [editing, setEditing] = useState(false);
   const [logged, setLogged] = useState(false);
-  //const imagensSlidingBanner = slidingBanner?.images ?? [];
   const [imagensSlidingBanner, setImagensSlidingBanner] = useState<Imagem[]>(slidingBanner.images);
 
   const { control, reset } = useForm();
@@ -87,7 +87,7 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
 
   useEffect(() => {
     setSlide(imagensSlidingBanner.length - 1);
-  }, [imagensSlidingBanner.length, editing]);
+  }, [imagensSlidingBanner.length]);
 
   const renderFields = () => {
     return (
