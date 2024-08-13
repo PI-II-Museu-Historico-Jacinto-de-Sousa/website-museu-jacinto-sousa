@@ -277,7 +277,7 @@ const ItemAcervoComponent = () => {
                         <SlidingBanner {...slidingBannerProps} />
                       </Imagens>
                       <Info>
-                        <Typography variant="displayMedium" color={theme.palette.onSurface.main}>
+                        <Typography variant="bodyLarge" color={theme.palette.onSurface.main}>
                           Adicionado ao acervo em :
                         </Typography>
                         <DateView>
@@ -349,7 +349,7 @@ const ItemAcervoComponent = () => {
                       <Item>
                         <TitleSections>
                           <Typography
-                            variant="displayLarge"
+                            variant="displayMedium"
                             color={theme.palette.tertiary.main}
                           >
                             Curiosidades
@@ -371,7 +371,7 @@ const ItemAcervoComponent = () => {
                         </Item>
                       </Curiosities>
                       <Collection>
-                        <Typography style={{color: theme.palette.tertiary.main}} variant="displayMedium" >
+                        <Typography style={{color: theme.palette.tertiary.main}} variant="headlineMedium" >
                           Coleção
                         </Typography>
                         <MenuColecao>
@@ -485,7 +485,7 @@ const ItemAcervoComponent = () => {
                       </Typography>
                       {
                         watch('privado') && (
-                          <Typography variant="displayMedium" color={theme.palette.onBackground.main}>
+                          <Typography variant="displaySmall" color={theme.palette.onBackground.main}>
                             Item Privado
                           </Typography>
                         )
@@ -495,7 +495,7 @@ const ItemAcervoComponent = () => {
                     <SlidingBanner {...slidingBannerProps} />
                   </Imagens>
                   <Info>
-                    <Typography variant="displayMedium" color={theme.palette.onPrimaryContainer.main}>
+                    <Typography variant="bodyLarge" color={theme.palette.onPrimaryContainer.main}>
                       Adicionado ao acervo em :
                     </Typography>
                     <DateView>
@@ -520,7 +520,7 @@ const ItemAcervoComponent = () => {
                         </TitleSections>
                       </Item>
                       <Item>
-                        <Typography variant="displayMedium" color={theme.palette.onPrimaryContainer.main}>
+                        <Typography variant="bodyLarge" color={theme.palette.onPrimaryContainer.main}>
                           {
                             ItemAcervo.itemAcervo?.descricao
                           }
@@ -541,7 +541,7 @@ const ItemAcervoComponent = () => {
                         </TitleSections>
                       </Item>
                     <Item>
-                      <Typography variant="displayMedium" color={theme.palette.onPrimaryContainer.main}>
+                      <Typography variant="bodyLarge" color={theme.palette.onPrimaryContainer.main}>
                         {
                           ItemAcervo.itemAcervo?.curiosidades
                         }
@@ -549,7 +549,7 @@ const ItemAcervoComponent = () => {
                     </Item>
                   </Curiosities>
                   <Collection>
-                    <Typography style={{color: theme.palette.tertiary.main}} variant="displayMedium" >
+                    <Typography style={{color: theme.palette.tertiary.main}} variant="headlineMedium" >
                       Coleção
                     </Typography>
                     <SecaoColecao>
