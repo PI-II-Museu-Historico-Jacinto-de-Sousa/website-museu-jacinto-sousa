@@ -34,6 +34,7 @@ import ErrorPage from "./Erro";
 import useColecoes from "../hooks/useColecoes";
 import { Colecao } from "../interfaces/Colecao";
 import Imagem from "../interfaces/Imagem";
+import { Timestamp } from "firebase/firestore";
 
 interface SlidingBannerProps {
   images: Imagem[];
@@ -64,9 +65,9 @@ const ItemAcervoComponent = () => {
   const [ imagens, setImagens ] = useState<Imagem[]>([]);
   const ItemAcervo = useItemAcervo(pathAfterColecoes ?? '');
   const { register, control, handleSubmit, formState, setValue, watch, reset } = useFormItemAcervo(ItemAcervo.itemAcervo===null?undefined:ItemAcervo.itemAcervo)
+  const [ imagensDuplicadas, setImagemDuplicada ] = useState(false);
 
   const watchName = watch('nome');
-  const watchPrivado = watch('privado');
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -117,11 +118,9 @@ const ItemAcervoComponent = () => {
   //função que é chamada ao submeter o formulário
   const onSubmit: SubmitHandler<ItemAcervo> = async (formData: ItemAcervo) => {
     formData.id = ItemAcervo.itemAcervo?.id;
-    formData.imagens = imagens.map((imagem) => ({
-      title: imagem.title,
-      alt: imagem.alt,
-      src: imagem.src,
-    }));
+    formData.imagens = [...imagens];
+    formData.dataDoacao = formData.dataDoacao ? Timestamp.fromDate(formData.dataDoacao.toDate()) : null;
+    formData.privado = Boolean(formData.privado);
     const novaColecao = collectionList.filter(collection => collection.nome === formData.colecao)[0]
     updateItemAcervo(formData,  novaColecao).then(() => {
       setOpenDialogSave(watchName !=='');
@@ -140,6 +139,7 @@ const ItemAcervoComponent = () => {
 
   const redirecionarExclusao = () => {
     deleteItemAcervo(ItemAcervo.itemAcervo?.id || "" );
+    navigate('/home');
   }
 
   const cancelarEdicao = () => {
@@ -158,25 +158,36 @@ const ItemAcervoComponent = () => {
   };
 
   const handleAddImage = () => {
-    // Abre um diálogo ou input file para selecionar uma imagem
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
     input.onchange = async (event) => {
       const file = (event.target as HTMLInputElement).files?.[0];
       if (file) {
-        const fileUrl = file as File;
+        const isDuplicate = imagens.some((imagem) => imagem.title === file.name);
 
-        setImagens((prevImagens) => [
-          ...prevImagens,
-          { title: file.name, alt: '', src: fileUrl },
-        ]);
+        if (!isDuplicate) {
+          const fileUrl = file as File;
 
-        slidingBannerProps.images.push({ title: file.name, alt: '', src: fileUrl });
+          setImagens((prevImagens) => [
+            ...prevImagens,
+            { title: file.name, alt: '', src: fileUrl },
+          ]);
+
+          slidingBannerProps.images.push({ title: file.name, alt: '', src: fileUrl });
+        } else {
+          setImagemDuplicada(true);  // Atualiza o estado para true aqui
+        }
       }
     };
     input.click();
   };
+
+  const redionarSalvamento = () => {
+    setOpenDialogSave(false);
+    window.location.reload();
+  }
+
 
   const handleEditAltText = (key: number) => {
     imagens.map((imagem, index) => {
@@ -231,30 +242,21 @@ const ItemAcervoComponent = () => {
                             >Cancelar
                           </BotaoCancelar>
                         </SessaoBotoes>
-                        <Controller
-                          name="nome"
-                          control={control}
-                          render={({ field }) => (
-                            <TextFieldTitulo
-                              {...field}
-                              value={field.value}
-                              {...register('nome', {
-                                required: "Nome do item é obrigatório"
-                              })}
-                              error={errors.nome?.message !== undefined}
-                              helperText={errors.nome?.message}
-                              label="Nome"
-                              variant="filled"
-                              id="Textfield-nome"
-                              data-cy="Textfield-nome"
-                              onChange={(event) => field.onChange(event.target.value)}
-                            >
-                            </TextFieldTitulo>
-                          )}
-                          data-cy="controller-textfield-nome"
-                        />
+                        <TextFieldTitulo
+                          value={watchName}
+                          {...register('nome', {
+                            required: "Nome do item é obrigatório"
+                          })}
+                          error={errors.nome?.message !== undefined}
+                          helperText={errors.nome?.message}
+                          label="Nome"
+                          multiline
+                          variant="filled"
+                          id="Textfield-nome"
+                          data-cy="Textfield-nome"
+                        >
+                        </TextFieldTitulo>
                         <CheckPrivacidade>
-                          {watchPrivado? <EstadoItem>Item Privado</EstadoItem> : <div></div>}
                           <FormControlLabel
                             control={<Controller
                               name="privado"
@@ -267,7 +269,7 @@ const ItemAcervoComponent = () => {
                                   onChange={(event) => field.onChange(event.target.checked)}
                                   data-cy="checkbox-privado" />
                               )}
-                              data-cy="controller-checkbox-privado" />} label={undefined}
+                              data-cy="controller-checkbox-privado" />} label="Privado"
                             />
                         </CheckPrivacidade>
                       </Title>
@@ -328,23 +330,17 @@ const ItemAcervoComponent = () => {
                           </TitleSections>
                         </Item>
                         <Item>
-                          <Controller
-                            name="descricao"
-                            control={control}
-                            render={({ field }) => (
-                              <TextFieldDescricao
-                                {...field}
-                                value={field.value}
-                                error={errors.descricao?.message !== undefined}
-                                helperText={errors.descricao?.message}
-                                label="Descrição"
-                                variant="filled"
-                                data-cy="Textfield-descricao"
-                              >
-                              </TextFieldDescricao>
-                            )}
-                            data-cy="controller-textfield-descricao"
-                          />
+                        <TextFieldDescricao
+                          value={watch('descricao')}
+                          {...register('descricao')}
+                          error={errors.descricao?.message !== undefined}
+                          helperText={errors.descricao?.message}
+                          label="Descrição"
+                          variant="filled"
+                          data-cy="Textfield-descricao"
+                          multiline
+                        >
+                        </TextFieldDescricao>
                         </Item>
                       </Description>
                       <Curiosities
@@ -361,24 +357,17 @@ const ItemAcervoComponent = () => {
                         </TitleSections>
                       </Item>
                         <Item>
-                          <Controller
-                            name="curiosidades"
-                            control={control}
-                            render={({ field }) => (
-                              <TextFieldCuriosidades
-                                {...field}
-                                value={field.value}
-                                {...register('curiosidades')}
-                                error={errors.curiosidades?.message !== undefined}
-                                helperText={errors.curiosidades?.message}
-                                label="Curiosidades"
-                                variant="filled"
-                                data-cy="Textfield-curiosidades"
-                              >
-                              </TextFieldCuriosidades>
-                            )}
-                            data-cy="controller-textfield-curiosidades"
-                          />
+                        <TextFieldCuriosidades
+                          {...register('curiosidades')}
+                          value={watch('curiosidades')}
+                          error={errors.curiosidades?.message !== undefined}
+                          helperText={errors.curiosidades?.message}
+                          label="Curiosidades"
+                          variant="filled"
+                          data-cy="Textfield-curiosidades"
+                          multiline
+                        >
+                        </TextFieldCuriosidades>
                         </Item>
                       </Curiosities>
                       <Collection>
@@ -424,6 +413,19 @@ const ItemAcervoComponent = () => {
                       </Options>
                   </Content>
                   <Dialog
+                    open={imagensDuplicadas}
+                  >
+                    <CustomDialogContent>
+                      Imagem já adicionada!
+                    </CustomDialogContent>
+                    <CustomDialogContent>
+                      <BotaoOk
+                        onClick={() => setImagemDuplicada(false)}
+                        data-cy="button-ok-dialog-save"
+                      >Ok</BotaoOk>
+                    </CustomDialogContent>
+                  </Dialog>
+                  <Dialog
                     open={openDialogSave}
                     onClose={() => setOpenDialogSave(false)}
                     data-cy="dialog-confirm-save"
@@ -433,7 +435,7 @@ const ItemAcervoComponent = () => {
                     </CustomDialogContent>
                     <CustomDialogContent>
                       <BotaoOk
-                        onClick={() => navigate('/home')}
+                        onClick={() => redionarSalvamento()}
                         data-cy="button-ok-dialog-save"
                       >Ok</BotaoOk>
                     </CustomDialogContent>
@@ -482,7 +484,11 @@ const ItemAcervoComponent = () => {
                         }
                       </TextoTitulo>
                       {
-                        watch('privado')? <EstadoItem>Item Privado</EstadoItem> : <div></div>
+                        watch('privado') && (
+                          <EstadoItem>
+                            Item Privado
+                          </EstadoItem>
+                        )
                       }
                   </Title>
                   <Imagens>

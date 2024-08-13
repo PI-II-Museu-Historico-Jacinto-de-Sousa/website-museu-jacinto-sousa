@@ -2,7 +2,6 @@
 
 import {
   DocumentReference,
-  Timestamp,
   addDoc,
   collection,
   deleteDoc,
@@ -47,7 +46,7 @@ const getItemAcervo = async (fullPath: string) => {
         const storageRef = ref(storage, imagesRef[i]);
         dataMuseu.imagens[i] = await getImagemItemAcervo(storageRef).catch(
           () => {
-            return null
+            throw new FirebaseError("not-found", "Erro ao buscar imagem");
           }
         );
       }
@@ -187,7 +186,7 @@ const moveItemToCollection = async (
 };
 
 const updateItemAcervo = async (itemAcervo: ItemAcervo, colecao: Colecao) => {
-  console.log(itemAcervo);
+  console.log("back-end", itemAcervo);
   try {
     if (itemAcervo.id === undefined) {
       throw new Error("ID nulo");
@@ -205,8 +204,10 @@ const updateItemAcervo = async (itemAcervo: ItemAcervo, colecao: Colecao) => {
     // salva no item selecionado
     const imagensNovas: Imagem[] = [];
     for (const imagem of itemAcervo.imagens) {
+      console.log(imagem.src);
       if (imagem.src instanceof File) {
         // Garantindo que a comparação com itemSelecionado.imagens seja correta
+        console.log(imagem.title);
         if (
           !itemSelecionado.imagens.some(
             (imgName: string) => imgName === "images/" + imagem.title
@@ -217,12 +218,18 @@ const updateItemAcervo = async (itemAcervo: ItemAcervo, colecao: Colecao) => {
       }
     }
 
+    adicionarImagens(imagensNovas).catch(() => {
+      throw new FirebaseError("not-found", "Erro ao adicionar imagens");
+    });
+
+    //Atualiza o storage e os metadados das imagens que já existem
     for (const imagem of itemAcervo.imagens) {
       const storageRef = ref(storage, "images/" + imagem.title);
 
       if (imagem.src instanceof File) {
         // Upload da imagem
-        await uploadBytes(storageRef, imagem.src as unknown as File).catch(() => {
+        await uploadBytes(storageRef, imagem.src as unknown as File).catch((error) => {
+          console.log(error);
           throw new FirebaseError("not-found", "Erro ao atualizar imagem");
         });
       }
@@ -234,7 +241,8 @@ const updateItemAcervo = async (itemAcervo: ItemAcervo, colecao: Colecao) => {
         }
       };
 
-      await updateMetadata(storageRef, metadata).catch(() => {
+      await updateMetadata(storageRef, metadata).catch((error) => {
+        console.log(error);
         throw new FirebaseError("not-found", "Erro ao atualizar metadados");
       });
     }
@@ -267,9 +275,6 @@ const updateItemAcervo = async (itemAcervo: ItemAcervo, colecao: Colecao) => {
     await removerImagens(imagensRemovidas).catch((error) => {
       throw new Error(error);
     });
-
-    itemAcervo.dataDoacao = itemAcervo.dataDoacao ? Timestamp.fromDate(itemAcervo.dataDoacao.toDate()) : null;
-    itemAcervo.privado = Boolean(itemAcervo.privado);
 
     const uploadDoc = { ...itemAcervo, imagens: imagesPath };
     delete uploadDoc.id;
