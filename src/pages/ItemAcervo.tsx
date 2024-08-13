@@ -277,9 +277,9 @@ const ItemAcervoComponent = () => {
                         <SlidingBanner {...slidingBannerProps} />
                       </Imagens>
                       <Info>
-                        <TextoInfo>
+                        <Typography variant="bodyLarge" color={theme.palette.onSurface.main}>
                           Adicionado ao acervo em :
-                        </TextoInfo>
+                        </Typography>
                         <DateView>
                           {
                             mobile ?
@@ -478,16 +478,16 @@ const ItemAcervoComponent = () => {
                           </BotaoAlterarDados>
                         )
                       }
-                      <TextoTitulo>
+                      <Typography variant="displayLarge" color={theme.palette.tertiary.main}>
                         {
                           ItemAcervo.itemAcervo?.nome
                         }
-                      </TextoTitulo>
+                      </Typography>
                       {
                         watch('privado') && (
-                          <EstadoItem>
+                          <Typography variant="displaySmall" color={theme.palette.onBackground.main}>
                             Item Privado
-                          </EstadoItem>
+                          </Typography>
                         )
                       }
                   </Title>
@@ -495,9 +495,9 @@ const ItemAcervoComponent = () => {
                     <SlidingBanner {...slidingBannerProps} />
                   </Imagens>
                   <Info>
-                    <TextoInfo>
+                    <Typography variant="bodyLarge" color={theme.palette.onPrimaryContainer.main}>
                       Adicionado ao acervo em :
-                    </TextoInfo>
+                    </Typography>
                     <DateView>
                       <Date>
                         {
@@ -520,11 +520,11 @@ const ItemAcervoComponent = () => {
                         </TitleSections>
                       </Item>
                       <Item>
-                        <TextBody>
+                        <Typography variant="bodyLarge" color={theme.palette.onPrimaryContainer.main}>
                           {
                             ItemAcervo.itemAcervo?.descricao
                           }
-                        </TextBody>
+                        </Typography>
                       </Item>
                   </Description>
                   <Curiosities
@@ -541,11 +541,11 @@ const ItemAcervoComponent = () => {
                         </TitleSections>
                       </Item>
                     <Item>
-                      <TextBody>
+                      <Typography variant="bodyLarge" color={theme.palette.onPrimaryContainer.main}>
                         {
                           ItemAcervo.itemAcervo?.curiosidades
                         }
-                      </TextBody>
+                      </Typography>
                     </Item>
                   </Curiosities>
                   <Collection>
@@ -598,9 +598,9 @@ const ItemAcervoComponent = () => {
         if(ItemAcervo.status === 'loading') {
           return (
             <Content>
-              <TextoTitulo>
+              <Typography variant="displayLarge" color={theme.palette.tertiary.main}>
                 Carregando...
-              </TextoTitulo>
+              </Typography>
             </Content>
           )
         } else {
@@ -651,42 +651,11 @@ const Title = styled('section')(({ theme }: { theme: Theme }) => ({
   alignSelf: 'stretch',
 }))
 
-const TextoTitulo = styled(Typography)(({ theme }: { theme: Theme }) => ({
-  color: theme.palette.tertiary.main,
-  // material-theme/display/large
-  fontFamily: theme.typography.displayLarge.fontFamily,
-  fontSize: '48px',
-  fontStyle: 'normal',
-  fontWeight: 400,
-  lineHeight: '56px', //116.667%
-}))
-
 const TitleSections = styled('section')(({ theme }: { theme: Theme }) => ({
   display: 'flex',
   alignItems: 'flex-start',
   gap: theme.spacing(2),
   alignSelf: 'stretch',
-}))
-
-const EstadoItem = styled(Typography)(({ theme }: { theme: Theme }) => ({
-  color: theme.palette.onBackground.main, //var(--Schemes-On-Background, #221A16);
-  //material-theme/display/small
-  fontFamily: theme.typography.displaySmall.fontFamily,
-  fontSize: '36px',
-  fontStyle: 'normal',
-  fontWeight: '400',
-  lineHeight: '44px', //122.222%
-}))
-
-const TextBody = styled(Typography)(({ theme }: { theme: Theme }) => ({
-  color: theme.palette.onPrimaryContainer.main, //var(--Schemes-On-Primary-Container, #351000);
-  //material-theme/body/large
-  fontFamily: theme.typography.bodyLarge.fontFamily,
-  fontSize: '16px',
-  fontStyle: 'normal',
-  fontWeight: 400,
-  lineHeight: '24px', //150%
-  letterSpacing: '0.5px',
 }))
 
 const Imagens = styled('section')(({ theme }: { theme: Theme }) => ({
@@ -706,17 +675,6 @@ const Info = styled('section')(({ theme }: { theme: Theme }) => ({
   borderColor: theme.palette.onSurface.main,
   borderRadius: '1px',
   backgroundColor: theme.palette.surfaceContainerLowest.main,
-}))
-
-const TextoInfo = styled(Typography)(({ theme }: { theme: Theme }) => ({
-  //material-theme/body/large
-  fontFamily: theme.typography.bodyLarge.fontFamily,
-  fontSize: '16px',
-  fontStyle: 'normal',
-  fontWeight: 400,
-  lineHeight: '24px', /* 150% */
-  letterSpacing: '0.5px',
-  color: theme.palette.onSurface.main, //var(--Schemes-On-Surface, #221A16);
 }))
 
 const DateView = styled('section')(({ theme }: { theme: Theme }) => ({
