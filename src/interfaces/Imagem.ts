@@ -3,3 +3,5 @@ interface Imagem {
   title: string;
   alt: string;
 }
+
+export default Imagem;
