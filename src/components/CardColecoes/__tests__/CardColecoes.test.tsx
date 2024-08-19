@@ -13,9 +13,9 @@ const colecao = {
   privado: false,
 } as Colecao
 
-describe("Teste de renderização do nome", () => {
+describe("Testes de renderização dos aributos e elementos do CardColecoes", () => {
 
-  it("Botão de entrar desabilitado", () => {
+  it("Renderização do nome dentro do card", () => {
     cy.mount(
       <ThemeProvider theme={theme}>
         <MemoryRouter>
@@ -25,10 +25,8 @@ describe("Teste de renderização do nome", () => {
     );
     cy.get('[data-cy=nome]').should('be.visible').and('have.text', colecao.nome);
   });
-});
 
-describe("Teste de renderização da descrição", () => {
-  it("Botão de entrar habilitado", () => {
+  it("Renderização do atributo descrição dentro do card", () => {
     cy.mount(
       <ThemeProvider theme={theme}>
         <MemoryRouter>
@@ -38,10 +36,8 @@ describe("Teste de renderização da descrição", () => {
     )
     cy.get('[data-cy=descricao]').should('be.visible').and('have.text', colecao.descricao);
   });
-});
 
-describe("Teste de renderização do botão", () => {
-  it("Botão de entrar habilitado", () => {
+  it("Renderização do botão de detalhes dentro do card", () => {
     cy.mount(
       <ThemeProvider theme={theme}>
         <MemoryRouter>
