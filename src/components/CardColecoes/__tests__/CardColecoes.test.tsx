@@ -3,7 +3,6 @@ import { MemoryRouter } from "react-router-dom";
 import CardColecoes from "../CardColecoes";
 import getDesignTokens from "../../../theme/theme";
 import { Colecao } from "../../../interfaces/Colecao";
-import * as ReactRouterDom from 'react-router-dom';
 
 const theme = getDesignTokens('light');
 
