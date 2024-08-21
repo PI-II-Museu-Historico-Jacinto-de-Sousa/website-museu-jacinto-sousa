@@ -12,8 +12,10 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import TextField from "@mui/material/TextField";
 import Fade from "@mui/material/Fade";
 import FormControlLabel from "@mui/material/FormControlLabel";
+import Imagem from "../../interfaces/Imagem";
 
 interface SlidingBannerProps {
+
   images: Imagem[];
   addImage: () => void;
   editAlt: (key: number, altTex: string) => void;
@@ -24,10 +26,9 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
   const [slide, setSlide] = useState(0);
   const [editing, setEditing] = useState(false);
   const [logged, setLogged] = useState(false);
-  const [altTex, setAltText] = useState('')
-  const imagensSlidingBanner = slidingBanner?.images ?? [];
+  const [imagensSlidingBanner, setImagensSlidingBanner] = useState<Imagem[]>(slidingBanner.images);
 
-  const { control } = useForm();
+  const { control, reset } = useForm();
 
   const handlePrevious = () => {
     setSlide((prev: number) => (prev === 0 ? imagensSlidingBanner.length - 1 : prev - 1))
@@ -49,11 +50,6 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
     handlePrevious();
   }
 
-  const handleAltTex = (e: React.ChangeEvent<HTMLInputElement>) =>{
-    imagensSlidingBanner[slide].alt = String(e.target.value)
-    setAltText(String(e.target.value))
-  }
-
 
   useEffect(() => {
     auth.onAuthStateChanged((user) => {
@@ -63,7 +59,22 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
         setLogged(false);
       }
     })
-  }, []);
+  });
+
+  useEffect(() => {
+    setImagensSlidingBanner(slidingBanner.images);
+  }, [slidingBanner.images, editing]);
+
+  const finalizarEdicao = (key: number) => {
+    slidingBanner.editAlt(key);
+    setEditing(false);
+  }
+
+  const cancelarEdicao = () => {
+    // Resetar os valores do formulário para o estado inicial
+    reset();
+    setEditing(false);
+  };
 
 
   useEffect(() => {
@@ -74,6 +85,10 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
       return () => clearInterval(interval);
     }
   }, [imagensSlidingBanner.length, editing]);
+
+  useEffect(() => {
+    setSlide(imagensSlidingBanner.length - 1);
+  }, [imagensSlidingBanner.length]);
 
   const renderFields = () => {
     return (
@@ -97,14 +112,13 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
                 <EditField
                   data-cy="menu-editar-sliding-banner"
                 >
-
                   {
                     editing === true ? (
                       <>
-                        <BotaoEditar data-cy="botaoSalvar" onClick={() => {slidingBanner && slidingBanner.editAlt && slidingBanner.editAlt(slide, altTex), setEditing(false)}}>Salvar</BotaoEditar>
+                        <BotaoEditar data-cy="botaoSalvar" onClick={() => slidingBanner && slidingBanner.editAlt && slidingBanner.editAlt(slide) }>Salvar</BotaoEditar>
                         <BotaoDeletarImagem onClick={() => slidingBanner && slidingBanner.removeImage && slidingBanner.removeImage(slide)}>Deletar imagem</BotaoDeletarImagem>
-                        <BotaoCancelar onClick={() => setEditing(false)}>Cancelar</BotaoCancelar>
-                      </  >
+                        <BotaoCancelar onClick={() => cancelarEdicao()}>Cancelar</BotaoCancelar>
+                      </>
                     )
                     :
                     (
@@ -129,7 +143,7 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
               return (
                 <Fade key={index} in={index === slide} timeout={600}>
                   <div style={{ display: index === slide ? "block" : "none" }}>
-                    <Imagens src={src} alt={image.alt} />
+                    <Imagens src={src} alt={image.alt} id={`image-${slide}`} />
                   </div>
                 </Fade>
               );
@@ -147,6 +161,7 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
                       defaultValue={image.alt}
                       render={({ field }) => (
                         <AltText
+                          id={`alt-${index}`}
                           {...field}
                           variant="outlined"
                           fullWidth
@@ -212,7 +227,7 @@ const ContainerImagem = styled(Container)(({ theme }: { theme: Theme }) => ({
   position: 'relative', // Para posicionar os botões de navegação
   padding: theme.spacing(3),
   gap: theme.spacing(2),
-  width: '40%',
+  width: '60%',
 }));
 
 const Image = styled('div')(({ theme }: { theme: Theme }) => ({
@@ -220,6 +235,8 @@ const Image = styled('div')(({ theme }: { theme: Theme }) => ({
   flexDirection: 'column',
   alignItems: 'center',
   gap: `${theme.spacing(2)} ${theme.spacing(1)}`,
+  justifyContent: 'center',
+  flexShrink: '0',
 }));
 
 const AltText = styled(TextField)(({ theme }: { theme: Theme }) => ({
@@ -230,31 +247,12 @@ const AltText = styled(TextField)(({ theme }: { theme: Theme }) => ({
   backgroundColor: theme.palette.surfaceVariant.main,
 }));
 
-const Imagens = styled('img')(({ theme }) => ({
-  minWidth: '270px',
-  minHeight: '200px',
-  maxWidth: '1100px',
-  maxHeight: '300px',
-  objectFit: 'cover', // Isso ajudará a manter a proporção da imagem
-
-  [theme.breakpoints.down('sm')]: { // Para telas pequenas
-    minWidth: '270px',
-    minHeight: 'auto',
-    maxWidth: '100%',
-    maxHeight: '200px',
-  },
-  [theme.breakpoints.up('md')]: { // Para telas médias
-    minWidth: '270px',
-    minHeight: '200px',
-    maxWidth: '800px',
-    maxHeight: '300px',
-  },
-  [theme.breakpoints.up('lg')]: { // Para telas grandes
-    minWidth: '270px',
-    minHeight: '200px',
-    maxWidth: '1100px',
-    maxHeight: '300px',
-  }
+const Imagens = styled('img')(() => ({
+  width: '100%', // Garante que a imagem ocupe toda a largura do container
+  height: 'auto', // Ajusta a altura proporcionalmente para manter a proporção da imagem
+  objectFit: 'cover', // Ajusta a imagem para cobrir o container
+  maxWidth: '100%', // Garante que a imagem não ultrapasse a largura do container
+  maxHeight: '100%', // Garante que a imagem não ultrapasse a altura do container
 }));
 
 const EditField = styled('div')(({ theme }: { theme: Theme }) => ({
@@ -284,7 +282,8 @@ const ArrowButton = styled(IconButton)(({ position }: { position: string }) => (
   position: 'absolute',
   top: '50%',
   transform: 'translateY(-50%)',
-  [position]: '0.25rem', // Reduzindo a distância para aproximar das imagens
+  [position]: '1.5rem', // Aumentando a distância das imagens
+  zIndex: 10, // Garantindo que as setas fiquem acima das imagens
 }));
 
 const BotaoDeletarImagem = styled(Button)(({ theme }: { theme: Theme }) => ({

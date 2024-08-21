@@ -7,6 +7,7 @@ import Erro from "../pages/Erro";
 
 const Home = React.lazy(() => import("../pages/Home"));
 const CriarItemAcervo = React.lazy(() => import("../pages/CriarItemAcervo"));
+const ItemAcervo = React.lazy(() => import("../pages/ItemAcervo"));
 const Login = React.lazy(() => import("../pages/Login"));
 
 const centeredLoading = (
@@ -95,6 +96,27 @@ const router = createBrowserRouter([
           },
         ]
       },
+      {
+        path: "/colecoes/privado/lista/:idColecao/itens/:id",
+        element:
+          <Suspense fallback={centeredLoading}>
+            <ItemAcervo />
+          </Suspense>,
+      },
+      {
+        path: "/colecoes/publico/lista/:idColecao/publico/:id",
+        element:
+          <Suspense fallback={centeredLoading}>
+            <ItemAcervo />
+          </Suspense>,
+      },
+      {
+        path: "/colecoes/publico/lista/:idColecao/privado/:id",
+        element:
+          <Suspense fallback={centeredLoading}>
+            <ItemAcervo />
+          </Suspense>,
+      }
     ]
   }]);
 

@@ -4,7 +4,38 @@ on:
 
 jobs:
   cypress-run:
-    environment: staging
+    env:
+      # token de acesso a cli do firebase
+      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+      # token usado para diferenciar uma nova run de uma repetida
+      GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      # variaveis com prefixo cypress são usadas pela sdk de administrador
+      VITE_FIREBASE_API_KEY: ${{secrets.VITE_FIREBASE_API_KEY}}
+      VITE_FIREBASE_AUTH_DOMAIN: ${{secrets.VITE_FIREBASE_AUTH_DOMAIN}}
+      VITE_FIREBASE_PROJECT_ID: ${{secrets.VITE_FIREBASE_PROJECT_ID}}
+      VITE_FIREBASE_STORAGE_BUCKET: ${{secrets.VITE_FIREBASE_STORAGE_BUCKET}}
+      VITE_FIREBASE_MESSAGING_SENDER_ID: ${{secrets.VITE_FIREBASE_MESSAGING_SENDER_ID}}
+      VITE_FIREBASE_APP_ID: ${{secrets.VITE_FIREBASE_APP_ID}}
+
+      CYPRESS_VITE_FIREBASE_API_KEY: ${{secrets.VITE_FIREBASE_API_KEY}}
+      CYPRESS_VITE_FIREBASE_AUTH_DOMAIN: ${{secrets.VITE_FIREBASE_AUTH_DOMAIN}}
+      CYPRESS_VITE_FIREBASE_PROJECT_ID: ${{secrets.VITE_FIREBASE_PROJECT_ID}}
+      CYPRESS_VITE_FIREBASE_STORAGE_BUCKET: ${{secrets.VITE_FIREBASE_STORAGE_BUCKET}}
+      CYPRESS_VITE_FIREBASE_MESSAGING_SENDER_ID: ${{secrets.VITE_FIREBASE_MESSAGING_SENDER_ID}}
+      CYPRESS_VITE_FIREBASE_APP_ID: ${{secrets.VITE_FIREBASE_APP_ID}}
+
+      #portas dos emuladores
+      FIRESTORE_EMULATOR_HOST: "localhost:8080"
+      FIREBASE_AUTH_EMULATOR_HOST: "localhost:9099"
+      FIREBASE_STORAGE_EMULATOR_HOST=: "localhost:9199"
+
+      CYPRESS_FIRESTORE_EMULATOR_HOST: "localhost:8080"
+      CYPRESS_FIREBASE_AUTH_EMULATOR_HOST: "localhost:9099"
+      CYPRESS_FIREBASE_STORAGE_EMULATOR_HOST=: "localhost:9199"
+
+      #UID reutilizado para testes
+      CYPRESS_TEST_UID: "U6gIZIQ9FCZ7aBjBig6pWobYuEg7"
+
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -30,35 +61,3 @@ jobs:
           #servidor de desenvolvimento deve estar pronto antes de rodar os testes
           wait-on: "http://localhost:5173"
           browser: chrome
-        env:
-          # token de acesso a cli do firebase
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-
-          # token usado para diferenciar uma nova run de uma repetida
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-          # variaveis com prefixo cypress são usadas pela sdk de administrador
-          VITE_FIREBASE_API_KEY: ${{secrets.VITE_FIREBASE_API_KEY}}
-          VITE_FIREBASE_AUTH_DOMAIN: ${{secrets.VITE_FIREBASE_AUTH_DOMAIN}}
-          VITE_FIREBASE_PROJECT_ID: ${{secrets.VITE_FIREBASE_PROJECT_ID}}
-          VITE_FIREBASE_STORAGE_BUCKET: ${{secrets.VITE_FIREBASE_STORAGE_BUCKET}}
-          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{secrets.VITE_FIREBASE_MESSAGING_SENDER_ID}}
-          VITE_FIREBASE_APP_ID: ${{secrets.VITE_FIREBASE_APP_ID}}
-
-          CYPRESS_VITE_FIREBASE_API_KEY: ${{secrets.VITE_FIREBASE_API_KEY}}
-          CYPRESS_VITE_FIREBASE_AUTH_DOMAIN: ${{secrets.VITE_FIREBASE_AUTH_DOMAIN}}
-          CYPRESS_VITE_FIREBASE_PROJECT_ID: ${{secrets.VITE_FIREBASE_PROJECT_ID}}
-          CYPRESS_VITE_FIREBASE_STORAGE_BUCKET: ${{secrets.VITE_FIREBASE_STORAGE_BUCKET}}
-          CYPRESS_VITE_FIREBASE_MESSAGING_SENDER_ID: ${{secrets.VITE_FIREBASE_MESSAGING_SENDER_ID}}
-          CYPRESS_VITE_FIREBASE_APP_ID: ${{secrets.VITE_FIREBASE_APP_ID}}
-
-          #portas dos emuladores
-          FIRESTORE_EMULATOR_HOST: "localhost:8080"
-          FIREBASE_AUTH_EMULATOR_HOST: "localhost:9099"
-          FIREBASE_STORAGE_EMULATOR_HOST=: "localhost:9199"
-
-          CYPRESS_FIRESTORE_EMULATOR_HOST: "localhost:8080"
-          CYPRESS_FIREBASE_AUTH_EMULATOR_HOST: "localhost:9099"
-          CYPRESS_FIREBASE_STORAGE_EMULATOR_HOST=: "localhost:9199"
-
-          #UID reutilizado para testes
-          CYPRESS_TEST_UID: "U6gIZIQ9FCZ7aBjBig6pWobYuEg7"
