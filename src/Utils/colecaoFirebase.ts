@@ -12,8 +12,10 @@ import {
   doc,
   getDoc,
   getDocs,
+  query,
   runTransaction,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { ref } from "firebase/storage";
 import { auth, db, storage } from "../../firebase/firebase";
@@ -51,27 +53,35 @@ export class ClientColecoesFirebase {
     this.#basePath = basePath;
   }
 
-  getColecoes = async (): Promise<Omit<Colecao, "itens">[]> => {
+  getColecoes = async (ids?: string[]): Promise<Omit<Colecao, "itens">[]> => {
     const privateCollectionsRef = collection(
       db,
       this.#basePath,
       "privado",
       "lista"
     ).withConverter(this.#converter);
+    const privateCollectionsQuery =
+      ids && ids.length
+        ? query(privateCollectionsRef, where("__name__", "in", ids))
+        : privateCollectionsRef;
     const publicCollectionsRef = collection(
       db,
       this.#basePath,
       "publico",
       "lista"
     ).withConverter(this.#converter);
+    const publicCollectionsQuery =
+      ids && ids.length
+        ? query(publicCollectionsRef, where("__name__", "in", ids))
+        : publicCollectionsRef;
     try {
       let privateCollections:
         | QuerySnapshot<Colecao | ColecaoCreate, DocumentData>
         | undefined = undefined;
       if (auth.currentUser !== null) {
-        privateCollections = await getDocs(privateCollectionsRef);
+        privateCollections = await getDocs(privateCollectionsQuery);
       }
-      const publicCollections = await getDocs(publicCollectionsRef);
+      const publicCollections = await getDocs(publicCollectionsQuery);
 
       const collections = privateCollections
         ? publicCollections.docs.concat(privateCollections.docs)
@@ -115,14 +125,24 @@ export class ClientColecoesFirebase {
 
   getItensColecao = async (
     colecao: Omit<Colecao, "itens">,
+    ids?: string[],
     comImagens: boolean = true
   ): Promise<ItemAcervo[]> => {
+    if (!colecao.id) {
+      throw new Error("Id da coleção não pode ser vazio");
+    }
     const itens = [];
     if (auth.currentUser !== null) {
       if (colecao.privado) {
-        const privateDocs = await getDocs(
-          collection(db, colecao.id + "/itens")
-        ).catch((error) => {
+        const privateItensQuery =
+          ids && ids.length
+            ? query(
+                collection(db, colecao.id, "itens"),
+                where("__name__", "in", ids)
+              )
+            : collection(db, colecao.id, "itens");
+
+        const privateDocs = await getDocs(privateItensQuery).catch((error) => {
           throw new FirebaseError(
             error.code,
             "Erro ao buscar itens da coleção"
@@ -131,9 +151,14 @@ export class ClientColecoesFirebase {
         itens.push(...privateDocs.docs.map((doc) => doc.data()));
       } else {
         // buscando itens privados em uma coleção publica
-        const privateDocs = await getDocs(
-          collection(db, colecao.id + "/privado")
-        );
+        const privateItensQuery =
+          ids && ids.length
+            ? query(
+                collection(db, colecao.id, "privado"),
+                where("__name__", "in", ids)
+              )
+            : collection(db, colecao.id, "privado");
+        const privateDocs = await getDocs(privateItensQuery);
         itens.push(
           ...privateDocs.docs.map((doc) => {
             const asItemAcervo = doc.data();
@@ -143,7 +168,11 @@ export class ClientColecoesFirebase {
         );
       }
     }
-    const publicDocs = await getDocs(collection(db, colecao.id + "/publico"));
+    const publicCollectionsQuery =
+      ids && ids.length
+        ? query(collection(db, colecao.id, "publico"))
+        : collection(db, colecao.id, "publico");
+    const publicDocs = await getDocs(publicCollectionsQuery);
     itens.push(
       ...publicDocs.docs.map((doc) => {
         const asItemAcervo = doc.data();
