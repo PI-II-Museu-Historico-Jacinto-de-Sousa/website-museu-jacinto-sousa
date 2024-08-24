@@ -31,18 +31,19 @@ class ConverterExposicoesFirebase extends BaseConverter {
   toFirestore(exposicao: Exposicao): DocumentData {
     // convertendo itens do tipo ItemAcervo[] para string[]
     const itensPorColecao: { [key: string]: string[] } = {};
-    for (const [key, value] of exposicao.itensPorColecao.entries()) {
-      if (value instanceof Array) {
-        itensPorColecao[key] = value.map((item) => {
-          if (typeof item === "string") return item;
-          else {
-            return item.id?.split("/").pop() || "";
-          }
-        });
-      } else {
-        itensPorColecao[key] = value;
+    if (exposicao.itensPorColecao instanceof Map)
+      for (const [key, value] of exposicao.itensPorColecao.entries()) {
+        if (value instanceof Array) {
+          itensPorColecao[key] = value.map((item) => {
+            if (typeof item === "string") return item;
+            else {
+              return item.id?.split("/").pop() || "";
+            }
+          });
+        } else {
+          itensPorColecao[key] = value;
+        }
       }
-    }
     const excludedKeys = new Set(["id"]);
 
     const sendingDoc = this.omitSet(exposicao, excludedKeys);
@@ -266,7 +267,12 @@ export class ClientExposicaoFirebase {
           /(publico|privado)/,
           newPrivacyPath
         );
-        await this.#moveExposicao(sendingDoc as Exposicao, newPath);
+        await this.#moveExposicao(
+          exposicao.id,
+          sendingDoc as Exposicao,
+          newPath
+        );
+        exposicao.id = newPath;
       } else {
         await updateDoc(docRef, { ...sendingDoc });
       }
@@ -277,17 +283,16 @@ export class ClientExposicaoFirebase {
   }
 
   async #moveExposicao(
+    oldPath: string,
     exposicao: Exposicao,
     newFullPath: string
   ): Promise<void> {
     try {
-      const oldRef = doc(db, exposicao.id!).withConverter(this.#converter);
-      const newRef = doc(db, newFullPath, exposicao.id!).withConverter(
-        this.#converter
-      );
+      const oldRef = doc(db, oldPath).withConverter(this.#converter);
+      const newRef = doc(db, newFullPath).withConverter(this.#converter);
       await runTransaction(db, async (transaction) => {
         transaction.delete(oldRef);
-        transaction.set(newRef, exposicao);
+        transaction.set(newRef, exposicao, { merge: true });
       });
     } catch (error) {
       console.error(error);
