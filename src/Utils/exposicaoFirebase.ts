@@ -44,10 +44,21 @@ class ConverterExposicoesFirebase extends BaseConverter {
       }
     }
     const excludedKeys = new Set(["id"]);
+
+    const sendingDoc = this.omitSet(exposicao, excludedKeys);
+    if (sendingDoc.permanente) {
+      excludedKeys.add("dataInicio");
+      excludedKeys.add("dataFim");
+    } else {
+      if (!sendingDoc.dataInicio || !sendingDoc.dataFim) {
+        throw new Error(
+          "Data de início e fim são obrigatórias para exposições temporárias"
+        );
+      }
+    }
     const imagem = exposicao.imagem?.title.startsWith("images/")
       ? exposicao.imagem?.title
       : "images/" + exposicao.imagem?.title;
-    const sendingDoc = this.omitSet(exposicao, excludedKeys);
     if (exposicao.imagem) {
       sendingDoc.imagem = imagem;
     }
@@ -183,6 +194,10 @@ export class ClientExposicaoFirebase {
         privacyPath,
         "lista"
       ).withConverter(this.#converter);
+      if (!exposicao.dataCriacao) {
+        exposicao = { ...exposicao, dataCriacao: new Date() };
+      }
+
       const imagem = exposicao.imagem;
       if (imagem) {
         if (
@@ -224,6 +239,10 @@ export class ClientExposicaoFirebase {
       ) as Exposicao;
       // converter nao executou diretamente para o metodo de update
       const sendingDoc = this.#converter.toFirestore(filteredFieldsDoc);
+      if (sendingDoc.permanente) {
+        sendingDoc.dataInicio = deleteField();
+        sendingDoc.dataFim = deleteField();
+      }
 
       const oldData = (await getDoc(docRef)).data();
       if (!oldData) {
