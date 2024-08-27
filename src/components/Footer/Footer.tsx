@@ -3,7 +3,7 @@ import PhoneIcon from '@mui/icons-material/Phone'
 import PlaceIcon from '@mui/icons-material/Place'
 import WhatsAppIcon from '@mui/icons-material/WhatsApp'
 import InstagramIcon from '@mui/icons-material/Instagram';
-import { TextField, Theme, Typography, styled} from '@mui/material'
+import { TextField, Theme, Typography, styled } from '@mui/material'
 import useMediaQuery from '@mui/material/useMediaQuery';
 import useTheme from '@mui/material/styles/useTheme';
 import { getAuth } from 'firebase/auth'
@@ -62,7 +62,7 @@ const Footer = () => {
   useEffect(() => {
     const auth = getAuth(app)
 
-    auth.onAuthStateChanged((user) =>{
+    auth.onAuthStateChanged((user) => {
       setLogged(user ? true : false)
     })
 
@@ -86,50 +86,50 @@ const Footer = () => {
           // component apply to edition
 
           <>
-          <FooterContent style={{flexDirection: mobile ? "column" : "row"}}>
-              <SocialContent style={{width: mobile ? '100%' : '30vw', height: mobile ? "18vh" : "30vh"}}>
-                <Typography variant='headlineSmall' style={{ textAlign: "center"}} color={theme.palette.onPrimary.main}><strong>Museu Histórico Jacinto de Sousa</strong></Typography>
+            <FooterContent style={{ flexDirection: mobile ? "column" : "row" }}>
+              <SocialContent style={{ width: mobile ? '100%' : '30vw', height: mobile ? "18vh" : "30vh" }}>
+                <Typography variant='headlineSmall' style={{ textAlign: "center" }} color={theme.palette.onPrimary.main}><strong>Museu Histórico Jacinto de Sousa</strong></Typography>
                 <FooterItem>
-                  <InputFiled sx={{fontFamily: theme.typography.displaySmall, '& .MuiInputBase-root': { height: '6vh' }}} data-cy='footer-text-field' label='Link' id='outlined-size-small' multiline maxRows={2} size='small' value={newInstagram} onChange={(e) => setNewInstagram(e.target.value)}/>
+                  <InputFiled sx={{ fontFamily: theme.typography.displaySmall, '& .MuiInputBase-root': { height: '6vh' } }} data-cy='footer-text-field' label='Link' id='outlined-size-small' multiline maxRows={2} size='small' value={newInstagram} onChange={(e) => setNewInstagram(e.target.value)} />
                 </FooterItem>
               </SocialContent>
 
-              <ContactContent style={{marginBottom: mobile ? "3vh" : ""}}>
-                <Typography variant='headlineSmall' style={{textAlign: 'center'}} color={theme.palette.onPrimary.main}><strong>Fale conosco</strong></Typography>
+              <ContactContent style={{ marginBottom: mobile ? "3vh" : "" }}>
+                <Typography variant='headlineSmall' style={{ textAlign: 'center' }} color={theme.palette.onPrimary.main}><strong>Fale conosco</strong></Typography>
                 <FooterItem>
-                  <InputFiled sx={{fontFamily: theme.typography.displaySmall, '& .MuiInputBase-root': { height: '6vh' }}} data-cy='footer-text-field' label='Telefone' id='outlined-size-small' multiline maxRows={1} size='small' value={newTelephone} onChange={(e) => setNewTelephone(e.target.value)}/>
+                  <InputFiled sx={{ fontFamily: theme.typography.displaySmall, '& .MuiInputBase-root': { height: '6vh' } }} data-cy='footer-text-field' label='Telefone' id='outlined-size-small' multiline maxRows={1} size='small' value={newTelephone} onChange={(e) => setNewTelephone(e.target.value)} />
                 </FooterItem>
 
                 <FooterItem>
-                  <InputFiled sx={{fontFamily: theme.typography.displaySmall, '& .MuiInputBase-root': { height: '6vh' }}} data-cy='footer-text-field' label='Whatsapp' id='outlined-size-small' multiline maxRows={1} size='small' value={newWhatsapp} onChange={(e) => setNewWhatsapp(e.target.value)}/>
+                  <InputFiled sx={{ fontFamily: theme.typography.displaySmall, '& .MuiInputBase-root': { height: '6vh' } }} data-cy='footer-text-field' label='Whatsapp' id='outlined-size-small' multiline maxRows={1} size='small' value={newWhatsapp} onChange={(e) => setNewWhatsapp(e.target.value)} />
                 </FooterItem>
 
                 <FooterItem>
-                  <InputFiled sx={{fontFamily: theme.typography.displaySmall, '& .MuiInputBase-root': { height: '6vh' }}} data-cy='footer-text-field' label='Email' id='outlined-size-small' multiline maxRows={1} size='small' value={newEmail} onChange={(e) => setNewEmail(e.target.value)}/>
+                  <InputFiled sx={{ fontFamily: theme.typography.displaySmall, '& .MuiInputBase-root': { height: '6vh' } }} data-cy='footer-text-field' label='Email' id='outlined-size-small' multiline maxRows={1} size='small' value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
                 </FooterItem>
               </ContactContent>
 
               {/* //Need to define routes */}
-              <AboutContent style={{width: mobile ? '100%' : '30vw'}}>
-                <Typography variant='headlineSmall' style={{textAlign: 'center'}} color={theme.palette.onPrimary.main}><strong>Conheça o museu</strong></Typography>
+              <AboutContent style={{ width: mobile ? '100%' : '30vw' }}>
+                <Typography variant='headlineSmall' style={{ textAlign: 'center' }} color={theme.palette.onPrimary.main}><strong>Conheça o museu</strong></Typography>
                 {
                   mobile ?
-                  ""
-                  :
-                  <>
-                    <Link to='/' style={{textDecoration: 'none', color: `${theme.palette.onPrimary.main}`, marginTop: '1vh'}}>
-                      <Typography style={{fontSize: '1.5vh', textDecoration: 'underline'}}>Últimas exposições</Typography>
-                    </Link>
-                    <Link to='/' style={{textDecoration: 'none', color: `${theme.palette.onPrimary.main}`, marginTop: '1vh'}}>
-                      <Typography style={{fontSize: '1.5vh', textDecoration: 'underline'}}>Acervo</Typography>
-                    </Link>
-                    <Link to='/' style={{textDecoration: 'none', color: `${theme.palette.onPrimary.main}`, marginTop: '1vh'}}>
-                      <Typography style={{fontSize: '1.5vh', textDecoration: 'underline'}}>Editais e normas</Typography>
-                    </Link>
-                  </>
+                    ""
+                    :
+                    <>
+                      <Link to='/' style={{ textDecoration: 'none', color: `${theme.palette.onPrimary.main}`, marginTop: '1vh' }}>
+                        <Typography style={{ fontSize: '1.5vh', textDecoration: 'underline' }}>Últimas exposições</Typography>
+                      </Link>
+                      <Link to='/' style={{ textDecoration: 'none', color: `${theme.palette.onPrimary.main}`, marginTop: '1vh' }}>
+                        <Typography style={{ fontSize: '1.5vh', textDecoration: 'underline' }}>Acervo</Typography>
+                      </Link>
+                      <Link to='/' style={{ textDecoration: 'none', color: `${theme.palette.onPrimary.main}`, marginTop: '1vh' }}>
+                        <Typography style={{ fontSize: '1.5vh', textDecoration: 'underline' }}>Editais e normas</Typography>
+                      </Link>
+                    </>
                 }
                 <FooterItem>
-                  <InputFiled sx={{fontFamily: theme.typography.displaySmall, '& .MuiInputBase-root': { height: '6vh' }}} data-cy='footer-text-field' label='Endereço' id='outlined-size-small' multiline maxRows={1} size='small' value={newAddress} onChange={(e) => setNewAddress(e.target.value)}/>
+                  <InputFiled sx={{ fontFamily: theme.typography.displaySmall, '& .MuiInputBase-root': { height: '6vh' } }} data-cy='footer-text-field' label='Endereço' id='outlined-size-small' multiline maxRows={1} size='small' value={newAddress} onChange={(e) => setNewAddress(e.target.value)} />
                 </FooterItem>
               </AboutContent>
             </FooterContent>
@@ -150,49 +150,49 @@ const Footer = () => {
           // component out of edition
 
           <>
-            <FooterContent style={{flexDirection: mobile ? "column" : "row", width: mobile ? '100%' : ''}}>
-              <SocialContent style={{width: mobile ? '100%' : '30vw',  height: mobile ? "18vh" : "30vh"}}>
-                <Typography variant='headlineSmall' style={{textAlign: "center"}} color={theme.palette.onPrimary.main}><strong>Museu Histórico Jacinto de Sousa</strong></Typography>
+            <FooterContent style={{ flexDirection: mobile ? "column" : "row", width: mobile ? '100%' : '' }}>
+              <SocialContent style={{ width: mobile ? '100%' : '30vw', height: mobile ? "18vh" : "30vh" }}>
+                <Typography variant='headlineSmall' style={{ textAlign: "center" }} color={theme.palette.onPrimary.main}><strong>Museu Histórico Jacinto de Sousa</strong></Typography>
                 <FooterItem>
-                  <AddressLink href={newInstagram} target='blank'>
-                    <InstagramIcon sx={{position: 'relative', fontSize: '2.5vh', color: `${theme.palette.onPrimary.main}`}}/>
+                  <AddressLink href={footerElements.footerDatas.instagram} target='blank'>
+                    <InstagramIcon sx={{ position: 'relative', fontSize: '2.5vh', color: `${theme.palette.onPrimary.main}` }} />
                   </AddressLink>
                 </FooterItem>
               </SocialContent>
 
-              <ContactContent  style={{width: mobile ? '100%' : '30vw'}}>
-                <Typography variant='headlineSmall'  color={theme.palette.onPrimary.main} style={{textAlign: 'center'}}><strong>Fale conosco</strong></Typography>
-                <FooterItem sx={{marginTop: "3vh"}}>
-                  <PhoneIcon sx={{fontSize: '2.5vh', marginRight: '0.5vw' }} />
-                  <Typography variant='titleMedium' style={{fontSize: '1.5vh'}}>{footerElements.footerDatas.telephone}</Typography>
+              <ContactContent style={{ width: mobile ? '100%' : '30vw' }}>
+                <Typography variant='headlineSmall' color={theme.palette.onPrimary.main} style={{ textAlign: 'center' }}><strong>Fale conosco</strong></Typography>
+                <FooterItem sx={{ marginTop: "3vh" }}>
+                  <PhoneIcon sx={{ fontSize: '2.5vh', marginRight: '0.5vw' }} />
+                  <Typography variant='titleMedium' style={{ fontSize: '1.5vh' }}>{footerElements.footerDatas.telephone}</Typography>
                 </FooterItem>
 
-                <FooterItem sx={{marginTop: "3vh"}}>
+                <FooterItem sx={{ marginTop: "3vh" }}>
                   <WhatsAppIcon sx={{ fontSize: '2.5vh', marginRight: '0.5vw' }} />
-                  <Typography variant='titleMedium' style={{fontSize: '1.5vh'}}>{footerElements.footerDatas.whatsapp}</Typography>
+                  <Typography variant='titleMedium' style={{ fontSize: '1.5vh' }}>{footerElements.footerDatas.whatsapp}</Typography>
                 </FooterItem>
 
-                <FooterItem sx={{marginTop: "3vh"}}>
+                <FooterItem sx={{ marginTop: "3vh" }}>
                   <EmailIcon sx={{ fontSize: '2.5vh', marginRight: '0.5vw' }} />
-                  <Typography variant='titleMedium' style={{fontSize: '1.5vh'}}>{footerElements.footerDatas.email}</Typography>
+                  <Typography variant='titleMedium' style={{ fontSize: '1.5vh' }}>{footerElements.footerDatas.email}</Typography>
                 </FooterItem>
               </ContactContent>
 
               {/* //Need to define routes */}
-              <AboutContent style={{width: mobile ? '100%' : '30vw'}}>
-                <Typography variant='headlineSmall' color={theme.palette.onPrimary.main} style={{textAlign: 'center'}}><strong>Conheça o museu</strong></Typography>
-                <Link to='/' style={{textDecoration: 'none', color: `${theme.palette.onPrimary.main}`, marginTop: '2vh'}}>
-                  <Typography variant='bodyLarge' style={{fontSize: '1.5vh', textDecoration: 'underline'}}>Últimas exposições</Typography>
+              <AboutContent style={{ width: mobile ? '100%' : '30vw' }}>
+                <Typography variant='headlineSmall' color={theme.palette.onPrimary.main} style={{ textAlign: 'center' }}><strong>Conheça o museu</strong></Typography>
+                <Link to='/' style={{ textDecoration: 'none', color: `${theme.palette.onPrimary.main}`, marginTop: '2vh' }}>
+                  <Typography variant='bodyLarge' style={{ fontSize: '1.5vh', textDecoration: 'underline' }}>Últimas exposições</Typography>
                 </Link>
-                <Link to='/' style={{textDecoration: 'none', color: `${theme.palette.onPrimary.main}`, marginTop: '2vh'}}>
-                  <Typography variant='bodyLarge' style={{fontSize: '1.5vh', textDecoration: 'underline'}}>Acervo</Typography>
+                <Link to='/' style={{ textDecoration: 'none', color: `${theme.palette.onPrimary.main}`, marginTop: '2vh' }}>
+                  <Typography variant='bodyLarge' style={{ fontSize: '1.5vh', textDecoration: 'underline' }}>Acervo</Typography>
                 </Link>
-                <Link to='/' style={{textDecoration: 'none', color: `${theme.palette.onPrimary.main}`, marginTop: '2vh'}}>
-                  <Typography variant='bodyLarge' style={{fontSize: '1.5vh', textDecoration: 'underline'}}>Editais e normas</Typography>
+                <Link to='/' style={{ textDecoration: 'none', color: `${theme.palette.onPrimary.main}`, marginTop: '2vh' }}>
+                  <Typography variant='bodyLarge' style={{ fontSize: '1.5vh', textDecoration: 'underline' }}>Editais e normas</Typography>
                 </Link>
                 <FooterItem>
                   <PlaceIcon sx={{ fontSize: '2.5vh', marginRight: '0.5vw' }} />
-                  <Typography variant='titleMedium' style={{fontSize: '1.5vh'}}>{footerElements.footerDatas.address}</Typography>
+                  <Typography variant='titleMedium' style={{ fontSize: '1.5vh' }}>{footerElements.footerDatas.address}</Typography>
                 </FooterItem>
               </AboutContent>
             </FooterContent>
@@ -209,9 +209,9 @@ const Footer = () => {
             }
           </>
         }
-        <hr style={{position: 'relative', width: '100%', margin: 'auto', color: `${theme.palette.onPrimary.main}`}}/>
+        <hr style={{ position: 'relative', width: '100%', margin: 'auto', color: `${theme.palette.onPrimary.main}` }} />
         <CopyRightSection>
-          <Typography style={{position: 'relative', color: theme.palette.onPrimary.main}}>Copyright © 2024</Typography>
+          <Typography style={{ position: 'relative', color: theme.palette.onPrimary.main }}>Copyright © 2024</Typography>
         </CopyRightSection>
       </ FooterContainer>
     )
@@ -224,7 +224,7 @@ const FooterContainer = styled('footer')(({ theme }: { theme: Theme }) => ({
   width: '100%',
   flexDirection: 'column',
   flexWrap: 'wrap',
-  
+
   display: 'flex',
   justifyContent: 'center',
   alignContent: 'center',
@@ -244,7 +244,7 @@ const FooterContent = styled('address')(() => ({
 }))
 
 
-const AddressLink = styled('a')(({theme} : {theme:Theme}) =>({
+const AddressLink = styled('a')(({ theme }: { theme: Theme }) => ({
   position: 'relative',
   border: `1px solid ${theme.palette.onPrimary.main}`,
   borderRadius: '50%',
@@ -260,7 +260,7 @@ const AddressLink = styled('a')(({theme} : {theme:Theme}) =>({
   padding: `${theme.spacing(1)}`,
 }))
 
-const SocialContent = styled('section')(() =>({
+const SocialContent = styled('section')(() => ({
   position: 'relative',
   height: '30vh',
 
@@ -270,7 +270,7 @@ const SocialContent = styled('section')(() =>({
 }))
 
 
-const ContactContent = styled('address')(() =>({
+const ContactContent = styled('address')(() => ({
   position: 'relative',
   height: '30vh',
 
@@ -279,7 +279,7 @@ const ContactContent = styled('address')(() =>({
   flexDirection: 'column'
 }))
 
-const AboutContent = styled('section')(() =>({
+const AboutContent = styled('section')(() => ({
   position: 'relative',
   height: '30vh',
 
@@ -293,7 +293,7 @@ const FooterItem = styled('li')(({ theme }: { theme: Theme }) => ({
   position: 'relative',
   listStyleType: 'none',
   height: 'fit-content',
-  
+
   display: 'flex',
   justifyContent: 'start',
   alignItems: 'center',
@@ -317,26 +317,26 @@ const FooterEditable = styled('div')(({ theme }: { theme: Theme }) => ({
 const EditableButton = styled('button')(({ theme }: { theme: Theme }) => ({
   cursor: 'pointer',
   fontSize: '2.5vh',
-  
+
   border: 'none',
   borderRadius: '40px',
 
   padding: `${theme.spacing(1)} ${theme.spacing(3)}`,
   margin: '1.5vh',
-  
+
   background: 'none',
   backgroundColor: theme.palette.tertiary.main,
   color: theme.palette.onPrimary.main,
 }))
 
-const InputFiled = styled(TextField)(({theme}: {theme: Theme}) =>({
-  '& label.Mui-focused':{
+const InputFiled = styled(TextField)(({ theme }: { theme: Theme }) => ({
+  '& label.Mui-focused': {
     color: theme.palette.onPrimary.main
   },
-  '& label':{
+  '& label': {
     color: theme.palette.onPrimary.main,
   },
-  '& .MuiInputBase-input':{
+  '& .MuiInputBase-input': {
     color: theme.palette.onPrimary.main,
     fontSize: '2vh'
   },
@@ -353,7 +353,7 @@ const InputFiled = styled(TextField)(({theme}: {theme: Theme}) =>({
   },
 }))
 
-const CopyRightSection = styled('section')(({theme}: {theme: Theme}) =>({
+const CopyRightSection = styled('section')(({ theme }: { theme: Theme }) => ({
   height: "fit-content",
   width: "100%",
 
