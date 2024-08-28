@@ -121,7 +121,7 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
                     editing === true ? (
                       <>
                         <BotaoEditar data-cy="botaoSalvar" onClick={() => slidingBanner && finalizarEdicao(slide) }>Salvar</BotaoEditar>
-                        <BotaoDeletarImagem onClick={() => slidingBanner && slidingBanner.removeImage && slidingBanner.removeImage(slide)} data-cy="delete-image">Deletar imagem</BotaoDeletarImagem>
+                        <BotaoDeletarImagem onClick={() => slidingBanner && slidingBanner.removeImage && slidingBanner.removeImage(slide)} data-cy="botaoDeletar">Deletar imagem</BotaoDeletarImagem>
                         <BotaoCancelar onClick={() => cancelarEdicao()}>Cancelar</BotaoCancelar>
                       </>
                     )
@@ -172,6 +172,7 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
                           fullWidth
                           value={altTex}
                           onChange={handleAltTex}
+                          data-cy="inputAltText"
                         />
                       )}
                     />

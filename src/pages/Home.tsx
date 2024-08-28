@@ -112,14 +112,14 @@ useEffect(() =>{
 
 return (
   <Content data-cy="page-content">
-    <Heading>
+    <Heading sx={{display: 'flex', alignItems: 'center'}}>
       <Typography 
         variant="displayLarge" 
         color={theme.palette.onPrimaryContainer.main} 
         alignSelf={'center'}
         sx={{textAlign: 'center'}}
       >
-        Museu Histórico Jacinto de Souza
+        Museu Histórico Jacinto de Sousa
       </Typography>
       <SlidingBanner {...propsBanner} />
       <input
@@ -147,6 +147,7 @@ return (
           sx={{ maxWidth: '200px', borderRadius: '50px' }}
           color="primary"
           onClick={() => setCreateInfoSectionsCount((previous) => previous + 1)}
+          data-cy="add-info-section"
         >
           Adicionar Informação
         </Button>
