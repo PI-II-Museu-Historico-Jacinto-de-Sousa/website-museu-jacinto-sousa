@@ -144,7 +144,11 @@ return (
       {logged &&
         <Button
           variant="contained"
-          sx={{ maxWidth: '200px', borderRadius: '50px' }}
+          sx={{ 
+            maxWidth: '200px', 
+            borderRadius: '50px',
+            alignSelf: 'center'
+          }}
           color="primary"
           onClick={() => setCreateInfoSectionsCount((previous) => previous + 1)}
           data-cy="add-info-section"
