@@ -25,6 +25,7 @@ import {
 } from "firebase/storage";
 import { db, storage } from "../../firebase/firebase";
 import { InfoMuseu } from "../interfaces/InfoMuseu";
+import Imagem from "../interfaces/Imagem";
 
 const COLLECTION_REF = "informacoes-museu/home/itens";
 const HOME_REF = "informacoes-museu";

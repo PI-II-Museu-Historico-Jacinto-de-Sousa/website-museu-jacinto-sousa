@@ -2,6 +2,7 @@ import SlidingBanner from "../SlidingBanner";
 import getDesignTokens from "../../../theme/theme"
 import { ThemeProvider } from "@emotion/react"
 import { auth } from "../../../../firebase/firebase";
+import Imagem from "../../../interfaces/Imagem";
 
 const theme = getDesignTokens('light')
 
