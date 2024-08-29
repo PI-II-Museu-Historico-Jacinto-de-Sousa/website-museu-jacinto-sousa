@@ -1,3 +1,4 @@
+import { FirebaseError } from "firebase/app";
 import {
   addDoc,
   collection,
@@ -12,11 +13,6 @@ import {
   SnapshotOptions,
   updateDoc,
 } from "firebase/firestore";
-import { BaseConverter } from "./converter";
-import Exposicao from "../interfaces/Exposicao";
-import { db, storage } from "../../firebase/firebase";
-import { FirebaseError } from "firebase/app";
-import { ClientColecoesFirebase } from "./colecaoFirebase";
 import {
   deleteObject,
   getDownloadURL,
@@ -25,7 +21,12 @@ import {
   updateMetadata,
   uploadBytes,
 } from "firebase/storage";
+import { db, storage } from "../../firebase/firebase";
+import { firebaseErrorToHTTPError } from "../errors/mapper";
+import Exposicao from "../interfaces/Exposicao";
 import Imagem from "../interfaces/Imagem";
+import { ClientColecoesFirebase } from "./colecaoFirebase";
+import { BaseConverter } from "./converter";
 
 class ConverterExposicoesFirebase extends BaseConverter {
   toFirestore(exposicao: Exposicao): DocumentData {
@@ -181,7 +182,9 @@ export class ClientExposicaoFirebase {
       }
       return exposicao;
     } catch (error) {
-      console.error(error);
+      if (error instanceof FirebaseError) {
+        throw firebaseErrorToHTTPError(error);
+      }
       throw new Error("Erro ao buscar exposição");
     }
   }
@@ -216,7 +219,9 @@ export class ClientExposicaoFirebase {
       await addDoc(collectionRef, exposicao);
       return true;
     } catch (error) {
-      console.error(error);
+      if (error instanceof FirebaseError) {
+        throw firebaseErrorToHTTPError(error);
+      }
       throw new Error("Erro ao adicionar exposição");
     }
   }
@@ -277,7 +282,9 @@ export class ClientExposicaoFirebase {
         await updateDoc(docRef, { ...sendingDoc });
       }
     } catch (error) {
-      console.error(error);
+      if (error instanceof FirebaseError) {
+        throw firebaseErrorToHTTPError(error);
+      }
       throw new Error("Erro ao atualizar exposição");
     }
   }
@@ -310,6 +317,7 @@ export class ClientExposicaoFirebase {
       alt: metadata?.customMetadata?.alt || "",
     };
   }
+
   async #addImagem(newImage: Imagem): Promise<string> {
     if (
       !(newImage.src instanceof File && newImage.src.type.includes("image"))
@@ -326,6 +334,7 @@ export class ClientExposicaoFirebase {
     });
     return newPath;
   }
+
   /**
    * atualiza uma imagem no firestore, caso nao exista uma imagem  caso o conteudo seja diferente remove a imagem
    * antiga e adiciona a nova
@@ -383,7 +392,9 @@ export class ClientExposicaoFirebase {
       }
       await deleteDoc(docRef);
     } catch (error) {
-      console.error(error);
+      if (error instanceof FirebaseError) {
+        throw firebaseErrorToHTTPError(error);
+      }
       throw new Error("Erro ao deletar exposição");
     }
   }

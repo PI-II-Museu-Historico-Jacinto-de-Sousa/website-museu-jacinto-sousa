@@ -34,6 +34,10 @@ const ErrorPage = ({ error }: { error?: ErrorPageProps }) => {
   let message = "Um error inesperado ocorreu."
 
   if (isRouteErrorResponse(usedError)) {
+    if (usedError.status === 403) {
+      usedError.statusText = "Acesso negado"
+      message = `Você não tem permissão para acessar a página \n"${location.pathname}"`
+    }
     if (usedError.status === 404) {
       usedError.statusText = "Página não encontrada"
       message = `Não foi possível encontrar a página \n"${location.pathname}"`
