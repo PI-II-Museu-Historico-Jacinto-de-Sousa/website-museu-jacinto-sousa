@@ -9,6 +9,7 @@ const Home = React.lazy(() => import("../pages/Home"));
 const CriarItemAcervo = React.lazy(() => import("../pages/CriarItemAcervo"));
 const ItemAcervo = React.lazy(() => import("../pages/ItemAcervo"));
 const Login = React.lazy(() => import("../pages/Login"));
+const CriarExposicao = React.lazy(() => import("../pages/CriarExposicao"));
 
 const centeredLoading = (
   <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
@@ -116,7 +117,18 @@ const router = createBrowserRouter([
           <Suspense fallback={centeredLoading}>
             <ItemAcervo />
           </Suspense>,
-      }
+      },
+      {
+        element: <ProtectedRoutes />,
+        loader: privateLoader,
+        children: [
+          {
+            path: "/exposicoes/criar-exposicao",
+            element:
+              <CriarExposicao />
+          },
+        ]
+      },
     ]
   }]);
 
