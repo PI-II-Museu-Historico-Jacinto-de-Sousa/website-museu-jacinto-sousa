@@ -2,28 +2,50 @@ import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import { Theme, styled } from "@mui/material/styles";
+import { Theme, styled, useTheme } from "@mui/material/styles";
 import { useState, useEffect } from "react";
 import { auth } from "../../firebase/firebase";
 import { DatePicker } from "@mui/x-date-pickers";
 import Checkbox from "@mui/material/Checkbox";
 import Imagem from "../interfaces/Imagem";
-import useExposicao from "../hooks/useExposicoes";
+import { useForm } from "react-hook-form";
 import { Controller, SubmitHandler } from "react-hook-form";
 import Exposicao from "../interfaces/Exposicao";
+import { MobileDatePicker } from "@mui/x-date-pickers";
 import { ClientExposicaoFirebase } from "../Utils/exposicaoFirebase";
 import FormControlLabel from "@mui/material/FormControlLabel";
-import { Dialog, DialogContent } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { Dialog, DialogContent, useMediaQuery } from "@mui/material";
+import dayjs from "dayjs";
 
 const CriarExposicao = () => {
 
   const [logged, setLogged] = useState(false);
   const [imagem, setImagem] = useState<Imagem>();
-  const { register, setError, watch, control, handleSubmit, formState, reset } = useExposicao()
+  const {
+    register,
+    watch,
+    setError,
+    control,
+    handleSubmit,
+    formState,
+    reset,
+  } = useForm<Exposicao>({
+      defaultValues: {
+        nome: "",
+        descricao: "",
+        privado: false,
+        permanente: false,
+        imagem: { src: "", title: "", alt: "" },
+        itensPorColecao: new Map<string, Array<[string, Exposicao]>>(),
+        dataCriacao: new Date()
+      }
+  });
   const { errors, isSubmitSuccessful } = formState
-  const navigate = useNavigate()
   const [openDialogSave, setOpenDialogSave] = useState(false);
+  const dataInicio = dayjs(watch('dataInicio')); // Watch the start date
+  const dataFim = dayjs( watch('dataFim')); // Watch the end date
+  const theme = useTheme()
+  const mobile = useMediaQuery(theme.breakpoints.down('sm'))
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -65,10 +87,6 @@ const CriarExposicao = () => {
     input.click();
   };
 
-  const redionarSalvamento = () => {
-    navigate('/home')
-  }
-
   const submitForm: SubmitHandler<Exposicao> = async (data: Exposicao) => {
     const permanente = data.permanente
     console.log("data", data)
@@ -94,8 +112,8 @@ const CriarExposicao = () => {
               descricao: data.descricao || '', // Provide a default value for descricao
               privado: data.privado,
               permanente: permanente,
-              dataInicio: data.dataInicio,
-              dataFim: data.dataInicio,
+              dataInicio: data.dataInicio?.toDate(),
+              dataFim: data.dataFim?.toDate(),
               itensPorColecao: data.itensPorColecao,
               dataCriacao: data.dataCriacao
             }
@@ -104,18 +122,22 @@ const CriarExposicao = () => {
             }
             console.log("exposicao", exposicao)
             const client = new ClientExposicaoFirebase()
-            client.adicionarExposicao(exposicao)
+            client.adicionarExposicao(exposicao).then(() => {
+              setOpenDialogSave(true)
+            })
         }
-        setOpenDialogSave(true)
       } catch (error) {
         setError('root', {
           type: 'submitFailure',
           message: (error as Error).message
         })
         //console.log((error as Error).message)
-      } finally {
-        reset()
       }
+    }
+
+    const concluiSalvamento = () => {
+      setOpenDialogSave(false)
+      reset()
     }
 
   return (
@@ -128,12 +150,17 @@ const CriarExposicao = () => {
         <Fields>
           <SectionFields>
             <ImageUpload>
-              <img
-                alt={imagem?.alt}
-                data-cy="imagemCapa"
-                {...register('imagem')}
-                style={{ width: '240px', height: '240px' }}
-                src={imagem?.src instanceof File ? URL.createObjectURL(imagem?.src) : imagem?.src}/>
+              {
+                imagem && (
+                  <>
+                    <img
+                      alt={imagem?.alt}
+                      data-cy="imagemCapa"
+                      style={{ width: '240px', height: '240px' }}
+                      src={imagem?.src instanceof File ? URL.createObjectURL(imagem?.src) : imagem?.src} />
+                    </>
+                )
+              }
               <BotaoPrimario
                 data-cy="botaoAdicionarImagem"
                 onClick={handleAddImage}
@@ -178,58 +205,123 @@ const CriarExposicao = () => {
                 <FieldExposicaoTemporaria
                   data-cy="campos-datas"
                 >
-                  <Controller
-                      name="dataInicio"
-                      control={control}
-                      render={({ field, fieldState: { error } }) => (
-                        <DatePickerInicioFim
-                          {...field}
-                          {...register('dataInicio', {
-                            required: "Data de início é obrigatória"
-                          })}
-                          data-cy="dataInicio"
-                          label='Data de início'
-                          inputRef={field.ref}
-                          onChange={(date) => {
-                            field.onChange(date);
-                          }}
-                          value={null} // Convert Date to Dayjs
-                          slotProps={{
-                            textField: {
-                              id: 'dataInicio-helper-text',
-                              error: !!error,
-                              helperText: error ? error.message : null,
-                            },
-                          }}
+                  {
+                    mobile ? (
+                      <>
+                        <Controller
+                          name="dataInicio"
+                          control={control}
+                          render={({ field, fieldState: { error } }) => (
+                            <MobileDatePicker
+                              {...field}
+                              {...register('dataInicio', {
+                                required: "Data de início é obrigatória"
+                              })}
+                              maxDate={dataFim}
+                              data-cy="dataInicio"
+                              label='Data de início'
+                              inputRef={field.ref}
+                              onChange={(date) => {
+                                field.onChange(date);
+                              }}
+                              value={null} // Convert Date to Dayjs
+                              slotProps={{
+                                textField: {
+                                  id: 'dataInicio-helper-text',
+                                  error: !!error,
+                                  helperText: error ? error.message : null,
+                                },
+                              }}
+                            />
+                          )}
                         />
-                      )}
-                    />
-                  <Controller
-                      control={control}
-                      name="dataFim"
-                      render={({ field, fieldState: { error } }) => (
-                        <DatePickerInicioFim
-                          {...field}
-                          {...register('dataFim', {
-                            required: "Data de fim é obrigatória"
-                          })}
-                          label='Data de fim'
-                          data-cy="dataFim"
-                          inputRef={field.ref}
-                          onChange={(date) => {
-                            field.onChange(date);
-                          }}
-                          value={null} // Convert Date to Dayjs
-                          slotProps={{
-                            textField: {
-                              id: 'dataFim-helper-text',
-                              error: !!error,
-                              helperText: error ? error.message : null,
-                            },
-                          }}
+                        <Controller
+                          control={control}
+                          name="dataFim"
+                          render={({ field, fieldState: { error } }) => (
+                            <MobileDatePicker
+                              {...field}
+                              {...register('dataFim', {
+                                required: "Data de fim é obrigatória"
+                              })}
+                              label='Data de fim'
+                              data-cy="dataFim"
+                              inputRef={field.ref}
+                              onChange={(date) => {
+                                field.onChange(date);
+                              }}
+                              minDate={dataInicio || dayjs()}
+                              value={null} // Convert Date to Dayjs
+                              slotProps={{
+                                textField: {
+                                  id: 'dataFim-helper-text',
+                                  error: !!error,
+                                  helperText: error ? error.message : null,
+                                },
+                              }}
+                            />
+                          )}
                         />
-                      )}
-                    />
+                      </>
+                    ) : (
+                        <>
+                          <Controller
+                            name="dataInicio"
+                            control={control}
+                            render={({ field, fieldState: { error } }) => (
+                              <DatePickerInicioFim
+                                {...field}
+                                {...register('dataInicio', {
+                                  required: "Data de início é obrigatória"
+                                })}
+                                maxDate={dataFim}
+                                data-cy="dataInicio"
+                                label='Data de início'
+                                inputRef={field.ref}
+                                onChange={(date) => {
+                                  field.onChange(date);
+                                }}
+                                value={null} // Convert Date to Dayjs
+                                slotProps={{
+                                  textField: {
+                                    id: 'dataInicio-helper-text',
+                                    error: !!error,
+                                    helperText: error ? error.message : null,
+                                  },
+                                }}
+                              />
+                            )}
+                          />
+                        <Controller
+                            control={control}
+                            name="dataFim"
+                            render={({ field, fieldState: { error } }) => (
+                              <DatePickerInicioFim
+                                {...field}
+                                {...register('dataFim', {
+                                  required: "Data de fim é obrigatória"
+                                })}
+                                label='Data de fim'
+                                data-cy="dataFim"
+                                inputRef={field.ref}
+                                onChange={(date) => {
+                                  field.onChange(date);
+                                }}
+                                minDate={dataInicio || dayjs()}
+                                value={null} // Convert Date to Dayjs
+                                slotProps={{
+                                  textField: {
+                                    id: 'dataFim-helper-text',
+                                    error: !!error,
+                                    helperText: error ? error.message : null,
+                                  },
+                                }}
+                              />
+                            )}
+                          />
+                        </>
+                    )
+                  }
                 </FieldExposicaoTemporaria>
               )
             }
@@ -237,7 +329,7 @@ const CriarExposicao = () => {
         </Fields>
       <ContainerBotaoPrimario>
         <BotaoAdicionarItem>
-          <Typography variant="headlineSmall">Adicionar Itens</Typography>
+          Adicionar exposição
         </BotaoAdicionarItem>
       </ContainerBotaoPrimario>
       <Itens>
@@ -297,7 +389,7 @@ const CriarExposicao = () => {
         </CustomDialogContent>
         <CustomDialogContent>
           <BotaoOk
-            onClick={() => redionarSalvamento()}
+            onClick={() => concluiSalvamento()}
             data-cy="button-ok-dialog-save"
           >Ok</BotaoOk>
         </CustomDialogContent>
@@ -313,7 +405,6 @@ const Content = styled('section')(({ theme }: { theme: Theme }) => ({
   flexDirection: 'column',
   alignItems: 'flex-start',
   alignSelf: 'stretch',
-  backgroundColor: theme.palette.secondaryContainer.main,
 }))
 
 const Heading = styled('section')(({ theme }: { theme: Theme }) => ({
@@ -324,7 +415,7 @@ const Heading = styled('section')(({ theme }: { theme: Theme }) => ({
   alignItems: 'flex-start',
   gap: theme.spacing(2),
   alignSelf: 'stretch',
-  backgroundColor: theme.palette.onPrimary.main,
+  backgroundColor: theme.palette.surfaceContainerLow.main,
 }))
 
 const Form = styled('form')(({ theme }: { theme: Theme }) => ({
@@ -335,14 +426,14 @@ const Form = styled('form')(({ theme }: { theme: Theme }) => ({
   alignItems: 'center',
   gap: theme.spacing(2),
   alignSelf: 'stretch',
-  backgroundColor: theme.palette.onPrimary.main,
+  backgroundColor: theme.palette.surfaceContainerLow.main,
 }))
 
 const Fields = styled(Stack)(({ theme }: { theme: Theme }) => ({
   display: 'flex',
   justifyContent: 'space-between',
   alignSelf: 'stretch',
-  backgroundColor: theme.palette.onPrimary.main,
+  backgroundColor: theme.palette.surfaceContainerLow.main,
 }))
 
 const SectionFields = styled(Stack)(({ theme }: { theme: Theme }) => ({
@@ -361,7 +452,7 @@ const ImageUpload = styled('section')(({ theme }: { theme: Theme }) => ({
   alignItems: 'center',      // Centraliza o conteúdo horizontalmentealiza o conteúdo horizontalmente
   gap: theme.spacing(1.25),
   alignSelf: 'stretch',
-  backgroundColor: theme.palette.onPrimary.main,
+  backgroundColor: theme.palette.surfaceContainerLow.main,
 }));
 
 
@@ -390,7 +481,7 @@ const Submit = styled(Stack)(({ theme }: { theme: Theme }) => ({
   alignItems: 'flex-start',
   gap: theme.spacing(2),
   alignSelf: 'stretch',
-  backgroundColor: theme.palette.onPrimary.main,
+  backgroundColor: theme.palette.surfaceContainerLow.main,
 }))
 
 const Verification = styled('section')(() => ({
@@ -442,7 +533,7 @@ const DatePickerInicioFim = styled(DatePicker)(({ theme }: { theme: Theme }) => 
 
 const ContainerBotaoPrimario = styled(Content)(({ theme }: { theme: Theme }) => ({
   display: 'flex',
-  backgroundColor: theme.palette.onPrimary.main,
+  backgroundColor: theme.palette.surfaceContainerLow.main,
   flexDirection: 'column',
   justifContent: 'center',
   alignItems: 'center',

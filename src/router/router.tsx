@@ -95,6 +95,11 @@ const router = createBrowserRouter([
             element:
               <CriarItemAcervo />
           },
+          {
+            path: "/exposicoes/criar-exposicao",
+            element:
+              <CriarExposicao />
+          },
         ]
       },
       {
@@ -117,17 +122,6 @@ const router = createBrowserRouter([
           <Suspense fallback={centeredLoading}>
             <ItemAcervo />
           </Suspense>,
-      },
-      {
-        element: <ProtectedRoutes />,
-        loader: privateLoader,
-        children: [
-          {
-            path: "/exposicoes/criar-exposicao",
-            element:
-              <CriarExposicao />
-          },
-        ]
       },
     ]
   }]);
