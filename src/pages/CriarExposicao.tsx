@@ -35,6 +35,8 @@ const CriarExposicao = () => {
         descricao: "",
         privado: false,
         permanente: false,
+        dataInicio: undefined,
+        dataFim: undefined,
         imagem: { src: "", title: "", alt: "" },
         itensPorColecao: new Map<string, Array<[string, Exposicao]>>(),
         dataCriacao: new Date()
@@ -89,7 +91,6 @@ const CriarExposicao = () => {
 
   const submitForm: SubmitHandler<Exposicao> = async (data: Exposicao) => {
     const permanente = data.permanente
-    console.log("data", data)
     try {
         if(permanente) {
             const exposicao = {
@@ -104,8 +105,9 @@ const CriarExposicao = () => {
               exposicao.imagem = imagem;
             }
             const client = new ClientExposicaoFirebase()
-            client.adicionarExposicao(exposicao)
-            console.log("exposicao", exposicao)
+            client.adicionarExposicao(exposicao).then(() => {
+              setOpenDialogSave(true)
+            })
         } else {
             const exposicao = {
               nome: data.nome || '',
@@ -120,7 +122,6 @@ const CriarExposicao = () => {
             if (imagem) {
               exposicao.imagem = imagem;
             }
-            console.log("exposicao", exposicao)
             const client = new ClientExposicaoFirebase()
             client.adicionarExposicao(exposicao).then(() => {
               setOpenDialogSave(true)
@@ -131,7 +132,6 @@ const CriarExposicao = () => {
           type: 'submitFailure',
           message: (error as Error).message
         })
-        //console.log((error as Error).message)
       }
     }
 
@@ -179,6 +179,7 @@ const CriarExposicao = () => {
             />
             <TextFieldDados
               {...register('descricao')}
+              data-cy="descricao"
               variant="filled"
               label="Descrição da Exposição"
             />
@@ -224,10 +225,10 @@ const CriarExposicao = () => {
                               onChange={(date) => {
                                 field.onChange(date);
                               }}
-                              value={null} // Convert Date to Dayjs
+                              value={field.value ? dayjs(field.value) : null} // Use o valor do campo
                               slotProps={{
                                 textField: {
-                                  id: 'dataInicio-helper-text',
+                                  id: 'dataInicio',
                                   error: !!error,
                                   helperText: error ? error.message : null,
                                 },
@@ -251,10 +252,10 @@ const CriarExposicao = () => {
                                 field.onChange(date);
                               }}
                               minDate={dataInicio || dayjs()}
-                              value={null} // Convert Date to Dayjs
+                              value={field.value ? dayjs(field.value) : null} // Use o valor do campo
                               slotProps={{
                                 textField: {
-                                  id: 'dataFim-helper-text',
+                                  id: 'dataFim',
                                   error: !!error,
                                   helperText: error ? error.message : null,
                                 },
@@ -281,7 +282,7 @@ const CriarExposicao = () => {
                                 onChange={(date) => {
                                   field.onChange(date);
                                 }}
-                                value={null} // Convert Date to Dayjs
+                                value={field.value ? dayjs(field.value) : null} // Use o valor do campo
                                 slotProps={{
                                   textField: {
                                     id: 'dataInicio-helper-text',
@@ -308,7 +309,7 @@ const CriarExposicao = () => {
                                   field.onChange(date);
                                 }}
                                 minDate={dataInicio || dayjs()}
-                                value={null} // Convert Date to Dayjs
+                                value={field.value ? dayjs(field.value) : null} // Use o valor do campo
                                 slotProps={{
                                   textField: {
                                     id: 'dataFim-helper-text',

@@ -11,19 +11,19 @@ describe('Criar Exposição', () => {
   });
 
   it('Os campos de data devem ser obrigatórios quando a exposição for temporária, testando da início', () => {
-    cy.get('[data-cy="permanente"]').click();
     cy.get('[data-cy="botaoSubmit"]').click();
     cy.get('[data-cy="campos-datas"]').contains('Data de início é obrigatória')
   });
 
   it('Os campos de data devem ser obrigatórios quando a exposição for temporária, testando da fim', () => {
-    cy.get('[data-cy="permanente"]').click();
     cy.get('[data-cy="botaoSubmit"]').click();
     cy.get('[data-cy="campos-datas"]').contains('Data de fim é obrigatória')
   });
 
   it('Criar uma exposição sem itens deve ser bem-sucedido.', () => {
     cy.get('[data-cy="nome"]').type('Exposição Teste');
+    cy.get('[data-cy="descricao"]').type('Descrição Teste');
+    cy.get('[data-cy="permanente"]').click();
     cy.get('[data-cy="botaoSubmit"]').click();
     cy.get('[data-cy="button-ok-dialog-save"]').should('exist');
   });
