@@ -12,12 +12,12 @@ describe('Criar Exposição', () => {
 
   it('Os campos de data devem ser obrigatórios quando a exposição for temporária, testando da início', () => {
     cy.get('[data-cy="botaoSubmit"]').click();
-    cy.get('[data-cy="campos-datas"]').contains('Data de início é obrigatória')
+    cy.get('#dataInicio-helper-text').should("have.text", "Data de início é obrigatória")
   });
 
   it('Os campos de data devem ser obrigatórios quando a exposição for temporária, testando da fim', () => {
     cy.get('[data-cy="botaoSubmit"]').click();
-    cy.get('[data-cy="campos-datas"]').contains('Data de fim é obrigatória')
+    cy.get('#dataFim-helper-text').should("have.text", 'Data de fim é obrigatória')
   });
 
   it('Criar uma exposição sem itens sem data deve ser bem-sucedido.', () => {
