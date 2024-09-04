@@ -34,8 +34,16 @@ describe('Criar Exposição', () => {
     //selecionando data
     cy.contains("label", "Data de início").next().as("dataInicio");
     cy.contains("label", "Data de fim").next().as("dataFim");
-    cy.get('@dataInicio').type('15-09-2024'); // Seleciona 15 de setembro de 2024 como data de início
-    cy.get('@dataFim').type('24-09-2024'); // Seleciona 15 de outubro de 2024 como data de fim
+    cy.get('@dataInicio').find("button[aria-label='Choose date']")
+    .click()
+    .then(() => {
+      cy.get("button[aria-current='date']").click();
+    });
+    cy.get('@dataFim').find("button[aria-label='Choose date']")
+    .click()
+    .then(() => {
+      cy.get("button[aria-current='date']").click();
+    });
     cy.get('[data-cy="botaoSubmit"]').click();
     cy.get('[data-cy="button-ok-dialog-save"]').should('exist');
   });
