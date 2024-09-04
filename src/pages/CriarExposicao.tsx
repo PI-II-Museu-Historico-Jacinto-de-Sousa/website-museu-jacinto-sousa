@@ -29,6 +29,7 @@ const CriarExposicao = () => {
     handleSubmit,
     formState,
     reset,
+    resetField
   } = useForm<Exposicao>({
       defaultValues: {
         nome: "",
@@ -101,6 +102,7 @@ const CriarExposicao = () => {
               itensPorColecao: data.itensPorColecao,
               dataCriacao: data.dataCriacao
             }
+            // Adiciona as imagens caso exista
             if (imagem) {
               exposicao.imagem = imagem;
             }
@@ -119,6 +121,7 @@ const CriarExposicao = () => {
               itensPorColecao: data.itensPorColecao,
               dataCriacao: data.dataCriacao
             }
+            // Adiciona as imagens caso exista
             if (imagem) {
               exposicao.imagem = imagem;
             }
@@ -134,6 +137,17 @@ const CriarExposicao = () => {
         })
       }
     }
+
+
+    // Reseta os campos de data
+    useEffect(() => {
+      if (isSubmitSuccessful) {
+        reset();
+        resetField('dataInicio');
+        resetField('dataFim');
+      }
+    }, [isSubmitSuccessful, reset, resetField]);
+
 
     const concluiSalvamento = () => {
       setOpenDialogSave(false)
@@ -213,7 +227,7 @@ const CriarExposicao = () => {
                           name="dataInicio"
                           control={control}
                           render={({ field, fieldState: { error } }) => (
-                            <MobileDatePicker
+                            <MobileDatePickerInicioFim
                               {...field}
                               {...register('dataInicio', {
                                 required: "Data de início é obrigatória"
@@ -240,7 +254,7 @@ const CriarExposicao = () => {
                           control={control}
                           name="dataFim"
                           render={({ field, fieldState: { error } }) => (
-                            <MobileDatePicker
+                            <MobileDatePickerInicioFim
                               {...field}
                               {...register('dataFim', {
                                 required: "Data de fim é obrigatória"
@@ -285,7 +299,7 @@ const CriarExposicao = () => {
                                 value={field.value ? dayjs(field.value) : null} // Use o valor do campo
                                 slotProps={{
                                   textField: {
-                                    id: 'dataInicio-helper-text',
+                                    id: 'dataInicio',
                                     error: !!error,
                                     helperText: error ? error.message : null,
                                   },
@@ -312,7 +326,7 @@ const CriarExposicao = () => {
                                 value={field.value ? dayjs(field.value) : null} // Use o valor do campo
                                 slotProps={{
                                   textField: {
-                                    id: 'dataFim-helper-text',
+                                    id: 'dataFim',
                                     error: !!error,
                                     helperText: error ? error.message : null,
                                   },
@@ -525,6 +539,14 @@ const ItensContent = styled('section')(({ theme }: { theme: Theme }) => ({
 }))
 
 const DatePickerInicioFim = styled(DatePicker)(({ theme }: { theme: Theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  backgroundColor: theme.palette.surfaceContainerHighest.main,
+  borderRadius: '4px 4px 0px 0px',
+}))
+
+const MobileDatePickerInicioFim = styled(MobileDatePicker)(({ theme }: { theme: Theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'flex-start',

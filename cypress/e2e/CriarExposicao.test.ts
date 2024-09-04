@@ -20,10 +20,22 @@ describe('Criar Exposição', () => {
     cy.get('[data-cy="campos-datas"]').contains('Data de fim é obrigatória')
   });
 
-  it('Criar uma exposição sem itens deve ser bem-sucedido.', () => {
+  it('Criar uma exposição sem itens sem data deve ser bem-sucedido.', () => {
     cy.get('[data-cy="nome"]').type('Exposição Teste');
     cy.get('[data-cy="descricao"]').type('Descrição Teste');
     cy.get('[data-cy="permanente"]').click();
+    cy.get('[data-cy="botaoSubmit"]').click();
+    cy.get('[data-cy="button-ok-dialog-save"]').should('exist');
+  });
+
+  it('Criar uma exposição sem itens e permanente deve ser bem-sucedido.', () => {
+    cy.get('[data-cy="nome"]').type('Exposição Teste');
+    cy.get('[data-cy="descricao"]').type('Descrição Teste');
+    //selecionando data
+    cy.contains("label", "Data de início").next().as("dataInicio");
+    cy.contains("label", "Data de fim").next().as("dataFim");
+    cy.get('@dataInicio').type('15-09-2024'); // Seleciona 15 de setembro de 2024 como data de início
+    cy.get('@dataFim').type('24-09-2024'); // Seleciona 15 de outubro de 2024 como data de fim
     cy.get('[data-cy="botaoSubmit"]').click();
     cy.get('[data-cy="button-ok-dialog-save"]').should('exist');
   });
