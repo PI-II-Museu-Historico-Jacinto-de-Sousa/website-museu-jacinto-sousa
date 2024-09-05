@@ -244,7 +244,7 @@ export class ClientExposicaoFirebase {
         unmodifiableFields
       ) as Exposicao;
       // converter nao executou diretamente para o metodo de update
-      const sendingDoc = this.#converter.toFirestore(filteredFieldsDoc);
+      let sendingDoc = this.#converter.toFirestore(filteredFieldsDoc);
       if (sendingDoc.permanente) {
         sendingDoc.dataInicio = deleteField();
         sendingDoc.dataFim = deleteField();
@@ -254,6 +254,10 @@ export class ClientExposicaoFirebase {
       if (!oldData) {
         throw new FirebaseError("not-found", "Exposição não encontrada");
       }
+      sendingDoc = {
+        dataCriacao: oldData.dataCriacao.toDate(),
+        ...sendingDoc,
+      };
       if (exposicao.imagem) {
         sendingDoc.imagem = await this.#updateImagem(
           oldData?.imagem,
@@ -327,11 +331,18 @@ export class ClientExposicaoFirebase {
     const newPath = newImage.title.startsWith("images/")
       ? newImage.title
       : "images/" + newImage.title;
-    await uploadBytes(ref(storage, newPath), newImage.src, {
-      customMetadata: {
-        alt: newImage.alt,
-      },
-    });
+    try {
+      await uploadBytes(ref(storage, newPath), newImage.src, {
+        customMetadata: {
+          alt: newImage.alt,
+        },
+      });
+    } catch (error) {
+      if (error instanceof FirebaseError) {
+        throw firebaseErrorToHTTPError(error);
+      }
+      throw new Error("Erro ao adicionar imagem");
+    }
     return newPath;
   }
 
