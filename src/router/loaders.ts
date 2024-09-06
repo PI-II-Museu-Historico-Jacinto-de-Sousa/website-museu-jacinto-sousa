@@ -41,7 +41,6 @@ export const exposicaoLoader = async ({
 }: {
   params: Params<"privacidade" | "idExposicao">;
 }) => {
-  console.log(params);
   const idSegments = [
     "exposicoes",
     params.privacidade,
