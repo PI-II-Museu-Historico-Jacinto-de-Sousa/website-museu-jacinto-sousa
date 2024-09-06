@@ -8,7 +8,7 @@ import { exposicaoLoader, homeRedirectLoader, loginRedirectLoader, privateLoader
 const Home = React.lazy(() => import("../pages/Home"));
 const CriarItemAcervo = React.lazy(() => import("../pages/CriarItemAcervo"));
 const ItemAcervo = React.lazy(() => import("../pages/ItemAcervo"));
-const PageExposicao = React.lazy(() => import("../pages/exposicoes/Exposicao"));
+const PageExposicao = React.lazy(() => import("../pages/exposicoes/VisualizarExposicao"));
 const Login = React.lazy(() => import("../pages/Login"));
 
 const centeredLoading = (
