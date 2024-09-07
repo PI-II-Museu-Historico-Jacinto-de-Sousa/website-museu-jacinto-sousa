@@ -18,9 +18,12 @@ const useListItems = (images: boolean) =>{
   
         await Promise.all(colectionsNames.map( async (colection) => {
           const itens =  await clientColections.getItensColecao(colection, undefined, images)
+          
           newData.set({...colection, itens}, itens)
         }))
+
         setData(newData)
+
         setStatus("sucess")
       }catch(error){
         setStatus("error")

@@ -17,9 +17,9 @@ const DialogAddItem = ({ itensInicias, setItens, open }: DialogAddItemsProps) =>
 
   const listItems = useListItems(false)
 
-  const [itensSelecionados, setItensSelecionados] = useState<Map<Colecao, ItemAcervo[]>>(new Map())
+  const [itensSelecionados, setItensSelecionados] = useState<Map<Colecao, ItemAcervo[]>>(itensInicias || new Map())
   
-  const [itensCompletos, setItensCompletos] = useState<Map<Colecao,ItemAcervo[]>>(new Map())
+  const [itensCompletos, setItensCompletos] = useState<Map<Colecao,ItemAcervo[]>>(listItems.data || new Map())
 
   const handleColectionChecked = (colection: Colecao) =>{
     const items = itensSelecionados.get(colection)
@@ -32,30 +32,18 @@ const DialogAddItem = ({ itensInicias, setItens, open }: DialogAddItemsProps) =>
   }
 
   const handleItemChecked = (colection: Colecao, item: ItemAcervo) =>{
-    const itens = itensSelecionados.get(colection) || []
-    const index = itens.findIndex(i => i.nome === item.nome)
+    const items = itensSelecionados.get(colection)
+    const newItems = new Map(itensSelecionados)
 
-    const newItems = [...itens]
+    newItems.set(colection, items?.some(i => i.nome === item.nome) ? items.filter(i => i.nome !== item.nome) : [...(items || []), item])
 
-    if (index !== -1) {
-      newItems.splice(index, 1)
-    } else {
-      newItems.push(item)
-    }
-
-    const newSelectItems = new Map(itensSelecionados)
-
-    newSelectItems.set(colection, newItems)
-
-    setItensSelecionados(newSelectItems)
+    setItensSelecionados(newItems)
   }
 
   useEffect(() =>{
-    console.log(itensInicias)
-    console.log(listItems.data)
     setItensCompletos(listItems.data)
     setItensSelecionados(itensInicias)
-  },[listItems.data, listItems.status])
+  },[listItems.data, listItems.status,])
 
   return(
     <Dialog 
@@ -69,7 +57,6 @@ const DialogAddItem = ({ itensInicias, setItens, open }: DialogAddItemsProps) =>
           display: 'inline-flex',
           width: '280px',
           maxWidth: '560px',
-          flexDirection: 'column',
         }
       }}
     >
@@ -90,17 +77,16 @@ const DialogAddItem = ({ itensInicias, setItens, open }: DialogAddItemsProps) =>
           </Typography>
         </DialogContentText>
       </DialogTitle>
-      <DialogContent>
+      <DialogContent data-cy="dialog-content">
         <List
-          sx={{display: 'flex', maxHeight: '280px', flexDirection: 'column', alignItems: 'flex-start', alignSelf: 'stretch'}}
+          sx={{display: 'flex', maxHeight: '280px', flexDirection: 'column', alignItems: 'center', alignSelf: 'stretch'}}
           subheader={<li/>}
         >
           {
-            Array.from(itensCompletos .entries()).map(([key, value]: [Colecao, ItemAcervo[]])=>(
-              <li key={`Colection ${key.id}`}>
-                <ul>
+            Array.from(itensCompletos.entries()).map(([key, value]: [Colecao, ItemAcervo[]])=>(
+              <List key={`Colection ${key.id}`} data-cy="list-checkbox">
                 <ListSubheader
-                  sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: `${theme.palette.surfaceContainerHigh.main}`}}
+                  sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: `${theme.palette.surfaceContainerHigh.main}`}}
                   >
                   <Typography
                     variant="titleSmall"
@@ -111,11 +97,13 @@ const DialogAddItem = ({ itensInicias, setItens, open }: DialogAddItemsProps) =>
                   <Typography
                     variant="bodySmall"
                     color={theme.palette.onSurfaceVariant.main}
+                    sx={{textAlign: 'center'}}
                     >
                     Selecionar todos
                   </Typography>
                   <FormControlLabel 
                     label=""
+                    data-cy="colecao-checkbox"
                     control={
                       <Checkbox 
                         checked={itensSelecionados?.get(key)?.length === itensCompletos?.get(key)?.length}
@@ -128,14 +116,15 @@ const DialogAddItem = ({ itensInicias, setItens, open }: DialogAddItemsProps) =>
                     value.map(item =>(
                       <ListItem
                       key={`${item.nome}`}
-                      sx={{display: 'flex', alignItems: 'center', alignSelf: 'stretch'}}
+                      sx={{display: 'flex', justifyContent: 'space-around', alignItems: 'center', alignSelf: 'stretch'}}
                       >
                         <ListItemText primary={item.nome}/>
                         <FormControlLabel
                           label=""
+                          data-cy="item-checkbox"
                           control={
                             <Checkbox
-                              checked={itensSelecionados?.get(key)?.some(i => i.nome === item.nome)}
+                              checked={itensSelecionados?.get(key)?.some(i => i.nome === item.nome) || itensSelecionados?.get(key)?.length === itensCompletos?.get(key)?.length}
                               onChange={() => handleItemChecked(key, item)}
                               size="small"
                             />
@@ -144,8 +133,7 @@ const DialogAddItem = ({ itensInicias, setItens, open }: DialogAddItemsProps) =>
                       </ListItem>
                     ))
                   }
-                  </ul>
-                </li>
+                </List>
             ))
           }
         </List>

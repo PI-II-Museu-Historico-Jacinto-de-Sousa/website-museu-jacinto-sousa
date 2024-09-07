@@ -73,7 +73,48 @@ describe("Testando componente DialogAddItem", () =>{
   beforeEach(() =>{
     cy.loginComponent(auth, 'test@mail', 'testpassword')
   })
-  it("Renderiza corretamente", () =>{
-    cy.mount(<DialogTest/>)
+  context("Versão Desktop", () =>{
+    beforeEach(() =>{
+      cy.viewport(1366, 768)
+    })
+    it("Testa scroll na versão mobile", () =>{
+      cy.mount(<DialogTest/>)
+
+      cy.get("[data-cy='dialog-content']").scrollTo('bottom')
+    })
+    it("Testa seleção da checkbox da coleção", () =>{
+      cy.mount(<DialogTest/>)
+
+      cy.get("[data-cy='list-checkbox']").first().within(() =>{
+        cy.get("[data-cy='colecao-checkbox']").first().click()
+        cy.get("[data-cy='item-checkbox']").find("input").each((item) =>{
+          cy.wrap(item).should("be.checked")
+        })
+      })
+
+    })
   })
+  context("Versão Mobile", () =>{
+    beforeEach(() =>{
+      cy.viewport("samsung-s10")
+    })
+    it("Testa scroll na versão mobile", () =>{
+      cy.mount(<DialogTest/>)
+
+      cy.get("[data-cy='dialog-content']").scrollTo('bottom')
+    })
+    it("Testa seleção da checkbox da coleção", () =>{
+      cy.mount(<DialogTest/>)
+
+      cy.get("[data-cy='list-checkbox']").first().within(() =>{
+        cy.get("[data-cy='colecao-checkbox']").first().click()
+        cy.get("[data-cy='item-checkbox']").find("input").each((item) =>{
+          cy.wrap(item).should("be.checked")
+        })
+      })
+
+    })
+  })
+
+  
 })
