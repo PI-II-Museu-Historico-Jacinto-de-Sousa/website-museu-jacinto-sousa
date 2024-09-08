@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react"
-import useNomeColecoes from "../../hooks/useColecoes"
-import { ClientColecoesFirebase } from "../../Utils/colecaoFirebase"
-import { Colecao } from "../../interfaces/Colecao"
-import { ItemAcervo } from "../../interfaces/ItemAcervo"
+import useNomeColecoes from "./useColecoes"
+import { ClientColecoesFirebase } from "../Utils/colecaoFirebase"
+import { Colecao } from "../interfaces/Colecao"
+import { ItemAcervo } from "../interfaces/ItemAcervo"
 
 const useListItems = (images: boolean) =>{
   const [data, setData] = useState<Map<Colecao, ItemAcervo[]>>(new Map())
@@ -18,7 +18,7 @@ const useListItems = (images: boolean) =>{
   
         await Promise.all(colectionsNames.map( async (colection) => {
           const itens =  await clientColections.getItensColecao(colection, undefined, images)
-          
+          console.log(itens)
           newData.set({...colection, itens}, itens)
         }))
 

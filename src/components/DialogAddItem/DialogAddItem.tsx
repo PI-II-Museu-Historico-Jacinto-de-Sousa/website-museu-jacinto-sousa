@@ -4,15 +4,16 @@ import { Theme, styled } from "@mui/material/styles"
 import { ItemAcervo } from "../../interfaces/ItemAcervo"
 import { Button, Checkbox, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, FormControlLabel, List, ListItem, ListItemText, ListSubheader, Typography } from "@mui/material"
 import useTheme from "@mui/material/styles/useTheme"
-import useListItems from "./useListItems"
+import useListItems from "../../hooks/useListItems"
 
 interface DialogAddItemsProps {
   itensInicias: Map<Colecao, ItemAcervo[]>,
-  setItens: (itens: ItemAcervo[]) => void,
-  open: boolean
+  setItens: (itens: Map<Colecao, ItemAcervo[]>) => void,
+  open: boolean,
+  closeDialog: () => void
 }
 
-const DialogAddItem = ({ itensInicias, setItens, open }: DialogAddItemsProps) =>{
+const DialogAddItem = ({ itensInicias, setItens, open, closeDialog }: DialogAddItemsProps) =>{
   const theme = useTheme()
 
   const listItems = useListItems(false)
@@ -41,7 +42,9 @@ const DialogAddItem = ({ itensInicias, setItens, open }: DialogAddItemsProps) =>
   }
 
   useEffect(() =>{
-    setItensCompletos(listItems.data)
+    const checkNullItems = Array.from(listItems.data.entries()).filter(([_, value]) => value.length > 0)
+
+    setItensCompletos(new Map(checkNullItems))
     setItensSelecionados(itensInicias)
   },[listItems.data, listItems.status,])
 
@@ -49,7 +52,7 @@ const DialogAddItem = ({ itensInicias, setItens, open }: DialogAddItemsProps) =>
     <Dialog 
       open={open} 
       aria-labelledby="alert-dialog-title"
-      onClose={() => setItens([])}
+      onClose={() => setItens(itensSelecionados)}
       PaperProps={{
         style:{
           backgroundColor: `${theme.palette.surfaceContainerHigh.main}`,
@@ -115,7 +118,7 @@ const DialogAddItem = ({ itensInicias, setItens, open }: DialogAddItemsProps) =>
                   {
                     value.map(item =>(
                       <ListItem
-                      key={`${item.nome}`}
+                      key={`${item.id}`}
                       sx={{display: 'flex', justifyContent: 'space-around', alignItems: 'center', alignSelf: 'stretch'}}
                       >
                         <ListItemText primary={item.nome}/>
@@ -139,7 +142,7 @@ const DialogAddItem = ({ itensInicias, setItens, open }: DialogAddItemsProps) =>
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={() => setItens([])}>
+        <Button onClick={() => closeDialog()}>
           <Typography
             variant="labelLarge"
             color={theme.palette.inverseSurface.main}
@@ -147,7 +150,7 @@ const DialogAddItem = ({ itensInicias, setItens, open }: DialogAddItemsProps) =>
             Cancelar
           </Typography>
         </Button>
-        <Button onClick={() => setItens([])}>
+        <Button onClick={() => closeDialog()}>
         <Typography
             variant="labelLarge"
             color={theme.palette.primary.main}
