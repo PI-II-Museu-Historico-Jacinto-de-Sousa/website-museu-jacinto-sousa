@@ -1,13 +1,14 @@
 import CircularProgress from "@mui/material/CircularProgress";
 import React, { Suspense } from "react";
-import { Await, Outlet, createBrowserRouter, defer, redirect, useLoaderData } from "react-router-dom";
-import { auth } from "../../firebase/firebase";
+import { Await, Outlet, createBrowserRouter, useLoaderData } from "react-router-dom";
 import Root from "../Root";
 import Erro from "../pages/Erro";
+import { exposicaoLoader, homeRedirectLoader, loginRedirectLoader, privateLoader } from "./loaders";
 
 const Home = React.lazy(() => import("../pages/Home"));
 const CriarItemAcervo = React.lazy(() => import("../pages/CriarItemAcervo"));
 const ItemAcervo = React.lazy(() => import("../pages/ItemAcervo"));
+const PageExposicao = React.lazy(() => import("../pages/exposicoes/VisualizarExposicao"));
 const Login = React.lazy(() => import("../pages/Login"));
 
 const centeredLoading = (
@@ -16,32 +17,6 @@ const centeredLoading = (
   </div>)
 
 
-const currentUserPromise = async () => {
-  await auth.authStateReady()
-  if (!auth.currentUser) {
-    throw new Response("Unauthorized", { status: 403, statusText: "Você não tem permissão para acessar essa página" })
-  }
-  return auth.currentUser
-}
-
-const privateLoader = async () => {
-  return defer({
-    currentUser: currentUserPromise(),
-  })
-}
-const homeRedirectLoader = () => {
-  return redirect("/home")
-}
-const loginRedirectLoader = async () => {
-  await auth.authStateReady()
-  if (auth.currentUser) {
-    window.alert("Você já está autenticado, redirecionando para a página inicial")
-    return redirect("/home")
-  }
-  else {
-    return new Response("OK")
-  }
-}
 /**
 *  Componente wrapper para todas as rotas que precisam de autenticação
 */
@@ -116,7 +91,16 @@ const router = createBrowserRouter([
           <Suspense fallback={centeredLoading}>
             <ItemAcervo />
           </Suspense>,
-      }
+      },
+      {
+        path: "exposicoes/:privacidade/lista/:idExposicao", // apenas exposicoes/:privacidade/:idExposicao?
+        loader: exposicaoLoader,
+        element:
+          <Suspense fallback={centeredLoading}>
+            <PageExposicao />
+          </Suspense>,
+      },
+
     ]
   }]);
 
