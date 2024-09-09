@@ -18,7 +18,7 @@ interface SlidingBannerProps {
 
   images: Imagem[];
   addImage: () => void;
-  editAlt: (key: number) => void;
+  editAlt: (key: number, altTex: string) => void;
   removeImage: (key: number) => void;
 }
 
@@ -26,6 +26,7 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
   const [slide, setSlide] = useState(0);
   const [editing, setEditing] = useState(false);
   const [logged, setLogged] = useState(false);
+  const [altTex, setAltText] = useState('');
   const [imagensSlidingBanner, setImagensSlidingBanner] = useState<Imagem[]>(slidingBanner.images);
 
   const { control, reset } = useForm();
@@ -50,6 +51,11 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
     handlePrevious();
   }
 
+  const handleAltTex = (e: React.ChangeEvent<HTMLInputElement>) =>{
+    imagensSlidingBanner[slide].alt = String(e.target.value)
+    setAltText(String(e.target.value))
+  }
+
   useEffect(() => {
     auth.onAuthStateChanged((user) => {
       if (user) {
@@ -65,7 +71,7 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
   }, [slidingBanner.images, editing]);
 
   const finalizarEdicao = (key: number) => {
-    slidingBanner.editAlt(key);
+    slidingBanner.editAlt(key, altTex);
     setEditing(false);
   }
 
@@ -105,7 +111,7 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
           }
           label={undefined}
         />
-        <Image>
+        <Image data-cy="images-container">
             {
               logged && (
                 <EditField
@@ -115,7 +121,7 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
                     editing === true ? (
                       <>
                         <BotaoEditar data-cy="botaoSalvar" onClick={() => slidingBanner && finalizarEdicao(slide) }>Salvar</BotaoEditar>
-                        <BotaoDeletarImagem onClick={() => slidingBanner && slidingBanner.removeImage && slidingBanner.removeImage(slide)}>Deletar imagem</BotaoDeletarImagem>
+                        <BotaoDeletarImagem onClick={() => slidingBanner && slidingBanner.removeImage && slidingBanner.removeImage(slide)} data-cy="botaoDeletar">Deletar imagem</BotaoDeletarImagem>
                         <BotaoCancelar onClick={() => cancelarEdicao()}>Cancelar</BotaoCancelar>
                       </>
                     )
@@ -140,9 +146,9 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
               const src = image.src instanceof File ? URL.createObjectURL(image.src) : image.src;
 
               return (
-                <Fade key={index} in={index === slide} timeout={600}>
+                <Fade key={index} in={index === slide} timeout={600} data-cy="imageSlidingBanner">
                   <div style={{ display: index === slide ? "block" : "none" }}>
-                    <Imagens src={src} alt={image.alt} id={`image-${slide}`} />
+                    <Imagens src={src} alt={image.alt} id={`image-${slide}`}/>
                   </div>
                 </Fade>
               );
@@ -164,6 +170,9 @@ const SlidingBanner = (slidingBanner: SlidingBannerProps) => {
                           {...field}
                           variant="outlined"
                           fullWidth
+                          value={altTex}
+                          onChange={handleAltTex}
+                          data-cy="inputAltText"
                         />
                       )}
                     />
