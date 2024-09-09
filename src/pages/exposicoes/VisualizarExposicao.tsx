@@ -1,7 +1,9 @@
-import { ButtonBaseProps, DialogActions, DialogContent } from "@mui/material";
+import { ButtonBaseProps } from "@mui/material/ButtonBase";
 import Button from "@mui/material/Button";
 import CheckBox from "@mui/material/Checkbox";
 import Dialog from "@mui/material/Dialog";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import Divider from "@mui/material/Divider";
@@ -329,7 +331,7 @@ const ExposicaoView = ({ exposicao, editable }: ExposicaoViewProps) => {
   }, [showCopyLinkDialog])
 
   const getQRCodeDownloadHref = () => {
-    const svgElement = qrCodeRef.current
+    const svgElement = (qrCodeRef.current as SVGSVGElement | null);
     if (!svgElement) {
       console.error('SVG não encontrado');
       return;
@@ -343,7 +345,7 @@ const ExposicaoView = ({ exposicao, editable }: ExposicaoViewProps) => {
     canvas.height = svgElement.height.baseVal.value;
     image.onload = () => {
       console.log(context)
-      context.drawImage(image, 0, 0)
+      context?.drawImage(image, 0, 0)
       setDownloadQRCodeHref(canvas.toDataURL('image/png'))
     }
 
@@ -557,7 +559,7 @@ const ItensList = styled(Stack)(({ theme }: { theme: Theme }) => ({
 })
 )
 
-const ContainedButton = styled(Button)<ButtonBaseProps>(({ theme }: { theme: Theme }) => ({
+const ContainedButton = styled(Button)<ButtonBaseProps>(() => ({
   textTransform: 'initial',
   variant: 'contained',
 })
