@@ -107,7 +107,6 @@ const CriarExposicao = () => {
               exposicao.imagem = imagem;
               exposicao.imagem.alt = data.imagem.alt;
             }
-            console.log(data)
             const client = new ClientExposicaoFirebase()
             client.adicionarExposicao(exposicao).then(() => {
               setOpenDialogSave(true)
@@ -124,7 +123,6 @@ const CriarExposicao = () => {
               itensPorColecao: data.itensPorColecao,
               dataCriacao: data.dataCriacao
             }
-            console.log(data)
             // Adiciona as imagens caso exista
             if (imagem) {
               exposicao.imagem = imagem;
@@ -213,6 +211,11 @@ const CriarExposicao = () => {
               {...register('nome', {
                 required: "Nome da Exposição é obrigatório"
               })}
+              style={
+                {
+                  maxHeight: mobile ? '300px' : '600px'
+                }
+              }
               error={errors.nome?.message !== undefined}
               helperText={<span data-cy="nomeExposicao-helper-text">{errors.nome?.message}</span>}
               variant="filled"
@@ -222,6 +225,11 @@ const CriarExposicao = () => {
               {...register('descricao')}
               data-cy="descricao"
               variant="filled"
+              style={
+                {
+                  maxHeight: mobile ? '300px' : '600px'
+                }
+              }
               label="Descrição da Exposição"
               multiline
             />
