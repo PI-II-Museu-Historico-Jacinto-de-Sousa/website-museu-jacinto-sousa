@@ -43,7 +43,7 @@ const CriarExposicao = () => {
         dataCriacao: new Date()
       }
   });
-  const { errors, isSubmitSuccessful } = formState
+  const { errors, isSubmitSuccessful, isSubmitting } = formState
   const [openDialogSave, setOpenDialogSave] = useState(false);
   const dataInicio = dayjs(watch('dataInicio')); // Watch the start date
   const dataFim = dayjs( watch('dataFim')); // Watch the end date
@@ -105,10 +105,13 @@ const CriarExposicao = () => {
             // Adiciona as imagens caso exista
             if (imagem) {
               exposicao.imagem = imagem;
+              exposicao.imagem.alt = data.imagem.alt;
             }
+            console.log(data)
             const client = new ClientExposicaoFirebase()
             client.adicionarExposicao(exposicao).then(() => {
               setOpenDialogSave(true)
+              setImagem(undefined)
             })
         } else {
             const exposicao = {
@@ -121,9 +124,11 @@ const CriarExposicao = () => {
               itensPorColecao: data.itensPorColecao,
               dataCriacao: data.dataCriacao
             }
+            console.log(data)
             // Adiciona as imagens caso exista
             if (imagem) {
               exposicao.imagem = imagem;
+              exposicao.imagem.alt = data.imagem.alt;
             }
             const client = new ClientExposicaoFirebase()
             client.adicionarExposicao(exposicao).then(() => {
@@ -171,14 +176,36 @@ const CriarExposicao = () => {
                       alt={imagem?.alt}
                       data-cy="imagemCapa"
                       style={{ width: '240px', height: '240px' }}
-                      src={imagem?.src instanceof File ? URL.createObjectURL(imagem?.src) : imagem?.src} />
-                    </>
+                      src={imagem?.src instanceof File ? URL.createObjectURL(imagem?.src) : imagem?.src}
+                    />
+                  </>
                 )
               }
-              <BotaoPrimario
-                data-cy="botaoAdicionarImagem"
-                onClick={handleAddImage}
-              >Adicionar capa</BotaoPrimario>
+              <SessaoBotoes>
+                <BotaoPrimario
+                  data-cy="botaoAdicionarImagem"
+                  onClick={handleAddImage}
+                >Adicionar capa</BotaoPrimario>
+                {
+                  imagem && (
+                    <BotaoRemoverImagem
+                      data-cy="botaoRemoverImagem"
+                      onClick={() => setImagem(undefined)}
+                    >Remover capa</BotaoRemoverImagem>
+                  )
+                }
+              </SessaoBotoes>
+              {
+                imagem && (
+                  <TextFieldDados
+                    id="nomeImagem"
+                    variant="filled"
+                    label="Texto alternativo da imagem"
+                    {...register('imagem.alt')}
+                    error={errors.imagem?.alt !== undefined}
+                  />
+                )
+              }
             </ImageUpload>
             <TextFieldDados
               id="nomeExposicao"
@@ -196,6 +223,7 @@ const CriarExposicao = () => {
               data-cy="descricao"
               variant="filled"
               label="Descrição da Exposição"
+              multiline
             />
             <Verification>
             <FormControlLabel id='checkbox-privacy'
@@ -344,7 +372,7 @@ const CriarExposicao = () => {
         </Fields>
       <ContainerBotaoPrimario>
         <BotaoAdicionarItem>
-          Adicionar exposição
+          Adicionar item
         </BotaoAdicionarItem>
       </ContainerBotaoPrimario>
       <Itens>
@@ -377,6 +405,7 @@ const CriarExposicao = () => {
           </Option>
           <BotaoPrimario
             data-cy="botaoSubmit"
+            disabled={isSubmitting}
             type="submit"
           >Salvar</BotaoPrimario>
         </Options>
@@ -464,21 +493,19 @@ const ImageUpload = styled('section')(({ theme }: { theme: Theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'center', // Centraliza o conteúdo verticalmente
-  alignItems: 'center',      // Centraliza o conteúdo horizontalmentealiza o conteúdo horizontalmente
+  alignItems: 'center',      // Centraliza o conteúdo horizontalmente
   gap: theme.spacing(1.25),
-  alignSelf: 'stretch',
+  width: '100%', // Adiciona a largura para o contêiner se necessário
   backgroundColor: theme.palette.surfaceContainerLow.main,
 }));
 
-
 const TextFieldDados = styled(TextField)(({ theme }: { theme: Theme }) => ({
   display: 'flex',
+  width: '100%', // Adapta para centralizar dentro do contêiner pai
   maxWidth: '560px',
-  flexDirection: 'column',
-  alignSelf: 'stretch',
   backgroundColor: theme.palette.surfaceContainerHighest.main,
-  borderRadius: '4px'
-}))
+  borderRadius: '4px',
+}));
 
 const FieldExposicaoTemporaria = styled(Stack)(({ theme }: { theme: Theme }) => ({
   display: 'flex',
@@ -486,6 +513,13 @@ const FieldExposicaoTemporaria = styled(Stack)(({ theme }: { theme: Theme }) => 
   flexDirection: 'column',
   alignItems: 'flex-start',
   gap: theme.spacing(4),
+}))
+
+const SessaoBotoes = styled('section')(({ theme }: { theme: Theme }) => ({
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'flex-start',
+  gap: theme.spacing(5),
 }))
 
 const Submit = styled(Stack)(({ theme }: { theme: Theme }) => ({
@@ -587,6 +621,19 @@ const BotaoAdicionarItem = styled(Button)(({ theme }: { theme: Theme }) => ({
   textTransform: 'initial',
   borderRadius: '100px',
   margin: '20px'
+}))
+
+const BotaoRemoverImagem = styled(Button)(({ theme }: { theme: Theme }) => ({
+  display: 'flex',
+  height: '40px',
+  flexDirection: 'column',
+  justifContent: 'center',
+  alignItems: 'center',
+  gap: theme.spacing(1),
+  backgroundColor: theme.palette.error.main,
+  color: theme.palette.primary.contrastText,
+  textTransform: 'initial',
+  borderRadius: '100px',
 }))
 
 const CustomDialogContent = styled(DialogContent)(({ theme }) => ({
