@@ -302,7 +302,7 @@ const InfoSection = ({ id, removeCallback }: InfoSectionProps) => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowDialog(false)}>Fechar</Button>
+          <Button onClick={() => setShowDialog(false)} data-cy="edit-close-button">Fechar</Button>
         </DialogActions>
       </Dialog>
     </>
