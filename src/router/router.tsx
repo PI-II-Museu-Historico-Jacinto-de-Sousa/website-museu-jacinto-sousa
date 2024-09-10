@@ -4,6 +4,7 @@ import { Await, Outlet, createBrowserRouter, useLoaderData } from "react-router-
 import Root from "../Root";
 import Erro from "../pages/Erro";
 import { exposicaoLoader, homeRedirectLoader, loginRedirectLoader, privateLoader } from "./loaders";
+import CriarExposicao from "../pages/CriarExposicao";
 
 const Home = React.lazy(() => import("../pages/Home"));
 const CriarItemAcervo = React.lazy(() => import("../pages/CriarItemAcervo"));
@@ -100,7 +101,11 @@ const router = createBrowserRouter([
             <PageExposicao />
           </Suspense>,
       },
-
+      {
+        path: "/exposicoes/criar-exposicao",
+        element:
+          <CriarExposicao />
+      },
     ]
   }]);
 
