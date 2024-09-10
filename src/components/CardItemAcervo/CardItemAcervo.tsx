@@ -21,19 +21,36 @@ const CardItemAcervo: React.FC<CardItemAcervoProps> = ({ item }) => {
     const fetchImageUrl = async () => {
       if (item.imagens && item.imagens.length > 0) {
         const imagemSrc = item.imagens[0].src;
-        if (typeof imagemSrc === 'string' && imagemSrc.startsWith('images/')) {
+        
+        // Caso 1: A imagem já é uma URL completa
+        if (typeof imagemSrc === 'string' && !imagemSrc.startsWith('images/')) {
           setUrlImagem(imagemSrc);
-        } else if (imagemSrc instanceof File) {
-          const url = URL.createObjectURL(imagemSrc);
-          setUrlImagem(url);
-        } else {
-          console.error('Formato de imagem inválido');
-          setUrlImagem(notFoundImage);
+          return;
         }
+        
+        // Caso 2: A imagem precisa ser carregada do Storage
+        if (imagemSrc instanceof File || (typeof imagemSrc === 'string' && imagemSrc.startsWith('images/'))) {
+          try {
+            const imagePath = imagemSrc instanceof File ? `images/${imagemSrc.name}` : imagemSrc;
+            const imageRef = ref(storage, imagePath);
+            const url = await getDownloadURL(imageRef);
+            setUrlImagem(url);
+          } catch (error) {
+            console.error('Erro ao carregar imagem:', error);
+            setUrlImagem(notFoundImage);
+          }
+          return;
+        }
+        
+        // Caso 3: Formato de imagem não reconhecido
+        console.error('Formato de imagem não reconhecido');
+        setUrlImagem(notFoundImage);
       } else {
+        // Caso 4: Não há imagens
         setUrlImagem(notFoundImage);
       }
     };
+  
     fetchImageUrl();
   }, [item]);
 
@@ -100,7 +117,7 @@ const CardItemAcervo: React.FC<CardItemAcervoProps> = ({ item }) => {
           {descricao ? descricao : 'Descrição do item'}
         </Typography>
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Button variant="contained" color="primary" href={`acervo/item/${item.id}`}>
+          <Button variant="contained" color="primary" href={`item/${item.id}`}>
             Visualizar
           </Button>
         </div>
