@@ -4,13 +4,13 @@ import { Await, Outlet, createBrowserRouter, useLoaderData } from "react-router-
 import Root from "../Root";
 import Erro from "../pages/Erro";
 import { exposicaoLoader, homeRedirectLoader, loginRedirectLoader, privateLoader } from "./loaders";
+import CriarExposicao from "../pages/CriarExposicao";
 
 const Home = React.lazy(() => import("../pages/Home"));
 const CriarItemAcervo = React.lazy(() => import("../pages/CriarItemAcervo"));
 const ItemAcervo = React.lazy(() => import("../pages/ItemAcervo"));
 const PageExposicao = React.lazy(() => import("../pages/exposicoes/VisualizarExposicao"));
 const Login = React.lazy(() => import("../pages/Login"));
-const CriarExposicao = React.lazy(() => import("../pages/CriarExposicao"));
 
 const centeredLoading = (
   <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
@@ -70,11 +70,6 @@ const router = createBrowserRouter([
             element:
               <CriarItemAcervo />
           },
-          {
-            path: "/exposicoes/criar-exposicao",
-            element:
-              <CriarExposicao />
-          },
         ]
       },
       {
@@ -106,7 +101,10 @@ const router = createBrowserRouter([
             <PageExposicao />
           </Suspense>,
       },
-
+      {
+        path: "/exposicoes/criar-exposicao",
+        element:
+          <CriarExposicao />
       },
     ]
   }]);
