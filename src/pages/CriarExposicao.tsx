@@ -201,6 +201,12 @@ const CriarExposicao = () => {
                     label="Texto alternativo da imagem"
                     {...register('imagem.alt')}
                     error={errors.imagem?.alt !== undefined}
+                    multiline rows={6}
+                    style={
+                      {
+                        maxHeight: mobile ? '300px' : '600px'
+                      }
+                    }
                   />
                 )
               }
@@ -219,6 +225,7 @@ const CriarExposicao = () => {
               error={errors.nome?.message !== undefined}
               helperText={<span data-cy="nomeExposicao-helper-text">{errors.nome?.message}</span>}
               variant="filled"
+              multiline rows={6}
               label="Nome da Exposição"
             />
             <TextFieldDados
@@ -231,7 +238,7 @@ const CriarExposicao = () => {
                 }
               }
               label="Descrição da Exposição"
-              multiline
+              multiline rows={6}
             />
             <Verification>
             <FormControlLabel id='checkbox-privacy'
