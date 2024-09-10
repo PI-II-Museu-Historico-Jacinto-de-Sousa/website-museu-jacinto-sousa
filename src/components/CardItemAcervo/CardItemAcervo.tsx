@@ -117,7 +117,7 @@ const CardItemAcervo: React.FC<CardItemAcervoProps> = ({ item }) => {
           {descricao ? descricao : 'Descrição do item'}
         </Typography>
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Button variant="contained" color="primary" href={`item/${item.id}`}>
+          <Button variant="contained" color="primary" href={`/${item.id}`}>
             Visualizar
           </Button>
         </div>
