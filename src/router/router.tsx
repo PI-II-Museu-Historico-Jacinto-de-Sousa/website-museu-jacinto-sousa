@@ -5,6 +5,7 @@ import Root from "../Root";
 import Erro from "../pages/Erro";
 import { exposicaoLoader, homeRedirectLoader, loginRedirectLoader, privateLoader } from "./loaders";
 import CriarExposicao from "../pages/CriarExposicao";
+import CriarColecao from "../pages/CriarColecao";
 
 const Home = React.lazy(() => import("../pages/Home"));
 const CriarItemAcervo = React.lazy(() => import("../pages/CriarItemAcervo"));
@@ -106,6 +107,13 @@ const router = createBrowserRouter([
         element:
           <CriarExposicao />
       },
+      {
+        path: "/colecoes/criar-colecao",
+        element:
+          <Suspense fallback={centeredLoading}>
+            <CriarColecao/>
+          </Suspense>
+      }
     ]
   }]);
 
