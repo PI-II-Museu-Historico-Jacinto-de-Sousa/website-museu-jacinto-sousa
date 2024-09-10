@@ -74,7 +74,6 @@ const Acervo: React.FC = () => {
   const fetchItens = useCallback(async () => {
     try {
       setLoading(true);
-      console.log(auth.currentUser)
       const data = await getItensAcervo(auth.currentUser ? true : false);
       setItens(data);
       setFilteredItens(data);
