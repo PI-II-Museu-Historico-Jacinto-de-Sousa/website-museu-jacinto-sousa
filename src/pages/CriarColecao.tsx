@@ -1,7 +1,15 @@
-import { Button, Checkbox, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, Stack, TextField, Theme, Typography, styled, useMediaQuery, useTheme } from "@mui/material"
+import { Button, Checkbox, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, FormControlLabel, Stack, TextField, Theme, Typography, styled, useMediaQuery, useTheme } from "@mui/material"
 import { useState } from "react"
 import { ClientColecoesFirebase } from "../Utils/colecaoFirebase"
 import { ColecaoCreate } from "../interfaces/Colecao"
+import { Controller, useForm } from "react-hook-form"
+
+interface FormValues{
+  nome: string,
+  descricao: string,
+  curiosidades: string,
+  privado: boolean
+}
 
 const CriarColecao = () =>{
   const theme = useTheme()
@@ -10,59 +18,51 @@ const CriarColecao = () =>{
 
   const clientColection = new ClientColecoesFirebase()
 
-  const [name, setName] = useState<string>('')
-
-  const [description, setDescription] = useState<string>('')
-
-  const [curiosity, setCuriosity] = useState<string>('')
-
-  const [isPrivate, setIsPrivate] = useState<boolean>(false)
+  const { register, handleSubmit, reset, control, formState: { isSubmitting }} = useForm<FormValues>({
+    defaultValues: {
+      nome: '',
+      descricao: '',
+      curiosidades: '',
+      privado: false
+    }
+  })
 
   const [alert, setAlert] = useState<boolean>(false)
 
-  const [isSucess, setIsSucess] = useState<boolean>(false)
+  const [invalidName, setInvalidName] = useState<boolean>(false)
 
-  const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setName(event.target.value)
-  }
-
-  const handleDescriptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setDescription(event.target.value)
-  }
-
-  const handleCuriosityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setCuriosity(event.target.value)
-  }
-
-  const handleSubmit = async () => {
-    setAlert(true)
-
-    if(name === ''){
-      setIsSucess(false)
+  const onSubmit = async (data: FormValues) => {
+    if(data.nome === ''){
+      setAlert(false)
+      setInvalidName(true)
     }
     else{
-      const newColection: ColecaoCreate = {
-        nome: name,
-        descricao: description,
-        privado: isPrivate
+      setInvalidName(false)
+      
+      const newColection = {
+        nome: data.nome,
+        descricao: data.descricao,
+        privado: data.privado,
       }
-
+      
       try{
         await clientColection.adicionarColecao(newColection)
-
-        setName('')
-        setDescription('')
-        setCuriosity('')
-        setIsPrivate(false)
-  
-        setIsSucess(true)
+        
+        setAlert(true)
+        reset({
+          nome: '',
+          descricao: '',
+          curiosidades: '',
+          privado: false
+        })
       }
       catch(error){
         console.log(error)
-        setIsSucess(false)
       }
     }
   }
+  console.log(register)
+
 
   return(
     <Content
@@ -82,14 +82,7 @@ const CriarColecao = () =>{
           Adicione uma nova coleção para o acervo, após criada, novos itens do acervo podem ser criados para essa coleção
         </Typography>
       </Heading>
-      <Form>
-        <Typography
-          variant="bodySmall"
-          color={theme.palette.onSurface.main}
-          sx={{alignSelf: 'flex-start'}}
-        >
-          Obrigatório
-        </Typography>
+      <Form onSubmit={handleSubmit(onSubmit)}>
         <FormFields>
           <NameField
             label="Nome"
@@ -97,13 +90,13 @@ const CriarColecao = () =>{
             placeholder="Nome da Coleção"
             inputProps={{ 'data-cy': 'collection-name' }}
             maxRows={1}
-            value={name}
-            onChange={handleNameChange}
+            helperText={invalidName ? "Obrigatório" : ""}
             sx={{
               "& .MuiInputBase-root": {
                 width: isMobile ? '100%' : '200px'
               }
             }}
+            {...register("nome", { required: true })}
           />
           <DescriptionField
             label="Descrição"
@@ -112,14 +105,13 @@ const CriarColecao = () =>{
             data-cy="collection-description"
             multiline
             maxRows={6}
-            value={description}
-            onChange={handleDescriptionChange}
             sx={{
               color: `${theme.palette.primary.main}`,
               "& .MuiInputBase-root": {
                 width: isMobile ? '100%' : '720px'
               }
             }}
+            {...register("descricao")}
           />
           <CuriosityField
             label="Curiosidades"
@@ -128,14 +120,13 @@ const CriarColecao = () =>{
             data-cy="collection-curiosity"
             multiline
             maxRows={6}
-            value={curiosity}
-            onChange={handleCuriosityChange}
             sx={{
               color: `${theme.palette.primary.main}`,
               "& .MuiInputBase-root": {
                 width: isMobile ? '100%' : '720px'
               }
             }}
+            {...register("curiosidades")}
           />
           <Horizontal />
         </FormFields>
@@ -148,45 +139,54 @@ const CriarColecao = () =>{
           >
             Coleção Privada
           </Typography>
-          <Checkbox
-            data-cy="collection-private"
+          <FormControlLabel
+            label=""
+            control={
+              <Controller
+                name="privado"
+                control={control}
+                render={({ field }) => (
+                  <Checkbox
+                    data-cy="collection-private"
+                    checked={Boolean(field.value)}
+                    onChange={(e) => field.onChange(e.target.checked)}
+                  />
+                )}
+              />
+            }
           />
         </CheckField>
         <ButonField>
           <ButtonSubmit
             data-cy="submit-button"
-            onClick={() => handleSubmit()}
+            onClick={handleSubmit(onSubmit)}
+            disabled={isSubmitting}
           >
             Salvar
           </ButtonSubmit>
         </ButonField>
-        {
-          alert ?
-            <Dialog
-              open={true}
-              onClose={() => setAlert(false)}
-              data-cy="dialog"
-            >
-              <DialogTitle>
-                Aviso
-              </DialogTitle>
-              <DialogContent>
-                <DialogContentText>
-                  {isSucess ? 'Coleção criada com sucesso' : 'Nome da coleção é obrigatório'}
-                </DialogContentText>
-              </DialogContent>
-              <DialogActions>
-                <Button 
-                  data-cy="dialog-button"
-                  onClick={() => { setAlert(false); setIsSucess(false) }}
-                >
-                  Ok
-                </Button>
-              </DialogActions>
-            </Dialog>
-          :
-          <></>
-        }
+          <Dialog
+            open={alert}
+            onClose={() => setAlert(false)}
+            data-cy="dialog"
+          >
+            <DialogTitle>
+              Aviso
+            </DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                Coleção criada com sucesso
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button 
+                data-cy="dialog-button"
+                onClick={() => setAlert(false)}
+              >
+                Ok
+              </Button>
+            </DialogActions>
+          </Dialog>
       </SubimtField>
     </Content>
   )

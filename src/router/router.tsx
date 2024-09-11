@@ -67,10 +67,14 @@ const router = createBrowserRouter([
         children: [
           {
             path: "/acervo/criar-item",
-
             element:
               <CriarItemAcervo />
           },
+          {
+            path: "/colecoes/criar-colecao",
+            element:
+              <CriarColecao/>
+          }
         ]
       },
       {
@@ -107,13 +111,6 @@ const router = createBrowserRouter([
         element:
           <CriarExposicao />
       },
-      {
-        path: "/colecoes/criar-colecao",
-        element:
-          <Suspense fallback={centeredLoading}>
-            <CriarColecao/>
-          </Suspense>
-      }
     ]
   }]);
 

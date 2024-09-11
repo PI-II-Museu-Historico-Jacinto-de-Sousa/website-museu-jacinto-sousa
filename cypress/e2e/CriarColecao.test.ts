@@ -49,7 +49,7 @@ describe("Criar uma nova coleção", () =>{
       cy.get("[data-cy='collection-curiosity']").type("Curiosidade de teste")
       cy.get("[data-cy='submit-button']").click()
   
-      cy.get("[data-cy='dialog']").contains("Nome da coleção é obrigatório")
+      cy.get("[data-cy='dialog']").should("not.exist")
     })
     it("Deve criar uma coleção com um nome", () =>{
       cy.get("[data-cy='collection-name']").type("Nome de teste")
@@ -84,8 +84,8 @@ describe("Criar uma nova coleção", () =>{
       cy.get("[data-cy='collection-description']").type("Descrição de teste")
       cy.get("[data-cy='collection-curiosity']").type("Curiosidade de teste")
       cy.get("[data-cy='submit-button']").click()
-  
-      cy.get("[data-cy='dialog']").contains("Nome da coleção é obrigatório")
+
+      cy.get("[data-cy='dialog']").should("not.exist")
     })
     it("Deve criar uma coleção com um nome", () =>{
       cy.get("[data-cy='collection-name']").type("Nome de teste")
