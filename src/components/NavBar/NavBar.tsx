@@ -24,13 +24,13 @@ import { loginMethods } from '../../Utils/loginGoogle'
 //Need to define links to other pages
 const pages = [
   { label: "Exposições", sectionItem: "Criar exposição", seacrhLink: "/", otherLink: "exposicoes/criar-exposicao" },
-  { label: "Acervo", sectionItem: "Adicionar item", seacrhLink: "/", otherLink: "acervo/criar-item" },
+  { label: "Acervo", sectionItem: "Adicionar item", seacrhLink: "/", otherLink: "acervo/criar-item", otherSection: "Criar coleção", anotherLink: "colecoes/criar-colecao" },
   { label: "Editais e normas", sectionItem: "Cadastrar normativa", seacrhLink: "/", otherLink: "/" },
 ]
 
 //Configurations of Menu Desktop
 
-const MenuConfigDesktop = ({ label, sectionItem, searchLink, otherLink }: { label: string, sectionItem: string, searchLink: string, otherLink: string }) => {
+const MenuConfigDesktop = ({ label, sectionItem, searchLink, otherLink, otherSection, anotherLink }: { label: string, sectionItem: string, searchLink: string, otherLink: string, otherSection: string | undefined, anotherLink: string | undefined }) => {
   const theme = useTheme()
 
   const [logged, setLogged] = useState(false)
@@ -88,6 +88,15 @@ const MenuConfigDesktop = ({ label, sectionItem, searchLink, otherLink }: { labe
                   <Typography sx={{ fontSize: '2vh', fontWeight: 'bold' }}>{sectionItem}</Typography>
                 </MenuItem>
               </Link>
+
+              {
+                anotherLink === undefined ? null :
+                  <Link to={anotherLink} style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <MenuItem onClick={handleClose} data-cy={`${otherSection}Option`}>
+                      <Typography sx={{ fontSize: '2vh', fontWeight: 'bold' }}>{otherSection}</Typography>
+                    </MenuItem>
+                  </Link>
+              }
             </Menu>
           </>
           :
@@ -129,7 +138,10 @@ const NavBarDesktop = ({ colorMode, mode, logged }: { colorMode: any, mode: Pale
                 label={page.label}
                 sectionItem={page.sectionItem}
                 searchLink={page.seacrhLink}
-                otherLink={page.otherLink} />
+                otherLink={page.otherLink}
+                anotherLink={page?.anotherLink}
+                otherSection={page?.otherSection}
+              />
             )
           })
         }
@@ -171,7 +183,7 @@ const NavBarDesktop = ({ colorMode, mode, logged }: { colorMode: any, mode: Pale
 
 //Configurations of Menu mobile
 
-const SubMenuConfig = ({ label, subItem, searchLink, otherLink }: { label: string, subItem: string, searchLink: string, otherLink: string }) => {
+const SubMenuConfig = ({ label, subItem, searchLink, otherLink, otherSection, anotherLink }: { label: string, subItem: string, searchLink: string, otherLink: string, otherSection: string | undefined, anotherLink: string | undefined }) => {
   const [anchorEl, setAnchorEl] = useState(null)
 
   const [logged, setLogged] = useState(false)
@@ -221,6 +233,15 @@ const SubMenuConfig = ({ label, subItem, searchLink, otherLink }: { label: strin
                   <Typography sx={{ fontSize: '2vh', fontWeight: 'bold' }}>{subItem}</Typography>
                 </MenuItem>
               </Link>
+
+              {
+                anotherLink === undefined ? null :
+                  <Link to={anotherLink} style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <MenuItem onClick={handleClose} data-cy={`${otherSection}Option`}>
+                      <Typography sx={{ fontSize: '2vh', fontWeight: 'bold' }}>{otherSection}</Typography>
+                    </MenuItem>
+                  </Link>
+              }
             </Menu>
           </>
           :
@@ -275,6 +296,8 @@ const MenuConfigMobile = () => {
                 subItem={page.sectionItem}
                 searchLink={page.seacrhLink}
                 otherLink={page.otherLink}
+                anotherLink={page?.anotherLink}
+                otherSection={page?.otherSection}
               />
             )
           })
