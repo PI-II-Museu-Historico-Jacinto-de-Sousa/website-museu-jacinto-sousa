@@ -4,6 +4,7 @@ import { Await, Outlet, createBrowserRouter, defer, redirect, useLoaderData } fr
 import { auth } from "../../firebase/firebase";
 import Root from "../Root";
 import Erro from "../pages/Erro";
+import Acervo from "../pages/Acervo";
 
 const Home = React.lazy(() => import("../pages/Home"));
 const CriarItemAcervo = React.lazy(() => import("../pages/CriarItemAcervo"));
@@ -82,6 +83,13 @@ const router = createBrowserRouter([
         element:
           <Suspense fallback={centeredLoading}>
             <Login />
+          </Suspense>,
+      },
+      {
+        path: "/acervo",
+        element:
+          <Suspense fallback={centeredLoading}>
+            <Acervo />
           </Suspense>,
       },
       {
