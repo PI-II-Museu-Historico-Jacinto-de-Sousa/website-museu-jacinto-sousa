@@ -6,12 +6,14 @@ import Erro from "../pages/Erro";
 import { exposicaoLoader, homeRedirectLoader, loginRedirectLoader, privateLoader } from "./loaders";
 import CriarExposicao from "../pages/CriarExposicao";
 import CriarColecao from "../pages/CriarColecao";
+import AcervoMock from "../pages/AcervoMock";
 
 const Home = React.lazy(() => import("../pages/Home"));
 const CriarItemAcervo = React.lazy(() => import("../pages/CriarItemAcervo"));
 const ItemAcervo = React.lazy(() => import("../pages/ItemAcervo"));
 const PageExposicao = React.lazy(() => import("../pages/exposicoes/VisualizarExposicao"));
 const Login = React.lazy(() => import("../pages/Login"));
+const Acervo = React.lazy(() => import("../pages/Acervo"));
 
 const centeredLoading = (
   <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
@@ -62,6 +64,20 @@ const router = createBrowserRouter([
           </Suspense>,
       },
       {
+        path: "/acervo",
+        element:
+          <Suspense fallback={centeredLoading}>
+            <Acervo />
+          </Suspense>,
+      },
+      {
+        path: "/acervo-mock",
+        element:
+          <Suspense fallback={centeredLoading}>
+            <AcervoMock />
+          </Suspense>,
+      },
+      {
         element: <ProtectedRoutes />,
         loader: privateLoader,
         children: [
@@ -74,7 +90,7 @@ const router = createBrowserRouter([
             path: "/colecoes/criar-colecao",
             element:
               <CriarColecao/>
-          }
+          },
         ]
       },
       {

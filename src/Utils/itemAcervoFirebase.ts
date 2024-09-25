@@ -7,6 +7,7 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  getDocs,
   setDoc,
   updateDoc,
 } from "firebase/firestore";
@@ -24,6 +25,48 @@ import { ItemAcervo } from "../interfaces/ItemAcervo";
 import { FirebaseError } from "firebase/app";
 import { Colecao } from "../interfaces/Colecao";
 import Imagem from "../interfaces/Imagem";
+
+const getItensAcervo = async (includePrivate: boolean = false): Promise<ItemAcervo[]> => {
+  try {
+    const itensAcervo: ItemAcervo[] = [];
+    const colecoesRef = collection(db, "colecoes/publico/lista");
+    const colecoesSnapshot = await getDocs(colecoesRef);
+
+    for (const colecaoDoc of colecoesSnapshot.docs) {
+      const colecaoPath = colecaoDoc.ref.path;
+      
+      // Busca itens públicos
+      const itensPublicosRef = collection(db, `${colecaoPath}/publico`);
+      const itensPublicosSnapshot = await getDocs(itensPublicosRef);
+
+      for (const itemDoc of itensPublicosSnapshot.docs) {
+        const itemData = itemDoc.data() as ItemAcervo;
+        itemData.id = itemDoc.id;
+        itemData.colecao = colecaoDoc.id;
+        itensAcervo.push(await getItemAcervo(itemDoc.ref.path));
+        // itensAcervo.push(await processarImagens(itemData));
+      }
+
+      // Busca itens privados se includePrivate for true
+      if (includePrivate) {
+        const itensPrivadosRef = collection(db, `${colecaoPath}/privado`);
+        const itensPrivadosSnapshot = await getDocs(itensPrivadosRef);
+
+        for (const itemDoc of itensPrivadosSnapshot.docs) {
+          const itemData = itemDoc.data() as ItemAcervo;
+          itemData.id = itemDoc.id;
+          itemData.colecao = colecaoDoc.id;
+          itensAcervo.push(await getItemAcervo(itemDoc.ref.path));
+        }
+      }
+    }
+
+    return itensAcervo;
+  } catch (error) {
+    console.error("Erro ao buscar itens do acervo:", error);
+    throw new Error("Não foi possível carregar os itens do acervo");
+  }
+};
 
 const getItemAcervo = async (fullPath: string) => {
   try {
@@ -336,6 +379,7 @@ const methodsItemAcervo = {
   deleteItemAcervo,
   removerImagens,
   getItemAcervo,
+  getItensAcervo,
   adicionarImagens,
   updateItemAcervo,
   getImagemItemAcervo,
@@ -346,6 +390,7 @@ export {
   methodsItemAcervo,
   deleteItemAcervo,
   getItemAcervo,
+  getItensAcervo,
   updateItemAcervo,
   getImagemItemAcervo,
 };

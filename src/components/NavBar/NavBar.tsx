@@ -24,7 +24,7 @@ import { loginMethods } from '../../Utils/loginGoogle'
 //Need to define links to other pages
 const pages = [
   { label: "Exposições", sectionItem: "Criar exposição", seacrhLink: "/", otherLink: "exposicoes/criar-exposicao" },
-  { label: "Acervo", sectionItem: "Adicionar item", seacrhLink: "/", otherLink: "acervo/criar-item", otherSection: "Criar coleção", anotherLink: "colecoes/criar-colecao" },
+  { label: "Acervo", sectionItem: "Adicionar item", seacrhLink: "acervo", otherLink: "acervo/criar-item", otherSection: "Criar coleção", anotherLink: "colecoes/criar-colecao" },
   { label: "Editais e normas", sectionItem: "Cadastrar normativa", seacrhLink: "/", otherLink: "/" },
 ]
 

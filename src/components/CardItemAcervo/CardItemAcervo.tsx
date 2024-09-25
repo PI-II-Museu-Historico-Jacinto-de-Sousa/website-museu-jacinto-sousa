@@ -107,10 +107,10 @@ const CardItemAcervo: React.FC<CardItemAcervoProps> = ({ item }) => {
         />
       )}
       <CardContent>
-        <Typography variant="body1" sx={{ fontSize: '20px' }}>
+        <Typography variant="body1" sx={{ fontSize: '20px' }} data-cy="card-item-nome">
           {nome ? nome : 'Nome do item'}
         </Typography>
-        <Typography variant="body2" sx={{ fontSize: '15px' }}>
+        <Typography variant="body2" sx={{ fontSize: '15px' }} data-cy={privado ? 'item-privado' : 'item-publico'}>
           {privado ? 'Fora de exposição' : 'Em exposição'}
         </Typography>
         <Typography sx={{ marginTop: '15px', marginBottom: '15px' }} data-cy='card-item-description'>
