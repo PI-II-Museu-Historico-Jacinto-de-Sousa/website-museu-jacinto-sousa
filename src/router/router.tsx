@@ -6,6 +6,7 @@ import Erro from "../pages/Erro";
 import { exposicaoLoader, homeRedirectLoader, loginRedirectLoader, privateLoader } from "./loaders";
 import CriarExposicao from "../pages/CriarExposicao";
 import CriarColecao from "../pages/CriarColecao";
+import AcervoMock from "../pages/AcervoMock";
 
 const Home = React.lazy(() => import("../pages/Home"));
 const CriarItemAcervo = React.lazy(() => import("../pages/CriarItemAcervo"));
@@ -70,6 +71,13 @@ const router = createBrowserRouter([
           </Suspense>,
       },
       {
+        path: "/acervo-mock",
+        element:
+          <Suspense fallback={centeredLoading}>
+            <AcervoMock />
+          </Suspense>,
+      },
+      {
         element: <ProtectedRoutes />,
         loader: privateLoader,
         children: [
@@ -82,7 +90,7 @@ const router = createBrowserRouter([
             path: "/colecoes/criar-colecao",
             element:
               <CriarColecao/>
-          }
+          },
         ]
       },
       {
