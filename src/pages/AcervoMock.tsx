@@ -15,7 +15,22 @@ import { onAuthStateChanged } from 'firebase/auth';
 import CardItemAcervo from '../components/CardItemAcervo/CardItemAcervo';
 import { ItemAcervo } from '../interfaces/ItemAcervo';
 import { auth } from '../../firebase/firebase';
-import { getItensAcervo } from '../Utils/itemAcervoFirebase';
+
+const getItensAcervo = async (isLoggedIn: boolean): Promise<ItemAcervo[]> => {
+  const mockItems = [
+    { id: '1', nome: 'Item A', colecao: 'Coleção 1', privado: false, dataDoacao: new Date('2024-09-01'), descricao: '', curiosidades: '', doacao: false, doacaoAnonima: false, nomeDoador: '', telefoneDoador: '', imagens: [] },
+    { id: '2', nome: 'Item B', colecao: 'Coleção 2', privado: false, dataDoacao: new Date('2024-09-02'), descricao: '', curiosidades: '', doacao: false, doacaoAnonima: false, nomeDoador: '', telefoneDoador: '', imagens: [] },
+    { id: '3', nome: 'Item C', colecao: 'Coleção 1', privado: true, dataDoacao: new Date('2024-09-03'), descricao: '', curiosidades: '', doacao: false, doacaoAnonima: false, nomeDoador: '', telefoneDoador: '', imagens: [] },
+    { id: '4', nome: 'Item D', colecao: 'Coleção 3', privado: false, dataDoacao: new Date('2024-09-04'), descricao: '', curiosidades: '', doacao: false, doacaoAnonima: false, nomeDoador: '', telefoneDoador: '', imagens: [] },
+    { id: '5', nome: 'Item E', colecao: 'Coleção 2', privado: false, dataDoacao: new Date('2024-09-05'), descricao: '', curiosidades: '', doacao: false, doacaoAnonima: false, nomeDoador: '', telefoneDoador: '', imagens: [] },
+    { id: '6', nome: 'Item F', colecao: 'Coleção 3', privado: true, dataDoacao: new Date('2024-09-06'), descricao: '', curiosidades: '', doacao: false, doacaoAnonima: false, nomeDoador: '', telefoneDoador: '', imagens: [] },
+    { id: '7', nome: 'Item G', colecao: 'Coleção 1', privado: false, dataDoacao: new Date('2024-09-07'), descricao: '', curiosidades: '', doacao: false, doacaoAnonima: false, nomeDoador: '', telefoneDoador: '', imagens: [] },
+    { id: '8', nome: 'Item H', colecao: 'Coleção 2', privado: false, dataDoacao: new Date('2024-09-08'), descricao: '', curiosidades: '', doacao: false, doacaoAnonima: false, nomeDoador: '', telefoneDoador: '', imagens: [] },
+    { id: '9', nome: 'Item I', colecao: 'Coleção 3', privado: false, dataDoacao: new Date('2024-09-09'), descricao: '', curiosidades: '', doacao: false, doacaoAnonima: false, nomeDoador: '', telefoneDoador: '', imagens: [] },
+    { id: '10', nome: 'Item J', colecao: 'Coleção 1', privado: true, dataDoacao: new Date('2024-09-10'), descricao: '', curiosidades: '', doacao: false, doacaoAnonima: false, nomeDoador: '', telefoneDoador: '', imagens: [] }
+  ];
+  return isLoggedIn ? mockItems : mockItems.filter(item => !item.privado);
+}
 
 const Content = styled(Box)(({ theme }) => ({
   padding: theme.spacing(3),
@@ -45,7 +60,7 @@ const Description = styled(Box)(() => ({
   alignItems: 'center'
 }));
 
-const Acervo: React.FC = () => {
+const AcervoMock: React.FC = () => {
   const [itens, setItens] = useState<ItemAcervo[]>([]);
   const [filteredItens, setFilteredItens] = useState<ItemAcervo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -256,4 +271,4 @@ const Acervo: React.FC = () => {
   );
 };
 
-export default Acervo;
+export default AcervoMock;
